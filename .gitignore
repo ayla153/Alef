@@ -1,27 +1,59 @@
-#virtual environment
-venv\
-#pycache
-__pycache__\
-#log files
-*.log
-#database files
-*.db
-#env files
-.env    
-#DS_Store
-.DS_Store   
-#idea files
-.idea\
-#vscode files
-.vscode\
-#pytest cache
-.pytest_cache\
-# macOS
-.DS_Store
-# Windows
-Thumbs.db
-# Coverage reports
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Byte-compiled / optimized / DLL files
+*.pyc
+*.pyo
+
+# Testing & coverage
+.pytest_cache/
 .coverage
 htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
 
-# alembic/versions/*
+# Type checkers & linters
+.mypy_cache/
+.ruff_cache/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs & databases
+*.log
+*.db
+
+# Jupyter (if you ever use it)
+.ipynb_checkpoints/
+
+# Optional: uncomment if you don’t want to commit Alembic versions
+# alembic/versions/*.py
