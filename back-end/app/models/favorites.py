@@ -2,6 +2,11 @@ from sqlalchemy import Integer, TIMESTAMP, ForeignKey
 from app.database import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.students import Student
+    from app.models.tutors import Tutor
 
 class Favorite(Base):
     __tablename__ = "favorites"
@@ -14,6 +19,6 @@ class Favorite(Base):
     tutor_id: Mapped[int] = mapped_column(ForeignKey("tutors.tutor_id"), nullable=False)
 
     #relationships
-    student = relationship("Student", back_populates="favorites")
-    tutor = relationship("Tutor", back_populates="favorites")
+    student : Mapped["Student"] = relationship("Student", back_populates="favorites")
+    tutor : Mapped["Tutor"] = relationship("Tutor", back_populates="favorites")
     
