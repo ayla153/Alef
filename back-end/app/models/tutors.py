@@ -1,9 +1,16 @@
 from sqlalchemy import Enum, Integer, String, TIMESTAMP
 from app.database import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from typing import Optional
+from typing import TYPE_CHECKING, Optional, List
 from datetime import datetime
 from app.schemas.enums import tution_type_enum
+
+if TYPE_CHECKING:
+    from app.models.addresses import Address
+    from app.models.favorites import Favorite
+    from app.models.reviews import Review
+    from app.models.post_statuses import PostStatus
+    from app.models.tutor_subjects import TutorSubject
 
 class Tutor(Base):
     __tablename__ = "tutors"
@@ -24,8 +31,9 @@ class Tutor(Base):
     verified: Mapped[bool] = mapped_column(nullable=False, default=False)
 
     #relationships
-    favorites = relationship("Favorite", back_populates="tutor")
-    reviews = relationship("Review", back_populates="tutor")
-    post_statuses = relationship("PostStatus", back_populates="tutor")
-    tutor_subjects = relationship("TutorSubject", back_populates="tutor")
+    favorites : Mapped["Favorite"] = relationship("Favorite", back_populates="tutor", cascade="all, delete-orphan")
+    reviews : Mapped[List["Review"]] = relationship("Review", back_populates="tutor", cascade="all, delete-orphan")
+    post_statuses : Mapped["PostStatus"] = relationship("PostStatus", back_populates="tutor")
+    tutor_subjects : Mapped["TutorSubject"] = relationship("TutorSubject", back_populates="tutor")
+    Address : Mapped[Optional["Address"]] = relationship("Address", back_populates="tutor", uselist=False, cascade="all, delete-orphan")
     

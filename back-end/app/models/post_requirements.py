@@ -1,13 +1,19 @@
 from sqlalchemy import Integer, String, TIMESTAMP, Boolean, Float, Enum, ForeignKey
 from app.database import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from app.schemas.enums import gender_enum, tution_type_enum
+
+if TYPE_CHECKING:
+    from app.models.students import Student
+    from app.models.subjects import Subject
+    from app.models.levels import Level
+    from app.models.post_statuses import PostStatus
 
 class PostRequirement(Base):
     __tablename__ = "post_requirements"
 
-    post_requirement_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    post_requirements_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     title: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str] = mapped_column(String(500), nullable=False)
     foundation_tution: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
@@ -23,7 +29,7 @@ class PostRequirement(Base):
     level_id: Mapped[int] = mapped_column(ForeignKey("levels.level_id"), nullable=False)
 
     #relationships
-    student = relationship("Student", back_populates="post_requirements")
-    subject = relationship("Subject", back_populates="post_requirements")
-    level = relationship("Level", back_populates="post_requirements")
-    post_statuses = relationship("PostStatus", back_populates="posts")
+    student : Mapped["Student"] = relationship("Student", back_populates="post_requirements")
+    subject : Mapped["Subject"] = relationship("Subject", back_populates="post_requirements")
+    level : Mapped["Level"] = relationship("Level", back_populates="post_requirements")
+    post_statuses : Mapped["PostStatus"] = relationship("PostStatus", back_populates="posts", cascade="all, delete-orphan")
