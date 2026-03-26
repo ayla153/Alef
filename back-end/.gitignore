@@ -1,7 +1,7 @@
 #virtual environment
-venv\
+venv/
 #pycache
-__pycache__\
+__pycache__/
 #log files
 *.log
 #database files
@@ -11,11 +11,11 @@ __pycache__\
 #DS_Store
 .DS_Store   
 #idea files
-.idea\
+.idea/
 #vscode files
-.vscode\
+.vscode/
 #pytest cache
-.pytest_cache\
+.pytest_cache/
 # macOS
 .DS_Store
 # Windows

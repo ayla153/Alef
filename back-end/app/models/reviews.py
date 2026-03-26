@@ -2,6 +2,11 @@ from sqlalchemy import Integer, String, TIMESTAMP, ForeignKey
 from app.database import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.tutors import Tutor
+    from app.models.students import Student
 
 class Review(Base):
     __tablename__ = "reviews"
@@ -16,5 +21,5 @@ class Review(Base):
     student_id: Mapped[int] = mapped_column(ForeignKey("students.student_id"), nullable=False)
 
     #relationships
-    tutor = relationship("Tutor", back_populates="reviews")
-    student = relationship("Student", back_populates="reviews")
+    tutor : Mapped["Tutor"] = relationship("Tutor", back_populates="reviews")
+    student : Mapped["Student"] = relationship("Student", back_populates="reviews")
