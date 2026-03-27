@@ -4,7 +4,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-     from app.models.subjects import Subject
+     from app.models.post_requirements import PostRequirement
+     from app.models.tutor_subjects import TutorSubject
 
 class Level(Base):
     __tablename__ = "levels"
@@ -13,4 +14,5 @@ class Level(Base):
     level_title: Mapped[str] = mapped_column(String(100), nullable=False)
 
     #relationships
-    subject : Mapped["Subject"] = relationship("Subject", back_populates="levels")
+    post_requirements : Mapped["PostRequirement"] = relationship("PostRequirement", back_populates="level")
+    tutor_subjects : Mapped["TutorSubject"] = relationship("TutorSubject", back_populates="level")
