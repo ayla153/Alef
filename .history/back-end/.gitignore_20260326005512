@@ -1,0 +1,31 @@
+#virtual environment
+venv\
+#pycache
+__pycache__\
+#log files
+*.log
+#database files
+*.db
+#env files
+.env    
+#DS_Store
+.DS_Store   
+#idea files
+.idea\
+#vscode files
+.vscode\
+#pytest cache
+.pytest_cache\
+# macOS
+.DS_Store
+Thumbs.db
+
+# Logs & databases
+*.log
+*.db
+
+# Jupyter (if you ever use it)
+.ipynb_checkpoints/
+
+# Optional: uncomment if you don’t want to commit Alembic versions
+# alembic/versions/*.py
