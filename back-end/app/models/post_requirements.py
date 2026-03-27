@@ -32,4 +32,9 @@ class PostRequirement(Base):
     student : Mapped["Student"] = relationship("Student", back_populates="post_requirements")
     subject : Mapped["Subject"] = relationship("Subject", back_populates="post_requirements")
     level : Mapped["Level"] = relationship("Level", back_populates="post_requirements")
-    post_statuses : Mapped["PostStatus"] = relationship("PostStatus", back_populates="posts", cascade="all, delete-orphan")
+    post_status: Mapped[Optional["PostStatus"]] = relationship(
+        "PostStatus",
+        back_populates="post",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
