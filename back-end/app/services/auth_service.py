@@ -39,7 +39,7 @@ def authenticate_admin(db: Session, email: str, password: str) -> Admin | None:
     return admin
 
 #TODO add all info that is required for student registration
-"""
+
 def register_student(db: Session, data: StudentRegister) -> Student:
     hashed = get_password_hash(data.password)
     student = Student(
@@ -58,10 +58,10 @@ def register_student(db: Session, data: StudentRegister) -> Student:
         raise AuthError("Email already registered", "email_taken") from None
     db.refresh(student)
     return student
-"""
+
 
 #TODO add all info that is required for tutor registration
-"""
+
 def register_tutor(db: Session, data: TutorRegister) -> Tutor:
     hashed = get_password_hash(data.password)
     now = datetime.now(timezone.utc)
@@ -85,7 +85,7 @@ def register_tutor(db: Session, data: TutorRegister) -> Tutor:
         raise AuthError("Email already registered", "email_taken") from None
     db.refresh(tutor)
     return tutor
-"""
+
 
 def token_for_student(student: Student) -> str:
     return create_access_token(str(student.student_id), "student")
