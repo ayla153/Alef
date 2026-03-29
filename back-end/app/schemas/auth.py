@@ -80,9 +80,8 @@ class TutorRegisterStep1(BaseModel):
 
 
 class TutorSubjectSelection(BaseModel):
-    subject_id: int 
-    level_id: list[int]   #should take levels not only one id fix this
-
+    subject_id: int
+    level_ids: list[int] = Field(..., min_length=1)  # renamed, require at least one level
     foundation: bool = False
 
 
@@ -90,11 +89,16 @@ class TutorRegisterStep2(BaseModel):
     subjects: list[TutorSubjectSelection] = Field(..., min_length=1)
 
     @model_validator(mode="after")
-    def unique_subject_level_pairs(self) -> TutorRegisterStep2:
-        pairs = {(s.subject_id, s.level_id) for s in self.subjects}
-        if len(pairs) != len(self.subjects):
-            raise ValueError("duplicate subject and level combination")
+    def unique_subject_level_pairs(self) -> "TutorRegisterStep2":
+        pairs = set()
+        for s in self.subjects:
+            for lid in s.level_ids:
+                pair = (s.subject_id, lid)
+                if pair in pairs:
+                    raise ValueError("duplicate subject and level combination")
+                pairs.add(pair)
         return self
+
 
 
 class TutorRegisterStep3(BaseModel):
