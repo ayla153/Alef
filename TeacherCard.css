@@ -1,0 +1,179 @@
+/* ===== Teachers Grid ===== */
+.teachers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 25px;
+}
+
+.card {
+  background: var(--white);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+  transition: 0.25s;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+}
+
+/* Header */
+.card-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.profile-img {
+  width: 85px;
+  height: 85px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+/* Info */
+.info {
+  flex: 1;
+  text-align: right;
+}
+
+.info h3 {
+  font-size: 1rem;
+  margin-bottom: 2px;
+}
+
+.subtitle {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+.star {
+  color: #f59e0b;
+}
+
+.score {
+  font-weight: bold;
+}
+
+.reviews-count {
+  color: #94a3b8;
+  font-size: 0.7rem;
+}
+
+/* Experience */
+.experience {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* Bookmark */
+.fav-btn {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: #ffffff;
+  border: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fav-btn svg {
+  font-size: 20px;
+}
+
+/* Tags */
+.tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 5px;
+}
+
+.tag {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+}
+
+/* Services */
+.services {
+  margin-top: 5px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.service-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  margin-bottom: 6px;
+}
+
+.service-name {
+  font-weight: bolder;
+  border-radius: 15px;
+}
+
+.online {
+  background: #eff6ff;
+  color: var(--primary);
+}
+
+.offline {
+  background: #ede9fe;
+  color: #6b21a8;
+}
+
+.service-item.disabled {
+  text-decoration: line-through;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.price {
+  color: var(--primary);
+  font-weight: bold;
+}
+
+.price small {
+  font-weight: normal;
+  color: #94a3b8;
+}
+
+/* Button */
+.profile-btn {
+  width: 100%;
+  padding: 10px;
+  font-size: 0.9rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.profile-btn:hover {
+  background: #1d4ed8;
+}
