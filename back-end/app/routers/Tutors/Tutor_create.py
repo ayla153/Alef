@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from datetime import date, datetime
 import re
-from app.schemas.enums import TutionTypeEnum
+from app.schemas.enums import tution_type_enum
 
 class CreateTutor(BaseModel):
     model_config = ConfigDict(
@@ -71,7 +71,7 @@ class CreateTutor(BaseModel):
         description="Total years of experience - between 0 and 70"
     )
 
-    tution_type: TutionTypeEnum = Field(
+    tution_type: tution_type_enum = Field(
         ...,
         description="Tuition type (e.g., online, offline, both)"
     )

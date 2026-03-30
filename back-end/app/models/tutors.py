@@ -35,5 +35,5 @@ class Tutor(Base):
     reviews : Mapped[List["Review"]] = relationship("Review", back_populates="tutor", cascade="all, delete-orphan")
     post_statuses : Mapped["PostStatus"] = relationship("PostStatus", back_populates="tutor")
     tutor_subjects : Mapped["TutorSubject"] = relationship("TutorSubject", back_populates="tutor")
-    Address : Mapped[Optional["Address"]] = relationship("Address", back_populates="tutor", uselist=False, cascade="all, delete-orphan")
+    address : Mapped[Optional["Address"]] = relationship("Address", back_populates="tutor", uselist=False, cascade="all, delete-orphan")
     

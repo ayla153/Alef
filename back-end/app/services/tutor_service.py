@@ -6,10 +6,11 @@ import shutil
 
 from fastapi import HTTPException, status, UploadFile
 from passlib.context import CryptContext
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.tutors import Tutor
 from app.routers.Tutors.Tutor_create import CreateTutor
+from app.routers.Tutors.Tutor_out import TutorOut
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -27,7 +28,29 @@ def get_tutor_by_email(db: Session, email: str) -> Tutor | None:
 
 
 def get_tutor_by_id(db: Session, tutor_id: int) -> Tutor | None:
-    return db.query(Tutor).filter(Tutor.tutor_id == tutor_id).first()
+    return (
+        db.query(Tutor)
+        .options(
+            joinedload(Tutor.reviews),
+            joinedload(Tutor.address),
+            joinedload(Tutor.tutor_subjects),
+        )
+        .filter(Tutor.tutor_id == tutor_id)
+        .first()
+    )
+
+
+def _tutor_to_out(tutor: Tutor):
+    from app.routers.Tutors.Tutor_out import TutorOut
+
+    return TutorOut.model_validate(tutor)
+
+
+def get_tutor_by_id_out(db: Session, tutor_id: int):
+    tutor = get_tutor_by_id(db, tutor_id)
+    if not tutor:
+        return None
+    return _tutor_to_out(tutor)
 
 
 def _save_upload_file(upload_file: UploadFile, folder: str) -> str:
@@ -52,7 +75,7 @@ def _save_upload_file(upload_file: UploadFile, folder: str) -> str:
     return str(dest_file).replace('\\', '/')
 
 
-def create_tutor(db: Session, tutor_data: CreateTutor) -> Tutor:
+def create_tutor(db: Session, tutor_data: CreateTutor) -> "TutorOut":
     # 1) email uniqueness check in service layer (business logic)
     existing = get_tutor_by_email(db, tutor_data.email)
     if existing:
@@ -82,10 +105,12 @@ def create_tutor(db: Session, tutor_data: CreateTutor) -> Tutor:
     db.add(tutor_obj)
     db.commit()
     db.refresh(tutor_obj)
-    return tutor_obj
+    return _tutor_to_out(tutor_obj)
 
 
-def update_tutor_photo(db: Session, tutor_id: int, file: UploadFile) -> Tutor:
+def update_tutor_photo(db: Session, tutor_id: int, file: UploadFile) -> "TutorOut":
+    from app.routers.Tutors.Tutor_out import TutorOut
+
     tutor = get_tutor_by_id(db, tutor_id)
     if not tutor:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tutor not found")
@@ -94,10 +119,10 @@ def update_tutor_photo(db: Session, tutor_id: int, file: UploadFile) -> Tutor:
     tutor.tutor_photo = photo_path
     db.commit()
     db.refresh(tutor)
-    return tutor
+    return _tutor_to_out(tutor)
 
 
-def update_tutor_video(db: Session, tutor_id: int, file: UploadFile) -> Tutor:
+def update_tutor_video(db: Session, tutor_id: int, file: UploadFile) -> TutorOut:
     tutor = get_tutor_by_id(db, tutor_id)
     if not tutor:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tutor not found")
@@ -106,4 +131,4 @@ def update_tutor_video(db: Session, tutor_id: int, file: UploadFile) -> Tutor:
     tutor.tutor_video = video_path
     db.commit()
     db.refresh(tutor)
-    return tutor
+    return _tutor_to_out(tutor)

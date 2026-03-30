@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 from datetime import date, datetime
 from typing import Optional, List
-from app.schemas.enums import TuitionTypeEnum
+from app.schemas.enums import tution_type_enum
 from app.routers.Reviews.Review_out import ReviewOut
 from app.routers.Addresses.Address_out import AddressOut
 from app.routers.Tutor_Subjects.Tutor_Subjects_out import TutorSubjectsOut
@@ -23,7 +23,7 @@ class TutorOut(BaseModel):
     bio: Optional[str] = None
     experience_years: Optional[int] = None
     registered_at: datetime
-    tution_type: TuitionTypeEnum
+    tution_type: tution_type_enum
     verified: bool
     reviews: Optional[List[ReviewOut]] = None  # Include reviews if needed
     Address: Optional[AddressOut] = None  # Include address if needed
