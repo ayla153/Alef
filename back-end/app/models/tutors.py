@@ -25,7 +25,7 @@ class Tutor(Base):
     tutor_photo: Mapped[Optional[str]] = mapped_column(String,nullable=True)
     tutor_video: Mapped[Optional[str]] = mapped_column(String,nullable=True)
     bio: Mapped[str] = mapped_column(String(500),nullable=True)
-    total_experience_years: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    experience_years: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     registered_at: Mapped[datetime] = mapped_column(TIMESTAMP, nullable=False)
     tution_type: Mapped[tution_type_enum] = mapped_column(Enum(tution_type_enum), nullable=False)
     verified: Mapped[bool] = mapped_column(nullable=False, default=False)
