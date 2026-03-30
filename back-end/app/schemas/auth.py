@@ -80,31 +80,32 @@ class TutorRegisterStep1(BaseModel):
 
 
 class TutorSubjectSelection(BaseModel):
-    subject_id: int
-    level_ids: list[int] = Field(..., min_length=1)  # renamed, require at least one level
+    subject_id: int 
     foundation: bool = False
+    experience_years: int | None = Field(None, ge=0)
+    stage_1: bool = False
+    stage_2: bool = False
+    stage_3: bool = False
 
 
 class TutorRegisterStep2(BaseModel):
     subjects: list[TutorSubjectSelection] = Field(..., min_length=1)
+    
 
-    @model_validator(mode="after")
-    def unique_subject_level_pairs(self) -> "TutorRegisterStep2":
-        pairs = set()
-        for s in self.subjects:
-            for lid in s.level_ids:
-                pair = (s.subject_id, lid)
-                if pair in pairs:
-                    raise ValueError("duplicate subject and level combination")
-                pairs.add(pair)
-        return self
 
 
 
 class TutorRegisterStep3(BaseModel):
     tution_type: tution_type_enum
-    experience_years: int | None = Field(None, ge=0)
+    total_experience_years: int | None = Field(None, ge=0)
+    price_stage_1: int | None = Field(None, ge=0)
+    price_stage_2: int | None = Field(None, ge=0)
+    price_stage_3: int | None = Field(None, ge=0)
 
 
 class TutorRegisterStep4(BaseModel):
     bio: str | None = Field(None, max_length=500)
+    tutor_photo_url: str | None = Field(None, max_length=255)
+    tutor_video_url: str | None = Field(None, max_length=255)
+    certificate_url: str | None = Field(None, max_length=255)
+
