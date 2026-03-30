@@ -15,7 +15,7 @@ class post_status_enum(str, Enum):
     REJECTED = "rejected"
     CLOSED = "closed"
 
-class StudentGrade(str, Enum):
+class student_grade_enum(str, Enum):
     PRIMARY_1 = "primary_1"
     PRIMARY_2 = "primary_2"
     PRIMARY_3 = "primary_3"
