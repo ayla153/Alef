@@ -119,11 +119,12 @@ def token_for_admin(admin: Admin) -> str:
 TUTOR_REGISTRATION_ROLE = "tutor_registration"
 
 
-def registration_token_for_tutor(tutor_id: int) -> str:
+def registration_token_for_tutor(tutor_id: int, step: int) -> str:
     return create_access_token(
         str(tutor_id),
         TUTOR_REGISTRATION_ROLE,
         expires_delta=timedelta(minutes=settings.REGISTRATION_TOKEN_EXPIRE_MINUTES),
+        extra_claims={"step": step},
     )
 
 

@@ -54,6 +54,7 @@ class TutorRegister(BaseModel):
 class TokenPayload(BaseModel):
     sub: int
     role: str
+    step: int | None = None
 
 
 class TutorRegistrationProgress(BaseModel):

@@ -1,9 +1,12 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel, ConfigDict, EmailStr
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, ConfigDict
 
-from app.api.deps import DbSession, get_current_tutor_registration
+from app.api.deps import (
+    DbSession,
+    require_tutor_registration_step,
+)
 from app.models.tutors import Tutor
 from app.schemas.auth import (
     LoginRequest,
@@ -119,14 +122,14 @@ def tutor_register_step_1(db: DbSession, body: TutorRegisterStep1) -> TutorRegis
     except AuthError as e:
         raise _http_for_auth_error(e) from e
     return TutorRegistrationProgress(
-        registration_token=auth_service.registration_token_for_tutor(tutor.tutor_id),
+        registration_token=auth_service.registration_token_for_tutor(tutor.tutor_id, step=2),
     )
 
 
 @router.post("/tutor/register/step-2", response_model=TutorRegistrationProgress)
 def tutor_register_step_2(
     db: DbSession,
-    tutor: Annotated[Tutor, Depends(get_current_tutor_registration)],
+    tutor: Annotated[Tutor, Depends(require_tutor_registration_step(2))],
     body: TutorRegisterStep2,
 ) -> TutorRegistrationProgress:
     try:
@@ -134,14 +137,14 @@ def tutor_register_step_2(
     except AuthError as e:
         raise _http_for_auth_error(e) from e
     return TutorRegistrationProgress(
-        registration_token=auth_service.registration_token_for_tutor(tutor.tutor_id),
+        registration_token=auth_service.registration_token_for_tutor(tutor.tutor_id, step=3),
     )
 
 
 @router.post("/tutor/register/step-3", response_model=TutorRegistrationProgress)
 def tutor_register_step_3(
     db: DbSession,
-    tutor: Annotated[Tutor, Depends(get_current_tutor_registration)],
+    tutor: Annotated[Tutor, Depends(require_tutor_registration_step(3))],
     body: TutorRegisterStep3,
 ) -> TutorRegistrationProgress:
     try:
@@ -149,14 +152,14 @@ def tutor_register_step_3(
     except AuthError as e:
         raise _http_for_auth_error(e) from e
     return TutorRegistrationProgress(
-        registration_token=auth_service.registration_token_for_tutor(tutor.tutor_id),
+        registration_token=auth_service.registration_token_for_tutor(tutor.tutor_id, step=4),
     )
 
 
 @router.post("/tutor/register/step-4", response_model=Token)
 def tutor_register_step_4(
     db: DbSession,
-    tutor: Annotated[Tutor, Depends(get_current_tutor_registration)],
+    tutor: Annotated[Tutor, Depends(require_tutor_registration_step(4))],
     body: TutorRegisterStep4,
 ) -> Token:
     try:
