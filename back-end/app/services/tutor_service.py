@@ -9,12 +9,7 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session, joinedload
 
 from app.models.tutors import Tutor
-<<<<<<< HEAD
 from app.api.routers.Tutors.Tutor_create import CreateTutor
-=======
-from app.routers.Tutors.Tutor_create import CreateTutor
-from app.routers.Tutors.Tutor_out import TutorOut
->>>>>>> origin/ayla-11-Tutor-CRUD
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
