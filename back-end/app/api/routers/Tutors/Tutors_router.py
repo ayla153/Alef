@@ -20,6 +20,28 @@ def create_tutor(
     return tutor_service.create_tutor(db, tutor)
 
 
+@router.get("/{tutor_id}", response_model=TutorOut)
+def get_tutor_by_id(
+    tutor_id: int,
+    db: Session = Depends(get_db),
+):
+    tutor = tutor_service.get_tutor_by_id_out(db, tutor_id)
+    if not tutor:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tutor not found")
+    return tutor
+
+
+@router.get("/me", response_model=TutorOut)
+def get_me_tutor(
+    tutor_id: int = Query(..., description="Your tutor ID. This should normally come from auth context."),
+    db: Session = Depends(get_db),
+):
+    tutor = tutor_service.get_tutor_by_id_out(db, tutor_id)
+    if not tutor:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tutor not found")
+    return tutor
+
+
 @router.post("/{tutor_id}/photo", response_model=TutorOut)
 def upload_tutor_photo(
     tutor_id: int,

@@ -23,7 +23,7 @@ class TutorOut(BaseModel):
     bio: Optional[str] = None
     experience_years: Optional[int] = None
     registered_at: datetime
-    tution_type: TuitionTypeEnum
+    tution_type: tution_type_enum
     verified: bool
     reviews: Optional[List[ReviewOut]] = None  # Include reviews if needed
     Address: Optional[AddressOut] = None  # Include address if needed

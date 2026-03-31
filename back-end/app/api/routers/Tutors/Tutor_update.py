@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field, EmailStr, ConfigDict, field_validator
 from datetime import date, datetime
 from typing import Optional
 import re
-from app.schemas.enums import TuitionTypeEnum
+from app.schemas.enums import tution_type_enum
 
 class UpdateTutorRequest(BaseModel):
     """Update tutor model - all fields are optional"""
@@ -77,7 +77,7 @@ class UpdateTutorRequest(BaseModel):
         description="Total years of experience - between 0 and 70"
     )
 
-    tution_type: Optional[TuitionTypeEnum] = Field(
+    tution_type: Optional[tution_type_enum] = Field(
         None,
         description="Tuition type - online, offline, or both"
     )
