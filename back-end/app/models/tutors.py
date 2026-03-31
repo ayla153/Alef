@@ -3,7 +3,7 @@ from app.database import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING, Optional, List
 from datetime import datetime
-from app.schemas.enums import tution_type_enum
+from app.schemas.enums import TuitionTypeEnum
 
 if TYPE_CHECKING:
     from app.models.addresses import Address
@@ -25,9 +25,9 @@ class Tutor(Base):
     tutor_photo: Mapped[Optional[str]] = mapped_column(String,nullable=True)
     tutor_video: Mapped[Optional[str]] = mapped_column(String,nullable=True)
     bio: Mapped[str] = mapped_column(String(500),nullable=True)
-    experience_years: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    total_experience_years: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     registered_at: Mapped[datetime] = mapped_column(TIMESTAMP, nullable=False)
-    tution_type: Mapped[tution_type_enum] = mapped_column(Enum(tution_type_enum), nullable=False)
+    tution_type: Mapped[TuitionTypeEnum] = mapped_column(Enum(TuitionTypeEnum), nullable=False)
     verified: Mapped[bool] = mapped_column(nullable=False, default=False)
 
     #relationships
@@ -35,5 +35,5 @@ class Tutor(Base):
     reviews : Mapped[List["Review"]] = relationship("Review", back_populates="tutor", cascade="all, delete-orphan")
     post_statuses : Mapped["PostStatus"] = relationship("PostStatus", back_populates="tutor")
     tutor_subjects : Mapped["TutorSubject"] = relationship("TutorSubject", back_populates="tutor")
-    Address : Mapped[Optional["Address"]] = relationship("Address", back_populates="tutor", uselist=False, cascade="all, delete-orphan")
+    address : Mapped[Optional["Address"]] = relationship("Address", back_populates="tutor", uselist=False, cascade="all, delete-orphan")
     
