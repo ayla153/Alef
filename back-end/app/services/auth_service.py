@@ -119,11 +119,12 @@ def token_for_admin(admin: Admin) -> str:
 TUTOR_REGISTRATION_ROLE = "tutor_registration"
 
 
-def registration_token_for_tutor(tutor_id: int) -> str:
+def registration_token_for_tutor(tutor_id: int, step: int) -> str:
     return create_access_token(
         str(tutor_id),
         TUTOR_REGISTRATION_ROLE,
         expires_delta=timedelta(minutes=settings.REGISTRATION_TOKEN_EXPIRE_MINUTES),
+        extra_claims={"step": step},
     )
 
 
@@ -174,7 +175,7 @@ def apply_tutor_registration_step2(db: Session, tutor: Tutor, data: TutorRegiste
 
 def apply_tutor_registration_step3(db: Session, tutor: Tutor, data: TutorRegisterStep3) -> None:
     tutor.tution_type = data.tution_type
-    tutor.experience_years = data.experience_years
+    tutor.experience_years = data.total_experience_years
     db.commit()
     db.refresh(tutor)
 

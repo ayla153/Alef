@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from app.schemas.enums import tution_type_enum
 
@@ -54,6 +54,7 @@ class TutorRegister(BaseModel):
 class TokenPayload(BaseModel):
     sub: int
     role: str
+    step: int | None = None
 
 
 class TutorRegistrationProgress(BaseModel):
@@ -81,6 +82,7 @@ class TutorRegisterStep1(BaseModel):
 
 class TutorSubjectSelection(BaseModel):
     subject_id: int 
+    level_id: int
     foundation: bool = False
     experience_years: int | None = Field(None, ge=0)
     stage_1: bool = False
