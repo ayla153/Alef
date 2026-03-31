@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from app.api.routers.Tutors.Tutor_out import TutorOut
 from app.api.routers.Tutors.Tutor_create import CreateTutor
 from app.database import get_db
@@ -42,24 +42,6 @@ def get_tutor_by_id(
     if not tutor:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tutor not found")
     return tutor
-
-
-@router.post("/{tutor_id}/photo", response_model=TutorOut)
-def upload_tutor_photo(
-    tutor_id: int,
-    file: UploadFile = File(...),
-    db: Session = Depends(get_db),
-):
-    return tutor_service.update_tutor_photo(db, tutor_id, file)
-
-
-@router.post("/{tutor_id}/video", response_model=TutorOut)
-def upload_tutor_video(
-    tutor_id: int,
-    file: UploadFile = File(...),
-    db: Session = Depends(get_db),
-):
-    return tutor_service.update_tutor_video(db, tutor_id, file)
 
 
 @router.get("/", response_model=List[TutorOut], status_code=status.HTTP_200_OK)
