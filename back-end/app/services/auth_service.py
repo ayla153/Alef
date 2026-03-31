@@ -167,6 +167,10 @@ def apply_tutor_registration_step2(db: Session, tutor: Tutor, data: TutorRegiste
                 subject_id=sel.subject_id,
                 level_id=sel.level_id,
                 foundation=sel.foundation,
+                elementory_stage=sel.primary_stage,
+                middle_stage=sel.elementary_stage,
+                high_stage=sel.high_school_stage,
+                experience_years=sel.experience_years or 0,
             )
         )
     db.commit()
