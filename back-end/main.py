@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.api.routers.auth import router as auth_router
+from app.api.routers.Tutors.Tutors_router import router as tutors_router
 from app.core.config import settings
 from app.database import Base, engine
 from app.models import cities  # noqa: F401 — triggers dynamic model imports
@@ -18,3 +19,4 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(auth_router)
+app.include_router(tutors_router)

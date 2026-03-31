@@ -1,14 +1,15 @@
 from datetime import datetime
 from pathlib import Path
 from uuid import uuid4
-import os
 import shutil
 
 from fastapi import HTTPException, status, UploadFile
 from passlib.context import CryptContext
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import or_
+from sqlalchemy.orm import Session, selectinload
 
 from app.models.tutors import Tutor
+from app.models.tutor_subjects import TutorSubject
 from app.api.routers.Tutors.Tutor_create import CreateTutor
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -130,4 +131,55 @@ def update_tutor_video(db: Session, tutor_id: int, file: UploadFile) -> TutorOut
     tutor.tutor_video = video_path
     db.commit()
     db.refresh(tutor)
-    return _tutor_to_out(tutor)
+    return tutor
+
+
+def get_all_tutors(
+    db: Session,
+    page: int = 1,
+    page_size: int = 10,
+    subject_ids: list[int] | None = None,
+    stages: list[str] | None = None,
+) -> list[Tutor]:
+    valid_stages = {"foundation", "elementory_stage", "middle_stage", "high_stage"}
+    normalized_stages = [stage.strip().lower() for stage in (stages or []) if stage.strip()]
+    invalid_stages = [stage for stage in normalized_stages if stage not in valid_stages]
+    if invalid_stages:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid stages: {', '.join(invalid_stages)}",
+        )
+
+    query = (
+        db.query(Tutor)
+        .options(
+            selectinload(Tutor.reviews),
+            selectinload(Tutor.address),
+            selectinload(Tutor.tutor_subjects).selectinload(TutorSubject.subject),
+        )
+    )
+
+    if subject_ids:
+        query = query.join(Tutor.tutor_subjects).filter(TutorSubject.subject_id.in_(subject_ids))
+
+    if normalized_stages:
+        stage_filters = []
+        if "foundation" in normalized_stages:
+            stage_filters.append(TutorSubject.foundation.is_(True))
+        if "elementory_stage" in normalized_stages:
+            stage_filters.append(TutorSubject.elementory_stage.is_(True))
+        if "middle_stage" in normalized_stages:
+            stage_filters.append(TutorSubject.middle_stage.is_(True))
+        if "high_stage" in normalized_stages:
+            stage_filters.append(TutorSubject.high_stage.is_(True))
+
+        query = query.join(Tutor.tutor_subjects).filter(or_(*stage_filters))
+
+    offset = (page - 1) * page_size
+    return (
+        query.distinct(Tutor.tutor_id)
+        .order_by(Tutor.tutor_id.desc())
+        .offset(offset)
+        .limit(page_size)
+        .all()
+    )
