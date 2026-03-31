@@ -20,7 +20,7 @@ from app.schemas.auth import (
     TutorRegisterStep3,
     TutorRegisterStep4,
 )
-from app.schemas.enums import tution_type_enum
+from app.schemas.enums import TuitionTypeEnum
 
 
 class AuthError(Exception):
@@ -138,7 +138,7 @@ def register_tutor_step1(db: Session, data: TutorRegisterStep1) -> Tutor:
         password=hashed,
         date_birth=data.date_birth,
         phone_number=data.phone_number,
-        tution_type=tution_type_enum.BOTH,
+        tution_type=TuitionTypeEnum.BOTH,
         bio=None,
         experience_years=None,
         registered_at=now,

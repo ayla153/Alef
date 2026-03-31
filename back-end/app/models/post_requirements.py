@@ -2,7 +2,7 @@ from sqlalchemy import Integer, String, TIMESTAMP, Boolean, Float, Enum, Foreign
 from app.database import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import Optional, TYPE_CHECKING
-from app.schemas.enums import gender_enum, tution_type_enum
+from app.schemas.enums import TuitionTypeEnum, gender_enum
 
 if TYPE_CHECKING:
     from app.models.students import Student
@@ -17,7 +17,7 @@ class PostRequirement(Base):
     title: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str] = mapped_column(String(500), nullable=False)
     foundation_tution: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    tution_type: Mapped[tution_type_enum] = mapped_column(Enum(tution_type_enum), nullable=False)
+    tution_type: Mapped[TuitionTypeEnum] = mapped_column(Enum(TuitionTypeEnum), nullable=False)
     expected_fee: Mapped[Float] = mapped_column(Float, nullable=False)
     created_at: Mapped[TIMESTAMP] = mapped_column(TIMESTAMP, nullable=False)
     expired_at: Mapped[TIMESTAMP] = mapped_column(TIMESTAMP, nullable=False)

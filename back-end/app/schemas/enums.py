@@ -4,7 +4,7 @@ class gender_enum(str, Enum):
     MALE = "male"
     FEMALE = "female"
 
-class tution_type_enum(str, Enum):
+class TuitionTypeEnum(str, Enum):
     ONLINE = "online"
     OFFLINE = "offline"
     BOTH = "both"
