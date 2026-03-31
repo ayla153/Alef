@@ -91,7 +91,7 @@ def register_tutor(db: Session, data: TutorRegister) -> Tutor:
         phone_number=data.phone_number,
         tution_type=data.tution_type,
         bio=data.bio,
-        experience_years=data.experience_years,
+        total_experience_years=data.experience_years,
         registered_at=now,
     )
     db.add(tutor)
@@ -140,7 +140,7 @@ def register_tutor_step1(db: Session, data: TutorRegisterStep1) -> Tutor:
         phone_number=data.phone_number,
         tution_type=TuitionTypeEnum.BOTH,
         bio=None,
-        experience_years=None,
+        total_experience_years=None,
         registered_at=now,
     )
     db.add(tutor)
@@ -174,7 +174,7 @@ def apply_tutor_registration_step2(db: Session, tutor: Tutor, data: TutorRegiste
 
 def apply_tutor_registration_step3(db: Session, tutor: Tutor, data: TutorRegisterStep3) -> None:
     tutor.tution_type = data.tution_type
-    tutor.experience_years = data.experience_years
+    tutor.total_experience_years = data.total_experience_years
     db.commit()
     db.refresh(tutor)
 
