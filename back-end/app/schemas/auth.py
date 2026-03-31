@@ -81,11 +81,12 @@ class TutorRegisterStep1(BaseModel):
 
 class TutorSubjectSelection(BaseModel):
     subject_id: int 
+    level_id: int
     foundation: bool = False
     experience_years: int | None = Field(None, ge=0)
-    stage_1: bool = False
-    stage_2: bool = False
-    stage_3: bool = False
+    primary_stage: bool = False
+    elementary_stage: bool = False
+    high_school_stage: bool = False
 
 
 class TutorRegisterStep2(BaseModel):
