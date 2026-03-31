@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, status, UploadFile, File, Query
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query
 from app.api.routers.Tutors.Tutor_out import TutorOut
 from app.api.routers.Tutors.Tutor_create import CreateTutor
 from app.database import get_db
@@ -22,9 +22,9 @@ def create_tutor(
     return tutor_service.create_tutor(db, tutor)
 
 
-@router.get("/{tutor_id}", response_model=TutorOut)
-def get_tutor_by_id(
-    tutor_id: int,
+@router.get("/me", response_model=TutorOut)
+def get_me_tutor(
+    tutor_id: int = Query(..., description="Your tutor ID. This should normally come from auth context."),
     db: Session = Depends(get_db),
 ):
     tutor = tutor_service.get_tutor_by_id_out(db, tutor_id)
@@ -33,9 +33,9 @@ def get_tutor_by_id(
     return tutor
 
 
-@router.get("/me", response_model=TutorOut)
-def get_me_tutor(
-    tutor_id: int = Query(..., description="Your tutor ID. This should normally come from auth context."),
+@router.get("/{tutor_id}", response_model=TutorOut)
+def get_tutor_by_id(
+    tutor_id: int,
     db: Session = Depends(get_db),
 ):
     tutor = tutor_service.get_tutor_by_id_out(db, tutor_id)

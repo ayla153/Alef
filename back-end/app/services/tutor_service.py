@@ -6,7 +6,7 @@ import shutil
 from fastapi import HTTPException, status, UploadFile
 from passlib.context import CryptContext
 from sqlalchemy import or_
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.models.tutors import Tutor
 from app.models.tutor_subjects import TutorSubject
@@ -33,7 +33,7 @@ def get_tutor_by_id(db: Session, tutor_id: int) -> Tutor | None:
         .options(
             joinedload(Tutor.reviews),
             joinedload(Tutor.address),
-            joinedload(Tutor.tutor_subjects),
+            joinedload(Tutor.tutor_subjects).joinedload(TutorSubject.subject),
         )
         .filter(Tutor.tutor_id == tutor_id)
         .first()
@@ -41,9 +41,52 @@ def get_tutor_by_id(db: Session, tutor_id: int) -> Tutor | None:
 
 
 def _tutor_to_out(tutor: Tutor):
-    from app.routers.Tutors.Tutor_out import TutorOut
+    from app.api.routers.Tutors.Tutor_out import TutorOut
 
-    return TutorOut.model_validate(tutor)
+    tutor_subjects = tutor.tutor_subjects or []
+    if isinstance(tutor_subjects, TutorSubject):
+        tutor_subjects = [tutor_subjects]
+
+    date_birth = tutor.date_birth
+    if isinstance(date_birth, datetime):
+        date_birth = date_birth.date()
+
+    subjects = sorted(
+        {
+            ts.subject.subject_title
+            for ts in tutor_subjects
+            if ts.subject and ts.subject.subject_title
+        }
+    )
+    reviews = tutor.reviews or []
+    reviews_count = len(reviews)
+    reviews_avg = (
+        round(sum(review.number_of_stars for review in reviews) / reviews_count, 2)
+        if reviews_count > 0
+        else 0.0
+    )
+
+    payload = {
+        "tutor_id": tutor.tutor_id,
+        "first_name": tutor.first_name,
+        "last_name": tutor.last_name,
+        "email": tutor.email,
+        "date_birth": date_birth,
+        "phone_number": tutor.phone_number,
+        "tutor_photo": tutor.tutor_photo,
+        "tutor_video": tutor.tutor_video,
+        "bio": tutor.bio,
+        "total_experience_years": tutor.total_experience_years,
+        "registered_at": tutor.registered_at,
+        "tution_type": tutor.tution_type,
+        "verified": tutor.verified,
+        "reviews": reviews,
+        "reviews_avg": reviews_avg,
+        "reviews_count": reviews_count,
+        "Address": tutor.address,
+        "subjects": subjects,
+    }
+    return TutorOut.model_validate(payload)
 
 
 def get_tutor_by_id_out(db: Session, tutor_id: int):
@@ -75,7 +118,7 @@ def _save_upload_file(upload_file: UploadFile, folder: str) -> str:
     return str(dest_file).replace('\\', '/')
 
 
-def create_tutor(db: Session, tutor_data: CreateTutor) -> "TutorOut":
+def create_tutor(db: Session, tutor_data: CreateTutor):
     # 1) email uniqueness check in service layer (business logic)
     existing = get_tutor_by_email(db, tutor_data.email)
     if existing:
@@ -108,9 +151,7 @@ def create_tutor(db: Session, tutor_data: CreateTutor) -> "TutorOut":
     return _tutor_to_out(tutor_obj)
 
 
-def update_tutor_photo(db: Session, tutor_id: int, file: UploadFile) -> "TutorOut":
-    from app.routers.Tutors.Tutor_out import TutorOut
-
+def update_tutor_photo(db: Session, tutor_id: int, file: UploadFile):
     tutor = get_tutor_by_id(db, tutor_id)
     if not tutor:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tutor not found")
@@ -122,7 +163,7 @@ def update_tutor_photo(db: Session, tutor_id: int, file: UploadFile) -> "TutorOu
     return _tutor_to_out(tutor)
 
 
-def update_tutor_video(db: Session, tutor_id: int, file: UploadFile) -> TutorOut:
+def update_tutor_video(db: Session, tutor_id: int, file: UploadFile):
     tutor = get_tutor_by_id(db, tutor_id)
     if not tutor:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tutor not found")
@@ -131,7 +172,7 @@ def update_tutor_video(db: Session, tutor_id: int, file: UploadFile) -> TutorOut
     tutor.tutor_video = video_path
     db.commit()
     db.refresh(tutor)
-    return tutor
+    return _tutor_to_out(tutor)
 
 
 def get_all_tutors(
@@ -140,7 +181,7 @@ def get_all_tutors(
     page_size: int = 10,
     subject_ids: list[int] | None = None,
     stages: list[str] | None = None,
-) -> list[Tutor]:
+):
     valid_stages = {"foundation", "elementory_stage", "middle_stage", "high_stage"}
     normalized_stages = [stage.strip().lower() for stage in (stages or []) if stage.strip()]
     invalid_stages = [stage for stage in normalized_stages if stage not in valid_stages]
@@ -176,10 +217,11 @@ def get_all_tutors(
         query = query.join(Tutor.tutor_subjects).filter(or_(*stage_filters))
 
     offset = (page - 1) * page_size
-    return (
+    tutors = (
         query.distinct(Tutor.tutor_id)
         .order_by(Tutor.tutor_id.desc())
         .offset(offset)
         .limit(page_size)
         .all()
     )
+    return [_tutor_to_out(tutor) for tutor in tutors]
