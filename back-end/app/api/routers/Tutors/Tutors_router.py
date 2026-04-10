@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, status, UploadFile, File, HTTPException, Query
-from app.routers.Tutors.Tutor_out import TutorOut
-from app.routers.Tutors.Tutor_create import CreateTutor
+from app.api.routers.Tutors.Tutor_out import TutorOut
+from app.api.routers.Tutors.Tutor_create import CreateTutor
 from app.database import get_db
 from sqlalchemy.orm import Session
 from app.services import tutor_service

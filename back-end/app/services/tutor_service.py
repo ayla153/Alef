@@ -9,8 +9,8 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session, joinedload
 
 from app.models.tutors import Tutor
-from app.routers.Tutors.Tutor_create import CreateTutor
-from app.routers.Tutors.Tutor_out import TutorOut
+from app.api.routers.Tutors.Tutor_create import CreateTutor
+from app.api.routers.Tutors.Tutor_out import TutorOut
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -109,7 +109,6 @@ def create_tutor(db: Session, tutor_data: CreateTutor) -> "TutorOut":
 
 
 def update_tutor_photo(db: Session, tutor_id: int, file: UploadFile) -> "TutorOut":
-    from app.routers.Tutors.Tutor_out import TutorOut
 
     tutor = get_tutor_by_id(db, tutor_id)
     if not tutor:
