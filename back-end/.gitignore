@@ -31,5 +31,8 @@ Thumbs.db
 # Jupyter (if you ever use it)
 .ipynb_checkpoints/
 
+#uploads
+uploads/
+
 # Optional: uncomment if you don’t want to commit Alembic versions
 # alembic/versions/*.py

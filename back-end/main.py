@@ -7,7 +7,7 @@ from app.core.config import settings
 from app.database import Base, engine
 from app.models import cities
 from contextlib import asynccontextmanager
-from app.routers.Tutors import Tutors_router
+from app.api.routers.Tutors import Tutors_router
 
 print(Base.metadata.tables.keys())
 from app.models import cities  # noqa: F401 — triggers dynamic model imports
