@@ -21,7 +21,7 @@ class TutorOut(BaseModel):
     tutor_photo: Optional[str] = None
     tutor_video: Optional[str] = None
     bio: Optional[str] = None
-    experience_years: Optional[int] = None
+    total_experience_years: Optional[int] = None
     registered_at: datetime
     tution_type: TuitionTypeEnum
     verified: bool

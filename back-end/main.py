@@ -5,6 +5,11 @@ from fastapi import FastAPI
 from app.api.routers.auth import router as auth_router
 from app.core.config import settings
 from app.database import Base, engine
+from app.models import cities
+from contextlib import asynccontextmanager
+from app.api.routers.Tutors import Tutors_router
+
+print(Base.metadata.tables.keys())
 from app.models import cities  # noqa: F401 — triggers dynamic model imports
 
 
@@ -17,4 +22,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+app.include_router(Tutors_router.router)
+
 app.include_router(auth_router)
