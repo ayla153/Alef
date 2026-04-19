@@ -1,8 +1,6 @@
 from fastapi import APIRouter, Depends, status, UploadFile, File, HTTPException
 from app.api.deps import get_current_tutor
-from app.api.routers.Tutors.Tutor_out import TutorOut
-from app.api.routers.Tutors.Tutor_create import CreateTutor
-from app.api.routers.Tutors.Tutor_update import UpdateTutorRequest
+from app.schemas.tutors import CreateTutor, TutorOut, UpdateTutorRequest
 from app.database import get_db
 from sqlalchemy.orm import Session
 from app.services import tutor_service
