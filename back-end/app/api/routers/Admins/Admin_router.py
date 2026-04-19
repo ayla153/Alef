@@ -4,7 +4,9 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_admin
 from app.database import get_db
 from app.models.admins import Admin
-from app.schemas.admins import AdminOut, CreateAdmin, UpdateAdminRequest
+from app.schemas.admins import AdminOut, CreateAdmin
+from app.schemas.admins import UpdateAdminRequest
+from app.schemas.tutors import TutorOut
 from app.services import admin_service
 
 router = APIRouter(
@@ -46,6 +48,16 @@ def get_admin_by_id(
     if not admin:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Admin not found")
     return admin
+
+
+@router.put("/tutors/{tutor_id}/verify", response_model=TutorOut)
+def verify_tutor(
+    tutor_id: int,
+    verified: bool,
+    db: Session = Depends(get_db),
+    current_admin: Admin = Depends(get_current_admin),
+):
+    return admin_service.verify_tutor(db, tutor_id, verified)
 
 
 @router.patch("/{admin_id}", response_model=AdminOut)
