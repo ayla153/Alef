@@ -221,8 +221,6 @@ def update_tutor(db: Session, tutor_id: int, tutor_data: UpdateTutorRequest) -> 
         tutor.total_experience_years = tutor_data.total_experience_years
     if tutor_data.tution_type is not None:
         tutor.tution_type = tutor_data.tution_type
-    if tutor_data.verified is not None:
-        tutor.verified = tutor_data.verified
 
     db.commit()
     db.refresh(tutor)

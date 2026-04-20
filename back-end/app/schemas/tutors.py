@@ -176,10 +176,6 @@ class UpdateTutorRequest(BaseModel):
         None,
         description="Tuition type - online, offline, or both",
     )
-    verified: Optional[bool] = Field(
-        None,
-        description="Verification status",
-    )
 
     @field_validator('first_name', 'last_name')
     @classmethod
