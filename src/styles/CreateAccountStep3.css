@@ -1,0 +1,282 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body{
+    font-family: 'Cairo';
+    direction: rtl;
+}
+.stp3{
+  padding-bottom: 2rem;
+  max-width: 75%;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+.page-container2{
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-width: 100vw;
+    min-height: 100vh;
+    background: #f2f5f8;
+    gap: 2rem;
+    padding-bottom: 8rem;
+    bottom: 0;
+}
+.step3content{
+    width: 90%;
+    background: #ffffff;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+/* ========== TEACHING METHOD CARDS (معدل: أيقونة أصغر 10%، حاوية أقصر، سبتايتل أكبر، أعرض) ========== */
+.method-cards-container {
+  min-width: 80%;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+  padding: 0 0.85rem;
+  direction: rtl;
+}
+
+.method-cards-title {
+  font-size: 1.19rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.method-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.2rem;
+}
+
+.method-card {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  background: white;
+  border-radius: 16px;
+  padding: 0.6rem 1rem;          /* أقصر: قللت vertical padding */
+  width: 340px;                  /* أعرض: من 272 إلى 340 */
+  cursor: pointer;
+  transition: all 0.25s ease;
+  border: 1.5px solid #e2e8f0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.method-card:hover {
+  border-color: #3b82f6;
+  background: #f8fafc;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px -8px rgba(0, 0, 0, 0.08);
+}
+
+.method-card.selected {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+/* الأيقونة - أصغر بنسبة 10% */
+.card-icon {
+  font-size: 1.5rem;             /* 1.7rem * 0.9 ≈ 1.53rem -> قربناها لـ 1.5rem */
+  color: #3b82f6;
+  background: #eef2ff;
+  width: 38px;                   /* 42.5px * 0.9 ≈ 38px */
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.method-card:hover .card-icon {
+  background: #dbeafe;
+  transform: scale(1.02);
+}
+
+/* المحتوى النصي */
+.card-content {
+  flex: 1;
+}
+
+.card-content h3 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 3px;
+}
+
+.card-content p {
+  font-size: 0.68rem;            /* أكبر: من 0.595 إلى 0.68 */
+  color: #475569;
+  line-height: 1.4;
+}
+
+/* الشيك بوكس */
+.card-checkbox input {
+  width: 17px;
+  height: 17px;
+  cursor: pointer;
+  accent-color: #3b82f6;
+  transform: scale(1);
+  margin: 0;
+}
+.method-title-icon {
+  font-size: 1.3rem;
+  color: #3b82f6;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+  transition: transform 0.2s ease;
+}
+
+.method-cards-title:hover .method-title-icon {
+  transform: scale(1.05);
+}
+.education-experience-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 1rem 0 0.5rem;
+}
+
+.exp-icon {
+  font-size: 1.3rem;
+  color: #3b82f6;
+  transition: transform 0.2s ease;
+}
+
+.education-experience-title:hover .exp-icon {
+  transform: scale(1.08);
+}
+.exp-wrapper{
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center; 
+ width: 80%;
+}
+/* ========== SOFT EXPERIENCE SECTION (عرض 80%) ========== */
+.experience-section {
+  display: flex ;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  width: 100%;
+  margin: 0.5rem 0;
+  direction: rtl;
+  font-family: 'Cairo', sans-serif;
+}
+
+.exp-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+  text-align: right;
+}
+
+.exp-input-wrapper {
+  background: #ffffff;
+  border-radius: 28px;
+  border: 1px solid #e2e8f0;
+  padding: 0.2rem 0.8rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  margin-bottom: 0.5rem;
+  width: 100%;                 /* زيادة بنسبة 15% من 70% -> 80.5% ≈ 80% */
+  max-width: 44rem;           /* زيادة الحد الأقصى قليلاً */
+}
+
+.exp-input-wrapper:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+}
+
+.exp-input {
+  width: 100%;
+  border: none;
+  padding: 0.7rem 0;
+  font-size: 0.95rem;
+  font-family: 'Cairo', sans-serif;
+  font-weight: 500;
+  color: #0f172a;
+  background: transparent;
+  outline: none;
+  text-align: right;
+}
+
+.exp-input::placeholder {
+  color: #cbd5e1;
+  font-weight: 400;
+  font-size: 0.85rem;
+}
+
+.exp-input::-webkit-inner-spin-button,
+.exp-input::-webkit-outer-spin-button {
+  opacity: 0.4;
+  margin-right: 0.2rem;
+}
+
+.exp-input::-webkit-inner-spin-button:hover,
+.exp-input::-webkit-outer-spin-button:hover {
+  opacity: 0.8;
+}
+
+.exp-hint {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  text-align: right;
+  margin-top: 0.3rem;
+  line-height: 1.4;
+}
+
+@media (max-width: 640px) {
+  .exp-input-wrapper {
+    width: 90%;              /* على الجوال يكون أوسع */
+  }
+}
+
+@media (max-width: 480px) {
+  .exp-label {
+    font-size: 0.8rem;
+  }
+  .exp-input {
+    font-size: 0.85rem;
+    padding: 0.6rem 0;
+  }
+  .exp-hint {
+    font-size: 0.65rem;
+  }
+}
+
+/* للشاشات الصغيرة */
+@media (max-width: 700px) {
+  .method-card {
+    width: 100%;
+    max-width: 320px;
+  }
+  .card-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 1.3rem;
+  }
+  .card-content h3 {
+    font-size: 0.8rem;
+  }
+  .card-content p {
+    font-size: 0.65rem;
+  }
+}
