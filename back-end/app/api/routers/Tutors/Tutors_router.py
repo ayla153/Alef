@@ -1,43 +1,29 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from app.api.routers.Tutors.Tutor_out import TutorOut
-from app.api.routers.Tutors.Tutor_create import CreateTutor
-from app.database import get_db
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.orm import Session
+
+from app.api.deps import get_current_tutor
+from app.database import get_db
+from app.models.tutors import Tutor
+from app.schemas.tutors import CreateTutor, TutorOut, UpdateTutorRequest
 from app.services import tutor_service
 
-
-router = APIRouter(
-    prefix="/tutors",
-    tags=["Tutors"],
-)
+router = APIRouter(prefix="/tutors", tags=["Tutors"])
 
 
 @router.post("/", response_model=TutorOut, status_code=status.HTTP_201_CREATED)
-def create_tutor(
-    tutor: CreateTutor,
-    db: Session = Depends(get_db),
-):
+def create_tutor(tutor: CreateTutor, db: Session = Depends(get_db)):
     return tutor_service.create_tutor(db, tutor)
 
 
 @router.get("/me", response_model=TutorOut)
-def get_me_tutor(
-    tutor_id: int = Query(..., description="Your tutor ID. This should normally come from auth context."),
-    db: Session = Depends(get_db),
-):
-    tutor = tutor_service.get_tutor_by_id_out(db, tutor_id)
-    if not tutor:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tutor not found")
-    return tutor
+def get_me_tutor(current_tutor: Tutor = Depends(get_current_tutor)):
+    return TutorOut.model_validate(current_tutor)
 
 
 @router.get("/{tutor_id}", response_model=TutorOut)
-def get_tutor_by_id(
-    tutor_id: int,
-    db: Session = Depends(get_db),
-):
+def get_tutor_by_id(tutor_id: int, db: Session = Depends(get_db)):
     tutor = tutor_service.get_tutor_by_id_out(db, tutor_id)
     if not tutor:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tutor not found")
@@ -52,11 +38,32 @@ def get_all_tutors(
     stages: Optional[List[str]] = Query(default=None),
     db: Session = Depends(get_db),
 ):
-    return tutor_service.get_all_tutors(
-        db=db,
-        page=page,
-        page_size=page_size,
-        subject_ids=subject_ids,
-        stages=stages,
-    )
+    return tutor_service.get_all_tutors(db, page, page_size, subject_ids, stages)
 
+
+@router.post("/{tutor_id}/photo", response_model=TutorOut)
+def upload_tutor_photo(
+    tutor_id: int,
+    file: UploadFile | str | None = File(default=None),
+    db: Session = Depends(get_db),
+):
+    return tutor_service.update_tutor_photo(db, tutor_id, file)
+
+
+@router.post("/{tutor_id}/video", response_model=TutorOut)
+def upload_tutor_video(
+    tutor_id: int,
+    file: UploadFile | str | None = File(default=None),
+    db: Session = Depends(get_db),
+):
+    return tutor_service.update_tutor_video(db, tutor_id, file)
+
+
+@router.patch("/{tutor_id}", response_model=TutorOut)
+def update_tutor(tutor_id: int, tutor: UpdateTutorRequest, db: Session = Depends(get_db)):
+    return tutor_service.update_tutor(db, tutor_id, tutor)
+
+
+@router.delete("/{tutor_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_tutor(tutor_id: int, db: Session = Depends(get_db)):
+    tutor_service.delete_tutor(db, tutor_id)
