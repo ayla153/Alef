@@ -1,0 +1,24 @@
+:root {
+  --primary: #2563eb;
+  --background-light: #f9fafb;
+  --text-main: #111827;
+  --text-secondary: #6b7280;
+  --accent-light: #eff6ff;
+  --border-color: #e5e7eb;
+  --white: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  direction: rtl;
+  
+}
+
+body {
+  background-color: var(--background-light);
+  font-family: "Noto Sans Arabic", sans-serif;
+  color: var(--text-main);
+  line-height: 1.5;
+}

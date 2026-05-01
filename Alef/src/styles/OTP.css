@@ -1,0 +1,236 @@
+:root {
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --slate-900: #0f172a;
+    --slate-700: #334155;
+    --slate-600: #475569;
+    --slate-500: #64748b;
+    --slate-200: #e2e8f0;
+    --slate-100: #f1f5f9;
+    --slate-50: #f8fafc;
+    --white: #ffffff;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ✅ إصلاح المشكلة الأساسية */
+body {
+    font-family: 'Public Sans', sans-serif;
+    background: radial-gradient(circle at 50% 50%, #f8fafc 0%, #f1f5f9 100%);
+    color: var(--slate-900);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ✅ تمركز الصفحة بشكل صحيح */
+.auth-container {
+    width: 100%;
+    min-height: 100vh;
+    max-width: 600px;
+    margin: 0 auto;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    padding: 2rem;
+}
+
+/* الكارد */
+.card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    width: 100%;
+    padding: 3rem 4rem;
+    border-radius: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 768px) {
+    .card {
+        padding: 2rem;
+    }
+}
+
+/* الهيدر */
+.card-header {
+    text-align: center;
+    margin-bottom: 3rem;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.card-header h1 {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: var(--slate-900);
+}
+
+/* النص */
+.card-text {
+    color: var(--slate-500);
+    font-size: 1.125rem;
+    line-height: 1.6;
+}
+
+/* الايميل */
+.email-highlight {
+    font-weight: 600;
+    color: var(--slate-700);
+    font-size: 1.1rem;
+}
+
+/* الفورم */
+.otp-form {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+}
+
+/* الخانات */
+.otp-inputs {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.otp-input {
+    width: 100%;
+    max-width: 72px;
+    height: 72px;
+    text-align: center;
+    font-size: 1.875rem;
+    font-weight: 700;
+    border: 2px solid var(--slate-200);
+    border-radius: 15px;
+    background: var(--slate-50);
+    transition: all 0.3s ease;
+}
+
+@media (max-width: 480px) {
+    .otp-input {
+        height: 64px;
+        font-size: 1.5rem;
+    }
+}
+
+.otp-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+    outline: none;
+    background-color: var(--white);
+    transform: translateY(-2px);
+}
+
+/* الزر */
+.submit-btn {
+    width: 100%;
+    padding: 1.25rem;
+    background: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: 15px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.submit-btn:hover {
+    background: var(--primary-hover);
+}
+
+/* footer */
+.card-footer {
+    margin-top: 3rem;
+    text-align: center;
+}
+
+.card-footer p {
+    color: var(--slate-600);
+    font-size: 1.125rem;
+}
+
+.resend-link {
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-weight: 700;
+    cursor: pointer;
+    margin-right: 0.5rem;
+}
+
+/* back */
+.back-navigation {
+    margin-top: 3rem;
+}
+
+.back-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--slate-500);
+    text-decoration: none;
+}
+
+/* 🔵 اللوجو */
+.logo-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.logo {
+  width: 80px;
+  height: auto;
+  object-fit: contain;
+}
+
+/* 🟢 success */
+.otp-input.success {
+  border-color: #22c55e;
+  background: #ecfdf5;
+}
+
+/* 🔴 error */
+.otp-input.error {
+  border-color: #ef4444;
+  background: #fef2f2;
+  animation: shake 0.3s;
+}
+
+/* 💬 الرسائل */
+.otp-message {
+  text-align: center;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.otp-message.success {
+  color: #22c55e;
+}
+
+.otp-message.error {
+  color: #ef4444;
+}
+
+/* 🔥 animation */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  50% { transform: translateX(3px); }
+  75% { transform: translateX(-3px); }
+}
