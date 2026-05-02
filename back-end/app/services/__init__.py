@@ -1,1 +1,1 @@
-from . import tutor_service
+from . import tutor_service, admin_service
