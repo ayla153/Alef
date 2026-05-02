@@ -1,3 +1,6 @@
+body {
+  font-family: 'Noto Sans Arabic', 'Lexend', sans-serif;
+}
 header {
   width: 100%;
   background-color: var(--white);
@@ -5,7 +8,6 @@ header {
   position: sticky;
   top: 0;
   z-index: 1000;
-  font-family: 'Segoe UI', Tahoma, sans-serif;
   font-size: 0.95rem;
 }
 
@@ -164,4 +166,8 @@ header .avatar {
     align-items: flex-start;
     gap: 0.4rem;
   }
+}
+
+.icon-btn.active span {
+  color: #3b82f6;
 }
