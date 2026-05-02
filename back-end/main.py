@@ -7,6 +7,7 @@ from app.api.routers.Tutors.Tutors_router import router as tutors_router
 from app.api.routers.Admins import router as admin_router
 from app.api.routers.Subjects import router as subject_router
 from app.api.routers.Levels import router as level_router
+from app.api.routers.Students import router as students_router
 from app.core.config import settings
 from app.database import Base, engine
 from app.models import cities
@@ -31,4 +32,5 @@ app.include_router(tutors_router)
 app.include_router(admin_router)
 app.include_router(subject_router)
 app.include_router(level_router)
+app.include_router(students_router)
 app.include_router(auth_router)
