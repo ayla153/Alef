@@ -7,6 +7,7 @@ from app.api.deps import (
     DbSession,
     require_tutor_registration_step,
 )
+from app.api.routers.auth_student_me import router as auth_student_me_router
 from app.models.tutors import Tutor
 from app.schemas.auth import (
     LoginRequest,
@@ -30,15 +31,7 @@ def _http_for_auth_error(e: AuthError) -> HTTPException:
     return HTTPException(status_code=code, detail=e.message)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-
-
-class StudentMe(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    student_id: int
-    email: str
-    first_name: str
-    last_name: str
+router.include_router(auth_student_me_router)
 
 
 class TutorMe(BaseModel):
@@ -100,6 +93,7 @@ def register_student_endpoint(db: DbSession, body: StudentRegister) -> Token:
     except AuthError as e:
         raise _http_for_auth_error(e) from e
     return Token(access_token=auth_service.token_for_student(student))
+
 
 #TODO add all info that is required for tutor registration
 @router.post("/tutor/register", response_model=Token, status_code=status.HTTP_201_CREATED)
