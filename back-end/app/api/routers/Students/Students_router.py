@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_admin
+from app.api.deps import get_current_admin, get_current_student
 from app.database import get_db
 from app.models.admins import Admin
+from app.models.students import Student
 from app.schemas.students import CreateStudent, StudentOut, UpdateStudentRequest
 from app.services import student_service
 
@@ -28,6 +29,20 @@ def create_student_endpoint(
     current_admin: Admin = Depends(get_current_admin),
 ):
     return student_service.create_student(db, student)
+
+
+@router.get("/me", response_model=StudentOut)
+def get_me_student(current_student: Student = Depends(get_current_student)):
+    return StudentOut.model_validate(current_student)
+
+
+@router.patch("/me", response_model=StudentOut)
+def update_me_student(
+    body: UpdateStudentRequest,
+    db: Session = Depends(get_db),
+    current_student: Student = Depends(get_current_student),
+):
+    return student_service.update_student(db, current_student.student_id, body)
 
 
 @router.get("/{student_id}", response_model=StudentOut)
