@@ -68,17 +68,7 @@ function Header({ activeTab, avatar }) {
               <span className="material-symbols-outlined">favorite</span>{" "}
               المفضلة
             </a>
-            <a
-              href="/settings"
-              className={
-                activeTab === "settings"
-                  ? "active flex items-center gap-1"
-                  : "flex items-center gap-1"
-              }
-            >
-              <span className="material-symbols-outlined">settings</span>{" "}
-              الإعدادات
-            </a>
+          
           </nav>
 
           <div className="search-input relative">
@@ -88,7 +78,11 @@ function Header({ activeTab, avatar }) {
         </div>
 
         <div className="header-right flex items-center gap-3">
-          <button className="icon-btn">
+          <button
+            className={
+              activeTab === "notifications" ? "icon-btn active" : "icon-btn"
+            }
+          >
             <span className="material-symbols-outlined">notifications</span>
           </button>
           <a href="#" className="profile">
