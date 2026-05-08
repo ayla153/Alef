@@ -8,6 +8,9 @@ from app.api.routers.Admins import router as admin_router
 from app.api.routers.Subjects import router as subject_router
 from app.api.routers.Levels import router as level_router
 from app.api.routers.Students import router as students_router
+from app.api.routers.Cities import router as cities_router
+from app.api.routers.Areas import router as areas_router
+from app.api.routers.Addresses import router as addresses_router
 from app.core.config import settings
 from app.database import Base, engine
 from app.models import cities
@@ -33,4 +36,7 @@ app.include_router(admin_router)
 app.include_router(subject_router)
 app.include_router(level_router)
 app.include_router(students_router)
+app.include_router(cities_router)
+app.include_router(areas_router)
+app.include_router(addresses_router)
 app.include_router(auth_router)

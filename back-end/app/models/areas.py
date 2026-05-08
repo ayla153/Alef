@@ -13,9 +13,14 @@ class Area(Base):
     title: Mapped[str] = mapped_column(String, nullable=False)
 
     #foreign keys
-    city_id: Mapped[int] = mapped_column(ForeignKey("cities.city_id"), nullable=False)
+    city_id: Mapped[int] = mapped_column(ForeignKey("cities.city_id", ondelete="CASCADE"), nullable=False)
     #relationships
-    addresses : Mapped[List["Address"]] = relationship("Address", back_populates="area")
+    addresses : Mapped[List["Address"]] = relationship(
+        "Address",
+        back_populates="area",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
     city: Mapped["City"] = relationship("City", back_populates="areas")
     
     # Unique constraint: area title must be unique within the same city

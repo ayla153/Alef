@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
@@ -15,7 +15,7 @@ class CreateStudent(BaseModel):
     last_name: str = Field(..., min_length=1, max_length=50)
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=100)
-    date_birth: datetime
+    date_birth: date
     phone_number: str = Field(..., min_length=8, max_length=20)
     grade_level: student_grade_enum
 
@@ -31,7 +31,7 @@ class UpdateStudentRequest(BaseModel):
     last_name: str | None = Field(default=None, min_length=1, max_length=50)
     email: EmailStr | None = None
     password: str | None = Field(default=None, min_length=8, max_length=100)
-    date_birth: datetime | None = None
+    date_birth: date | None = None
     phone_number: str | None = Field(default=None, min_length=8, max_length=20)
     student_photo: str | None = None
     grade_level: student_grade_enum | None = None
@@ -44,7 +44,7 @@ class StudentOut(BaseModel):
     first_name: str
     last_name: str
     email: str
-    date_birth: datetime
+    date_birth: date
     phone_number: str
     student_photo: str | None = None
     registered_at: datetime
