@@ -34,6 +34,6 @@ class Tutor(Base):
     favorites : Mapped["Favorite"] = relationship("Favorite", back_populates="tutor", cascade="all, delete-orphan")
     reviews : Mapped[List["Review"]] = relationship("Review", back_populates="tutor", cascade="all, delete-orphan")
     post_statuses : Mapped["PostStatus"] = relationship("PostStatus", back_populates="tutor")
-    tutor_subjects : Mapped["TutorSubject"] = relationship("TutorSubject", back_populates="tutor")
+    tutor_subjects : Mapped[List["TutorSubject"]] = relationship("TutorSubject", back_populates="tutor")
     address : Mapped[Optional["Address"]] = relationship("Address", back_populates="tutor", uselist=False, cascade="all, delete-orphan")
     
