@@ -68,7 +68,7 @@ const HomePage = () => {
   return (
     <>
     <div className="page-container">
-      <Header activeTab="home" />
+      <Header/>
       <div className="homePage">
         <div className="container">
           <div className="pageHeader">
