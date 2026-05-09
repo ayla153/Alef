@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FaUser,
   FaUserTag,
@@ -15,6 +16,8 @@ import "../styles/CreateStudentAccount.css";
 import logo from "../assets/Logoo.jpg";
 
 export default function CreateStudentAccount() {
+  const navigate = useNavigate();
+
   const [firstname, setFirstname] = useState("");
   const [lastname, setLastname] = useState("");
   const [phonenumber, setPhonenumber] = useState("");
@@ -55,6 +58,7 @@ export default function CreateStudentAccount() {
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     if (!emailRegex.test(tutoremail)) {
       newErrors.email = "البريد الإلكتروني غير صالح";
     }
@@ -68,7 +72,10 @@ export default function CreateStudentAccount() {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+
+    if (Object.keys(newErrors).length === 0) {
+      navigate("/otp");
+    }
   };
 
   const grades = [
