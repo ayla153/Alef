@@ -1,74 +1,79 @@
 import "../styles/Header.css";
+import { NavLink } from "react-router-dom";
 
-function Header({ activeTab, avatar }) {
+function Header({ avatar }) {
   return (
     <header>
       <div className="container flex justify-between items-center">
         <div className="header-left flex items-center gap-4">
-          <a href="#" className="logo">
+          <NavLink to="/" className="logo">
             <img
               src="/src/assets/Logoo.jpg"
               alt="أَلِفْ"
               className="logo-img"
             />
-          </a>
+          </NavLink>
 
           <nav className="flex items-center gap-3">
-            <a
-              href="/"
-              className={
-                activeTab === "home"
+            <NavLink
+              to="/"
+              className={({ isActive }) =>
+                isActive
                   ? "active flex items-center gap-1"
                   : "flex items-center gap-1"
               }
             >
-              <span className="material-symbols-outlined">home</span> الصفحة
-              الرئيسية
-            </a>
-            <a
-              href="/tutors"
-              className={
-                activeTab === "tutors"
+              <span className="material-symbols-outlined">home</span>
+              الصفحة الرئيسية
+            </NavLink>
+
+            <NavLink
+              to="/tutors"
+              className={({ isActive }) =>
+                isActive
                   ? "active flex items-center gap-1"
                   : "flex items-center gap-1"
               }
             >
-              <span className="material-symbols-outlined">rss_feed</span>{" "}
+              <span className="material-symbols-outlined">rss_feed</span>
               الأساتذة
-            </a>
-            <a
-              href="/create-order"
-              className={
-                activeTab === "create"
+            </NavLink>
+
+            <NavLink
+              to="/create-order"
+              className={({ isActive }) =>
+                isActive
                   ? "active flex items-center gap-1"
                   : "flex items-center gap-1"
               }
             >
-              <span className="material-symbols-outlined">add</span> إنشاء طلب
-            </a>
-            <a
-              href="/orders"
-              className={
-                activeTab === "orders"
+              <span className="material-symbols-outlined">add</span>
+              إنشاء طلب
+            </NavLink>
+
+            <NavLink
+              to="/orders"
+              className={({ isActive }) =>
+                isActive
                   ? "active flex items-center gap-1"
                   : "flex items-center gap-1"
               }
             >
-              <span className="material-symbols-outlined">list_alt</span>{" "}
+              <span className="material-symbols-outlined">list_alt</span>
               الطلبات
-            </a>
-            <a
-              href="/favorites"
-              className={
-                activeTab === "favorites"
+            </NavLink>
+
+            <NavLink
+              to="/favorites"
+              className={({ isActive }) =>
+                isActive
                   ? "active flex items-center gap-1"
                   : "flex items-center gap-1"
               }
             >
-              <span className="material-symbols-outlined">favorite</span>{" "}
+              <span className="material-symbols-outlined">favorite</span>
               المفضلة
-            </a>
-          
+            </NavLink>
           </nav>
 
           <div className="search-input relative">
@@ -78,20 +83,22 @@ function Header({ activeTab, avatar }) {
         </div>
 
         <div className="header-right flex items-center gap-3">
-          <button
-            className={
-              activeTab === "notifications" ? "icon-btn active" : "icon-btn"
+          <NavLink
+            to="/notifications"
+            className={({ isActive }) =>
+              isActive ? "icon-btn active" : "icon-btn"
             }
           >
             <span className="material-symbols-outlined">notifications</span>
-          </button>
-          <a href="#" className="profile">
+          </NavLink>
+
+          <NavLink to="/profile" className="profile">
             <img
               src={avatar || "/src/assets/user-avatar.jpg"}
               alt="الحساب الشخصي"
               className="avatar"
             />
-          </a>
+          </NavLink>
         </div>
       </div>
     </header>
