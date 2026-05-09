@@ -16,7 +16,7 @@ function Header({ avatar }) {
 
           <nav className="flex items-center gap-3">
             <NavLink
-              to="/"
+              to="/home"
               className={({ isActive }) =>
                 isActive
                   ? "active flex items-center gap-1"

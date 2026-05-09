@@ -1,8 +1,11 @@
 import React, { useRef, useState, useEffect } from "react";
 import "../styles/OTP.css";
 import logo from "../assets/Logoo.jpg";
+import { useNavigate } from "react-router-dom";
 
 const OTP = () => {
+  const navigate = useNavigate();
+
   const inputsRef = useRef([]);
   const [otp, setOtp] = useState(Array(6).fill(""));
   const [status, setStatus] = useState("idle"); // idle | success | error
@@ -50,6 +53,10 @@ const OTP = () => {
     if (code === correctCode) {
       setStatus("success");
       setMessage("تم التحقق بنجاح");
+
+      setTimeout(() => {
+        navigate("/home");
+      }, 1000);
     } else {
       setStatus("error");
       setMessage("رمز التحقق غير صحيح");
@@ -76,18 +83,12 @@ const OTP = () => {
       <div className="card">
         <div className="card-header">
           <h1>تحقق من الرمز</h1>
-          <p className="card-text">
-            أدخل الرمز المكون من 6 أرقام المرسل إلى
-          </p>
+          <p className="card-text">أدخل الرمز المكون من 6 أرقام المرسل إلى</p>
           <div className="email-highlight">user@example.com</div>
         </div>
 
         {/* 🔴 الرسالة */}
-        {message && (
-          <div className={`otp-message ${status}`}>
-            {message}
-          </div>
-        )}
+        {message && <div className={`otp-message ${status}`}>{message}</div>}
 
         <form className="otp-form" onSubmit={(e) => e.preventDefault()}>
           <div className="otp-inputs">
@@ -108,9 +109,7 @@ const OTP = () => {
 
           <button type="submit" className="submit-btn">
             <span>تأكيد الرمز</span>
-            <span className="material-symbols-outlined">
-              verified_user
-            </span>
+            <span className="material-symbols-outlined">verified_user</span>
           </button>
         </form>
 
