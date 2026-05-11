@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routers.auth import router as auth_router
 from app.api.routers.Tutors.Tutors_router import router as tutors_router
@@ -15,12 +16,9 @@ from app.api.routers.Reviews.Reviews_router import router as reviews_router
 from app.api.routers.Favorites.Favorites_router import router as favorites_router
 from app.core.config import settings
 from app.database import Base, engine
-from app.models import cities
-from contextlib import asynccontextmanager
-
+from app.models import cities  # noqa: F401 — triggers dynamic model imports
 
 print(Base.metadata.tables.keys())
-from app.models import cities  # noqa: F401 — triggers dynamic model imports
 
 
 @asynccontextmanager
@@ -32,6 +30,14 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(tutors_router)
 app.include_router(admin_router)
