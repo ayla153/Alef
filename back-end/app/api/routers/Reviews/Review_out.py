@@ -5,6 +5,6 @@ class ReviewOut(BaseModel):
     review_id: int
     tutor_id: int
     student_id: int
-    rating: int
+    number_of_stars: int
     comment: str
     created_at: datetime
