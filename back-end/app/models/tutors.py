@@ -2,7 +2,7 @@ from sqlalchemy import Enum, Integer, String, TIMESTAMP
 from app.database import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING, Optional, List
-from datetime import datetime
+from datetime import datetime, date
 from app.schemas.enums import TuitionTypeEnum
 
 if TYPE_CHECKING:
@@ -20,7 +20,7 @@ class Tutor(Base):
     last_name: Mapped[str] = mapped_column(String(50),nullable=False)
     email: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(String, nullable=False)
-    date_birth: Mapped[datetime] = mapped_column(TIMESTAMP, nullable=False)
+    date_birth: Mapped[date] = mapped_column(TIMESTAMP, nullable=False)
     phone_number: Mapped[Optional[str]] = mapped_column(String(20),nullable=False)
     tutor_photo: Mapped[Optional[str]] = mapped_column(String,nullable=True)
     tutor_video: Mapped[Optional[str]] = mapped_column(String,nullable=True)
