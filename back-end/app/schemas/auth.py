@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
-from app.schemas.enums import TuitionTypeEnum
+from app.schemas.enums import TuitionTypeEnum, student_grade_enum
 
 
 class Token(BaseModel):
@@ -22,6 +22,7 @@ class StudentRegister(BaseModel):
     password: str = Field(..., min_length=8)
     date_birth: datetime
     phone_number: str = Field(..., max_length=20)
+    grade_level: student_grade_enum
 
     @field_validator("password")
     @classmethod

@@ -30,6 +30,18 @@ class AuthError(Exception):
         super().__init__(message)
 
 
+def _is_unique_violation(exc: IntegrityError) -> bool:
+    """Detect DB unique-constraint failures (not other integrity errors)."""
+    orig = getattr(exc, "orig", None)
+    if orig is not None:
+        if getattr(orig, "pgcode", None) == "23505":
+            return True
+        msg = str(orig).lower()
+        if "unique constraint" in msg or "duplicate key" in msg:
+            return True
+    return "unique" in str(exc).lower()
+
+
 def authenticate_student(db: Session, email: str, password: str) -> Student | None:
     student = db.scalar(select(Student).where(Student.email == email))
     if not student or not verify_password(password, student.password):
@@ -59,20 +71,25 @@ def authenticate_admin(db: Session, email: str, password: str) -> Admin | None:
 
 def register_student(db: Session, data: StudentRegister) -> Student:
     hashed = get_password_hash(data.password)
+    now = datetime.now(timezone.utc)
     student = Student(
         first_name=data.first_name,
         last_name=data.last_name,
-        email=data.email,
+        email=str(data.email).lower(),
         password=hashed,
         date_birth=data.date_birth,
         phone_number=data.phone_number,
+        registered_at=now,
+        grade_level=data.grade_level,
     )
     db.add(student)
     try:
         db.commit()
-    except IntegrityError:
+    except IntegrityError as e:
         db.rollback()
-        raise AuthError("Email already registered", "email_taken") from None
+        if _is_unique_violation(e):
+            raise AuthError("Email already registered", "email_taken") from None
+        raise
     db.refresh(student)
     return student
 
@@ -97,9 +114,11 @@ def register_tutor(db: Session, data: TutorRegister) -> Tutor:
     db.add(tutor)
     try:
         db.commit()
-    except IntegrityError:
+    except IntegrityError as e:
         db.rollback()
-        raise AuthError("Email already registered", "email_taken") from None
+        if _is_unique_violation(e):
+            raise AuthError("Email already registered", "email_taken") from None
+        raise
     db.refresh(tutor)
     return tutor
 
@@ -147,9 +166,11 @@ def register_tutor_step1(db: Session, data: TutorRegisterStep1) -> Tutor:
     db.add(tutor)
     try:
         db.commit()
-    except IntegrityError:
+    except IntegrityError as e:
         db.rollback()
-        raise AuthError("Email already registered", "email_taken") from None
+        if _is_unique_violation(e):
+            raise AuthError("Email already registered", "email_taken") from None
+        raise
     db.refresh(tutor)
     return tutor
 
