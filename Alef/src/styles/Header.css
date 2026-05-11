@@ -1,6 +1,4 @@
-body {
-  font-family: 'Noto Sans Arabic', 'Lexend', sans-serif;
-}
+
 header {
   width: 100%;
   background-color: var(--white);
@@ -168,6 +166,3 @@ header .avatar {
   }
 }
 
-.icon-btn.active span {
-  color: #3b82f6;
-}

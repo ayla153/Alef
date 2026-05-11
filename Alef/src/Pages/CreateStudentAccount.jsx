@@ -13,7 +13,7 @@ import {
   FaGraduationCap,
 } from "react-icons/fa";
 import "../styles/CreateStudentAccount.css";
-import logo from "../assets/Logoo.jpg";
+import logo from "../assets/logo_grayBK.png";
 
 export default function CreateStudentAccount() {
   const navigate = useNavigate();

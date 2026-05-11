@@ -1,0 +1,193 @@
+/* الإعدادات العامة والمتغيرات */
+:root {
+    --primary: #2563EB;
+    --primary-dark: #1d4ed8;
+    --primary-light: #EFF6FF;
+    --bg-page: #F9FAFB;
+    --text-dark: #111827;
+    --text-muted: #6B7280;
+    --border: #E5E7EB;
+    --white: #ffffff;
+    
+    /* ألوان الحالات */
+    --success: #059669;
+    --success-bg: #f0fdf4;
+    --warning: #d97706;
+    --warning-bg: #fffbe6;
+    --danger: #dc2626;
+    --danger-bg: #fef2f2;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Noto Sans Arabic', sans-serif;
+    background-color: var(--bg-page);
+    color: var(--text-dark);
+    direction: rtl;
+    line-height: 1.6;
+}
+
+
+/* المحتوى الرئيسي */
+.content-area {
+    max-width: 800px;
+    margin: 3rem auto;
+    padding: 0 1.5rem;
+}
+
+.section-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.label-text {
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.main-heading {
+    font-size: 2.5rem;
+    font-weight: 900;
+    margin-bottom: 2rem;
+}
+
+/* الكروت */
+.notifications-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+.notif-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 1.8rem;
+    padding: 1.5rem;
+    display: flex;
+    gap: 1.5rem;
+    position: relative;
+    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.notif-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px -10px rgba(0,0,0,0.08);
+    border-color: rgba(37, 99, 235, 0.3);
+}
+
+/* حالة غير مقروء */
+.notif-card.is-unread {
+    border-color: rgba(37, 99, 235, 0.2);
+    background: linear-gradient(to left, #fff, #fdfdff);
+}
+
+.unread-glow {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    background: var(--primary);
+    border-radius: 50%;
+    box-shadow: 0 0 12px var(--primary);
+}
+
+.card-icon-bg {
+    width: 58px;
+    height: 58px;
+    border-radius: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.bg-primary-soft { background: var(--primary-light); color: var(--primary); }
+.bg-success-soft { background: var(--success-bg); color: var(--success); }
+.bg-warning-soft { background: var(--warning-bg); color: var(--warning); }
+.bg-danger-soft { background: var(--danger-bg); color: var(--danger); }
+.bg-blue-dim { background: #f0f7ff; color: #3b82f6; }
+
+.card-body { flex: 1; }
+
+.card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.4rem;
+}
+
+.title-group { display: flex; align-items: center; gap: 0.8rem; }
+
+.card-title { font-size: 1.1rem; font-weight: 700; }
+.text-primary { color: var(--primary); }
+
+.badge {
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+}
+
+.badge-blue { background: rgba(37, 99, 235, 0.1); color: var(--primary); }
+.badge-green { background: var(--success-bg); color: var(--success); }
+.badge-orange { background: var(--warning-bg); color: var(--warning); }
+.badge-red { background: var(--danger-bg); color: var(--danger); }
+
+.timestamp { font-size: 0.75rem; color: var(--text-muted); }
+
+.card-desc {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+}
+
+/* الأزرار الروابط */
+.card-btns { display: flex; gap: 0.8rem; margin-top: 1.2rem; }
+
+.btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 0.8rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: 0.2s;
+}
+
+.btn-filled { background: var(--primary); color: white; }
+.btn-filled:hover { background: var(--primary-dark); }
+
+.btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+.btn-ghost:hover { background: var(--bg-page); }
+
+.link-action {
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.is-old { opacity: 0.65; }
+.is-old:hover { opacity: 1; }
+
+
+
+

@@ -11,12 +11,11 @@
 
 /* ===== Base ===== */
 body {
-  font-family: "Noto Sans Arabic", sans-serif;
   background-color: var(--bg-color);
   color: var(--text-dark);
   margin: 0;
   padding: 0;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 .container {
@@ -42,13 +41,16 @@ body {
 }
 
 .filters-bar {
+  background: white;
+  padding: 15px;
+  border-radius: 16px;
   display: flex;
-  gap: 16px;
-  justify-content: center;
-  padding: 12px 5%;
-  margin: 50px 0px;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
+
 
 .filter-item {
   position: relative;
