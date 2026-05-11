@@ -11,7 +11,6 @@
 
 /* ===== Base ===== */
 body {
-  font-family: "Noto Sans Arabic", sans-serif;
   background-color: var(--bg-color);
   color: var(--text-dark);
   line-height: 1.6;
