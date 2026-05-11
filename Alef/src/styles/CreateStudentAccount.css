@@ -22,8 +22,8 @@ body {
   bottom: 0;
 }
 .Alef-logo {
-  width: 5rem;
-  height: 5rem;
+  width: 8rem;
+  height: 8rem;
 }
 .content {
   width: 80%;
@@ -39,12 +39,14 @@ body {
   font-weight: 600;
   letter-spacing: 0.5px;
   margin-bottom: 0.5rem;
+  text-align: center;
 }
 .titleforstep1 h2 {
   font-size: 1.5rem;
   font-weight: 700;
   color: #1e293b;
   margin-bottom: 0.55rem;
+  text-align: center;
 }
 .steponeheader {
   color: #183275;
@@ -369,4 +371,21 @@ input[type="date"] {
   color: #ef4444;
   font-size: 12px;
   margin-top: 4px;
+}
+.login-redirect {
+  margin-top: 15px;
+  font-size: 13px;
+  text-align: center;
+  color: #555;
+}
+
+.login-redirect-link {
+  margin-right: 5px;
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.login-redirect-link:hover {
+  text-decoration: underline;
 }
