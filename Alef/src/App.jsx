@@ -9,13 +9,15 @@ import Notifications from "./Pages/notification";
 
 import SelectionPage from "./Pages/SelectionPage";
 import CreateStudentAccount from "./Pages/CreateStudentAccount";
+import Login from "./Pages/login";
 import OTP from "./Pages/OTP";
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<SelectionPage />} />
+      <Route path="/select" element={<SelectionPage />} />
       <Route path="/register" element={<CreateStudentAccount />} />
+      <Route path="/login" element={<Login />} />
       <Route path="/otp" element={<OTP />} />
 
       <Route path="/home" element={<HomePage />} />

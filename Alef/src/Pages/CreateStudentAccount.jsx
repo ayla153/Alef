@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import api from "../api/api";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import {
   FaUser,
@@ -16,7 +17,7 @@ import {
 } from "react-icons/fa";
 
 import "../styles/CreateStudentAccount.css";
-import logo from "../assets/logo_grayBK.png";
+import logo from "../assets/logo_noBG.png";
 
 export default function CreateStudentAccount() {
   const navigate = useNavigate();
@@ -405,6 +406,12 @@ export default function CreateStudentAccount() {
               <FaTimesCircle className="btn-icon" />
               إلغاء
             </button>
+          </div>
+          <div className="login-redirect">
+            هل لديك حساب بالفعل؟
+            <Link to="/login" className="login-redirect-link">
+              تسجيل دخول
+            </Link>
           </div>
         </form>
       </div>
