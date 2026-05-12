@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import api from "../api/api";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 import {
   FaUser,
@@ -39,7 +38,6 @@ export default function CreateStudentAccount() {
 
   const dropdownRef = useRef(null);
 
-  // grades
   const grades = [
     "الأول",
     "الثاني",
@@ -55,7 +53,6 @@ export default function CreateStudentAccount() {
     "الثاني عشر",
   ];
 
-  // grade mapping for backend
   const gradeMap = {
     الأول: "primary_1",
     الثاني: "primary_2",
@@ -63,17 +60,14 @@ export default function CreateStudentAccount() {
     الرابع: "primary_4",
     الخامس: "primary_5",
     السادس: "primary_6",
-
     السابع: "middle_1",
     الثامن: "middle_2",
     التاسع: "middle_3",
-
     العاشر: "high_1",
     "الحادي عشر": "high_2",
     "الثاني عشر": "high_3",
   };
 
-  // close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -82,90 +76,54 @@ export default function CreateStudentAccount() {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // phone validation
   const handlePhoneChange = (e) => {
     let value = e.target.value;
-
     value = value.replace(/[^\d+]/g, "");
 
     const hasPlus = value.startsWith("+");
-
     let digits = value.replace(/\+/g, "");
-
     digits = digits.slice(0, 12);
 
     value = hasPlus ? `+${digits}` : digits;
-
     setPhonenumber(value);
   };
 
-  // submit form
   const validateForm = async () => {
     let newErrors = {};
 
     const nameRegex = /^[A-Za-z\u0600-\u06FF\s]+$/;
-
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    // firstname
-    if (!firstname.trim()) {
-      newErrors.firstname = "يرجى تعبئة الاسم الأول";
-    } else if (!nameRegex.test(firstname.trim())) {
+    if (!firstname.trim()) newErrors.firstname = "يرجى تعبئة الاسم الأول";
+    else if (!nameRegex.test(firstname.trim()))
       newErrors.firstname = "الاسم الأول يجب أن يحتوي على حروف فقط";
-    }
 
-    // lastname
-    if (!lastname.trim()) {
-      newErrors.lastname = "يرجى تعبئة الاسم الأخير";
-    } else if (!nameRegex.test(lastname.trim())) {
+    if (!lastname.trim()) newErrors.lastname = "يرجى تعبئة الاسم الأخير";
+    else if (!nameRegex.test(lastname.trim()))
       newErrors.lastname = "الاسم الأخير يجب أن يحتوي على حروف فقط";
-    }
 
-    // phone
-    if (!phonenumber.trim()) {
-      newErrors.phone = "يرجى إدخال رقم الهاتف";
-    }
+    if (!phonenumber.trim()) newErrors.phone = "يرجى إدخال رقم الهاتف";
+    if (!birthdate) newErrors.birthdate = "يرجى اختيار تاريخ الميلاد";
+    if (!grade) newErrors.grade = "يرجى اختيار المرحلة الدراسية";
 
-    // birthdate
-    if (!birthdate) {
-      newErrors.birthdate = "يرجى اختيار تاريخ الميلاد";
-    }
-
-    // grade
-    if (!grade) {
-      newErrors.grade = "يرجى اختيار المرحلة الدراسية";
-    }
-
-    // email
-    if (!studentEmail.trim()) {
-      newErrors.email = "يرجى إدخال البريد الإلكتروني";
-    } else if (!emailRegex.test(studentEmail.trim())) {
+    if (!studentEmail.trim()) newErrors.email = "يرجى إدخال البريد الإلكتروني";
+    else if (!emailRegex.test(studentEmail.trim()))
       newErrors.email = "البريد الإلكتروني غير صالح";
-    }
 
-    // password
-    if (!studentPassword) {
+    if (!studentPassword)
       newErrors.password = "يرجى إدخال كلمة السر";
-    } else if (studentPassword.length < 8) {
+    else if (studentPassword.length < 8)
       newErrors.password = "كلمة السر يجب أن تكون 8 أحرف على الأقل";
-    }
 
-    // confirm password
-    if (!confirmStudentPassword) {
+    if (!confirmStudentPassword)
       newErrors.confirm = "يرجى تأكيد كلمة السر";
-    } else if (studentPassword !== confirmStudentPassword) {
+    else if (studentPassword !== confirmStudentPassword)
       newErrors.confirm = "كلمة السر غير متطابقة";
-    }
 
     setErrors(newErrors);
-
-    // stop if errors exist
     if (Object.keys(newErrors).length > 0) return;
 
     try {
@@ -183,18 +141,11 @@ export default function CreateStudentAccount() {
         grade_level: gradeMap[grade],
       };
 
-      console.log("DATA SENT:", studentData);
-
       const response = await api.post("/auth/student/register", studentData);
 
-      console.log("REGISTER SUCCESS:", response.data);
-
       localStorage.setItem("studentEmail", studentEmail);
-
       navigate("/otp");
     } catch (error) {
-      console.log("REGISTER ERROR:", error.response?.data || error.message);
-
       setErrors({
         server: error.response?.data?.message || "حدث خطأ أثناء إنشاء الحساب",
       });
@@ -204,116 +155,113 @@ export default function CreateStudentAccount() {
   };
 
   return (
-    <div className="page-container2">
-      <img className="Alef-logo" src={logo} alt="logo" />
+    <div className="create-student-account__page">
+      <img className="create-student-account__logo" src={logo} alt="logo" />
 
-      <div className="content">
-        <div className="titleforstep1">
+      <div className="create-student-account__content">
+        <div className="create-student-account__title">
           <h2>أهلاً بكُم في مِنصَّتنا التَّعليميَّة !</h2>
-
-          <p className="welcom">
+          <p className="create-student-account__welcome">
             يرجى إدخال بياناتك الشخصية الأساسية للبدء في إعداد ملفك الشخصي.
           </p>
         </div>
 
-        <form className="tutorform">
+        <form className="create-student-account__form">
           {/* الاسم */}
-          <div className="tutorinputs">
+          <div className="create-student-account__inputs-row">
             <div>
-              <label className="toturlabels">
-                <FaUser className="input-icon" />
+              <label className="create-student-account__label">
+                <FaUser className="create-student-account__icon" />
                 الاسم الأوّل
               </label>
 
               <input
-                className="tutorinput"
-                placeholder="أدخل اسمك الأوّل"
+                className="create-student-account__input"
                 value={firstname}
+                placeholder="أدخل اسمك الأوّل"
                 onChange={(e) => setFirstname(e.target.value)}
               />
-
               {errors.firstname && (
-                <p className="error-text">{errors.firstname}</p>
+                <p className="create-student-account__error">{errors.firstname}</p>
               )}
             </div>
 
             <div>
-              <label className="toturlabels">
-                <FaUserTag className="input-icon" />
+              <label className="create-student-account__label">
+                <FaUserTag className="create-student-account__icon" />
                 الاسم الأخير
               </label>
 
               <input
-                className="tutorinput"
-                placeholder="أدخل اسمك الأخير"
+                className="create-student-account__input"
                 value={lastname}
+                placeholder="أدخل اسمك الأخير"
                 onChange={(e) => setLastname(e.target.value)}
               />
-
               {errors.lastname && (
-                <p className="error-text">{errors.lastname}</p>
+                <p className="create-student-account__error">{errors.lastname}</p>
               )}
             </div>
           </div>
 
           {/* الهاتف + الميلاد */}
-          <div className="tutorinputs">
+          <div className="create-student-account__inputs-row">
             <div>
-              <label className="toturlabels">
-                <FaPhone className="input-icon" />
+              <label className="create-student-account__label">
+                <FaPhone className="create-student-account__icon" />
                 رقم الهاتف
               </label>
 
               <input
-                className="tutorinput"
-                placeholder="+963900000000"
+                className="create-student-account__input"
                 value={phonenumber}
+                placeholder="+963900000000"
                 onChange={handlePhoneChange}
               />
-
-              {errors.phone && <p className="error-text">{errors.phone}</p>}
+              {errors.phone && (
+                <p className="create-student-account__error">{errors.phone}</p>
+              )}
             </div>
 
             <div>
-              <label className="toturlabels">
-                <FaBirthdayCake className="input-icon" />
+              <label className="create-student-account__label">
+                <FaBirthdayCake className="create-student-account__icon" />
                 تاريخ الميلاد
               </label>
 
               <input
-                className="tutorinput"
                 type="date"
+                className="create-student-account__input"
                 value={birthdate}
                 onChange={(e) => setBirthdate(e.target.value)}
               />
-
               {errors.birthdate && (
-                <p className="error-text">{errors.birthdate}</p>
+                <p className="create-student-account__error">{errors.birthdate}</p>
               )}
             </div>
           </div>
 
           {/* المرحلة + الإيميل */}
-          <div className="tutorinputs">
-            <div className="custom-dropdown" ref={dropdownRef}>
-              <label className="toturlabels">
-                <FaGraduationCap className="input-icon" />
+          <div className="create-student-account__inputs-row">
+            <div className="create-student-account__dropdown" ref={dropdownRef}>
+              <label className="create-student-account__label">
+                <FaGraduationCap className="create-student-account__icon" />
                 المرحلة الدراسية
               </label>
 
               <div
-                className={`dropdown-selected ${!grade ? "empty" : ""}`}
+                className="create-student-account__dropdown-selected"
                 onClick={() => setOpenGrade(!openGrade)}
               >
-                {grade ? grade : "اختر المرحلة الدراسية"}
+                {grade || "اختر المرحلة الدراسية"}
               </div>
 
               {openGrade && (
-                <div className="dropdown-menu">
+                <div className="create-student-account__dropdown-menu">
                   {grades.map((g, i) => (
                     <div
                       key={i}
-                      className="dropdown-item"
+                      className="create-student-account__dropdown-item"
                       onClick={() => {
                         setGrade(g);
                         setOpenGrade(false);
@@ -324,92 +272,98 @@ export default function CreateStudentAccount() {
                   ))}
                 </div>
               )}
-
-              {errors.grade && <p className="error-text">{errors.grade}</p>}
+              {errors.grade && (
+                <p className="create-student-account__error">{errors.grade}</p>
+              )}
             </div>
 
             <div>
-              <label className="toturlabels">
-                <FaEnvelope className="input-icon" />
+              <label className="create-student-account__label">
+                <FaEnvelope className="create-student-account__icon" />
                 البريد الإلكتروني
               </label>
 
               <input
-                className="tutorinput"
-                placeholder="user@gmail.com"
+                className="create-student-account__input"
                 value={studentEmail}
+                placeholder="user@gmail.com"
                 onChange={(e) => setStudentEmail(e.target.value)}
               />
-
-              {errors.email && <p className="error-text">{errors.email}</p>}
+              {errors.email && (
+                <p className="create-student-account__error">{errors.email}</p>
+              )}
             </div>
           </div>
 
           {/* كلمة السر */}
-          <div className="tutorinputs">
+          <div className="create-student-account__inputs-row">
             <div>
-              <label className="toturlabels">
-                <FaLock className="input-icon" />
+              <label className="create-student-account__label">
+                <FaLock className="create-student-account__icon" />
                 كلمة السّر
               </label>
 
               <input
                 type="password"
-                className="tutorinput"
-                placeholder="كلمة السّر"
+                className="create-student-account__input"
                 value={studentPassword}
+                placeholder="كلمة السّر"
                 onChange={(e) => setStudentPassword(e.target.value)}
               />
-
               {errors.password && (
-                <p className="error-text">{errors.password}</p>
+                <p className="create-student-account__error">{errors.password}</p>
               )}
             </div>
 
             <div>
-              <label className="toturlabels">
-                <FaCheckCircle className="input-icon" />
+              <label className="create-student-account__label">
+                <FaCheckCircle className="create-student-account__icon" />
                 تأكيد كلمة السّر
               </label>
 
               <input
                 type="password"
-                className="tutorinput"
-                placeholder="تأكيد كلمة السّر"
+                className="create-student-account__input"
                 value={confirmStudentPassword}
+                placeholder="تأكيد كلمة السّر"
                 onChange={(e) => setConfirmStudentPassword(e.target.value)}
               />
-
-              {errors.confirm && <p className="error-text">{errors.confirm}</p>}
+              {errors.confirm && (
+                <p className="create-student-account__error">{errors.confirm}</p>
+              )}
             </div>
           </div>
 
-          {/* server error */}
           {errors.server && (
-            <p className="error-text center-error">{errors.server}</p>
+            <p className="create-student-account__error create-student-account__error--center">
+              {errors.server}
+            </p>
           )}
 
           {/* buttons */}
-          <div className="tutorbuttons">
+          <div className="create-student-account__actions">
             <button
               type="button"
-              className="movetostep2"
+              className="create-student-account__btn create-student-account__btn--primary"
               onClick={validateForm}
               disabled={loading}
             >
-              <FaArrowLeft className="btn-icon" />
-
+              <FaArrowLeft className="create-student-account__btn-icon" />
               {loading ? "جاري إنشاء الحساب..." : "متابعة للخطوة التالية"}
             </button>
 
-            <button type="button" className="cancele">
-              <FaTimesCircle className="btn-icon" />
+            <button
+              type="button"
+              className="create-student-account__btn create-student-account__btn--secondary"
+            >
+              <FaTimesCircle className="create-student-account__btn-icon" />
               إلغاء
             </button>
           </div>
-          <div className="login-redirect">
+
+          <div className="create-student-account__login-redirect">
             هل لديك حساب بالفعل؟
-            <Link to="/login" className="login-redirect-link">
+            <Link to="/login" className="create-student-account__login-link">
               تسجيل دخول
             </Link>
           </div>

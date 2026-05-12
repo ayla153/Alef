@@ -70,13 +70,13 @@ const HomePage = () => {
     <div className="page-container">
       <Header/>
       <div className="homePage">
-        <div className="container">
-          <div className="pageHeader">
+        <div className="home-container">
+          <div className="home-pageHeader">
             <h1>أهلاً بك ! 👋</h1>
             <p>استكشف أفضل المدرسين وابدأ رحلتك التعليمية اليوم.</p>
           </div>
 
-          <div className="statsContainer">
+          <div className="home-statsContainer">
             <StatCard
               number={savedCount}
               label="مدرسون محفوظون"

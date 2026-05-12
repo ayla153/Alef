@@ -5,7 +5,8 @@
   gap: 25px;
 }
 
-.card {
+/* ===== Teacher Card ===== */
+.tc-card {
   background: var(--white);
   border-radius: 18px;
   padding: 18px;
@@ -15,12 +16,12 @@
   flex-direction: column;
 }
 
-.card:hover {
+.tc-card:hover {
   transform: translateY(-6px);
 }
 
-/* Header */
-.card-header {
+/* ===== Header ===== */
+.tc-card-header {
   position: relative;
   display: flex;
   align-items: center;
@@ -28,30 +29,31 @@
   margin-bottom: 15px;
 }
 
-.profile-img {
+.tc-profile-img {
   width: 85px;
   height: 85px;
   border-radius: 12px;
   object-fit: cover;
 }
 
-/* Info */
-.info {
+/* ===== Info ===== */
+.tc-info {
   flex: 1;
   text-align: right;
 }
 
-.info h3 {
+.tc-name {
   font-size: 1rem;
   margin-bottom: 2px;
 }
 
-.subtitle {
+.tc-subtitle {
   font-size: 0.75rem;
   color: var(--text-secondary);
 }
 
-.rating {
+/* ===== Rating ===== */
+.tc-rating {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -59,28 +61,28 @@
   margin-top: 2px;
 }
 
-.star {
+.tc-star {
   color: #f59e0b;
 }
 
-.score {
+.tc-score {
   font-weight: bold;
 }
 
-.reviews-count {
+.tc-reviews {
   color: #94a3b8;
   font-size: 0.7rem;
 }
 
-/* Experience */
-.experience {
+/* ===== Experience ===== */
+.tc-experience {
   font-size: 0.75rem;
   color: #64748b;
   font-weight: 600;
 }
 
-/* Bookmark */
-.fav-btn {
+/* ===== Bookmark ===== */
+.tc-fav-btn {
   position: absolute;
   top: 0;
   left: 0;
@@ -95,19 +97,19 @@
   justify-content: center;
 }
 
-.fav-btn svg {
+.tc-fav-btn svg {
   font-size: 20px;
 }
 
-/* Tags */
-.tags {
+/* ===== Tags ===== */
+.tc-tags {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
   margin-bottom: 5px;
 }
 
-.tag {
+.tc-tag {
   background: #f1f5f9;
   color: #475569;
   padding: 3px 10px;
@@ -115,53 +117,55 @@
   font-size: 0.7rem;
 }
 
-/* Services */
-.services {
+/* ===== Services ===== */
+.tc-services {
   margin-top: 5px;
   padding-top: 12px;
   border-top: 1px solid #e5e7eb;
 }
 
-.service-item {
+.tc-service-item {
   display: flex;
   justify-content: space-between;
   font-size: 0.8rem;
   margin-bottom: 6px;
 }
 
-.service-name {
+.tc-service-name {
   font-weight: bolder;
   border-radius: 15px;
 }
 
-.online {
+/* online / offline styles */
+.tc-service-name.online {
   background: #eff6ff;
   color: var(--primary);
 }
 
-.offline {
+.tc-service-name.offline {
   background: #ede9fe;
   color: #6b21a8;
 }
 
-.service-item.disabled {
+.tc-service-item.disabled {
   text-decoration: line-through;
   opacity: 0.5;
   pointer-events: none;
 }
 
-.price {
+/* ===== Price ===== */
+.tc-price {
   color: var(--primary);
   font-weight: bold;
 }
 
-.price small {
+.tc-price small {
   font-weight: normal;
   color: #94a3b8;
 }
 
-/* Button */
-.profile-btn {
+/* ===== Button ===== */
+.tc-profile-btn {
   width: 100%;
   padding: 10px;
   font-size: 0.9rem;
@@ -173,6 +177,6 @@
   font-weight: bold;
 }
 
-.profile-btn:hover {
+.tc-profile-btn:hover {
   background: #1d4ed8;
 }

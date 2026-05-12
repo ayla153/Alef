@@ -60,47 +60,54 @@ export default function Notifications() {
     <>
       <Header activeTab="notifications" />
 
-      <main className="content-area">
-        <section className="page-intro">
-          <h1 className="main-heading">الإشعارات</h1>
+      <main className="notifications-page__content-area">
+        <section className="notifications-page__intro">
+          <h1 className="notifications-page__main-heading">الإشعارات</h1>
         </section>
 
-        <div className="notifications-stack">
+        <div className="notifications-page__stack">
           {notifications.map((notif) => (
             <div
               key={notif.id}
-              className={`notif-card 
+              className={`notifications-page__card
               ${notif.unread ? "is-unread" : ""} 
               ${notif.old || notif.dismissed ? "is-old" : ""}`}
             >
               {notif.unread && !notif.dismissed && (
-                <div className="unread-glow"></div>
+                <div className="notifications-page__unread-glow"></div>
               )}
 
-              <div className={`card-icon-bg ${getBgClass(notif.type)}`}>
-                <span className="material-symbols-outlined icon-size-lg">
+              <div
+                className={`notifications-page__icon-bg ${getBgClass(
+                  notif.type
+                )}`}
+              >
+                <span className="material-symbols-outlined notifications-page__icon-size-lg">
                   {getIcon(notif.type)}
                 </span>
               </div>
 
-              <div className="card-body">
-                <div className="card-top">
+              <div className="notifications-page__body">
+                <div className="notifications-page__top">
                   {notif.type === "match" ? (
                     <>
-                      <h3 className="card-title text-primary">
+                      <h3 className="notifications-page__title text-primary">
                         {notif.title}
                       </h3>
-                      <span className="badge badge-blue">
+                      <span className="notifications-page__badge notifications-page__badge-blue">
                         {notif.time}
                       </span>
                     </>
                   ) : (
                     <>
-                      <div className="title-group">
-                        <h3 className="card-title">{notif.title}</h3>
+                      <div className="notifications-page__title-group">
+                        <h3 className="notifications-page__title">
+                          {notif.title}
+                        </h3>
+
                         {notif.status && (
                           <span
-                            className={`badge ${getBadgeClass(
+                            className={`notifications-page__badge ${getBadgeClass(
                               notif.type
                             )}`}
                           >
@@ -108,22 +115,24 @@ export default function Notifications() {
                           </span>
                         )}
                       </div>
-                      <span className="timestamp">{notif.time}</span>
+
+                      <span className="notifications-page__timestamp">
+                        {notif.time}
+                      </span>
                     </>
                   )}
                 </div>
 
-                <p className="card-desc">{notif.desc}</p>
+                <p className="notifications-page__desc">{notif.desc}</p>
 
-                {/* الأزرار الخاصة */}
                 {notif.type === "match" && (
-                  <div className="card-btns">
-                    <button className="btn btn-filled">
+                  <div className="notifications-page__btns">
+                    <button className="notifications-page__btn notifications-page__btn--filled">
                       عرض المدرسين
                     </button>
 
                     <button
-                      className="btn btn-ghost"
+                      className="notifications-page__btn notifications-page__btn--ghost"
                       onClick={() => dismissNotification(notif.id)}
                       disabled={notif.dismissed}
                     >
@@ -133,7 +142,7 @@ export default function Notifications() {
                 )}
 
                 {notif.type === "accepted" && (
-                  <button className="link-action">
+                  <button className="notifications-page__link-action">
                     تفاصيل الطلب
                     <span className="material-symbols-outlined">
                       arrow_back
@@ -142,7 +151,7 @@ export default function Notifications() {
                 )}
 
                 {notif.type === "rejected" && (
-                  <button className="link-action">
+                  <button className="notifications-page__link-action">
                     البحث عن مدرس بديل
                   </button>
                 )}
@@ -177,15 +186,15 @@ function getIcon(type) {
 function getBgClass(type) {
   switch (type) {
     case "match":
-      return "bg-primary-soft";
+      return "notifications-page__bg-primary-soft";
     case "accepted":
-      return "bg-success-soft";
+      return "notifications-page__bg-success-soft";
     case "pending":
-      return "bg-warning-soft";
+      return "notifications-page__bg-warning-soft";
     case "rejected":
-      return "bg-danger-soft";
+      return "notifications-page__bg-danger-soft";
     case "welcome":
-      return "bg-blue-dim";
+      return "notifications-page__bg-blue-dim";
     default:
       return "";
   }
@@ -194,11 +203,11 @@ function getBgClass(type) {
 function getBadgeClass(type) {
   switch (type) {
     case "accepted":
-      return "badge-green";
+      return "notifications-page__badge-green";
     case "pending":
-      return "badge-orange";
+      return "notifications-page__badge-orange";
     case "rejected":
-      return "badge-red";
+      return "notifications-page__badge-red";
     default:
       return "";
   }

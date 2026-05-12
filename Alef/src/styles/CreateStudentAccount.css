@@ -1,14 +1,15 @@
-
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
+
 body {
-  
   direction: rtl;
 }
-.page-container2 {
+
+/* PAGE */
+.create-student-account__page {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -19,13 +20,16 @@ body {
   background: #f2f5f8;
   gap: 2rem;
   padding-bottom: 8rem;
-  bottom: 0;
 }
-.Alef-logo {
+
+/* LOGO */
+.create-student-account__logo {
   width: 8rem;
   height: 8rem;
 }
-.content {
+
+/* CONTENT */
+.create-student-account__content {
   width: 80%;
   display: flex;
   flex-direction: column;
@@ -33,32 +37,26 @@ body {
   justify-content: center;
   gap: 2rem;
 }
-.personalinfo {
-  font-size: 1rem;
-  color: #2563eb;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.5rem;
-  text-align: center;
-}
-.titleforstep1 h2 {
+
+/* TITLE */
+.create-student-account__title h2 {
   font-size: 1.5rem;
   font-weight: 700;
   color: #1e293b;
   margin-bottom: 0.55rem;
   text-align: center;
 }
-.steponeheader {
-  color: #183275;
-  font-weight: 800;
-}
-.welcom {
+
+.create-student-account__welcome {
   font-weight: 400;
   font-size: 1rem;
   color: #475569;
   line-height: 1.6;
+  text-align: center;
 }
-.tutorform {
+
+/* FORM */
+.create-student-account__form {
   border: none;
   width: 75%;
   display: flex;
@@ -69,277 +67,89 @@ body {
   padding: 1.5rem;
   background: #ffffff;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-  z-index: 9;
 }
-.profile-image-container {
-  display: flex;
-  justify-content: center;
-  margin: 20px 0;
-}
-.image-upload {
-  cursor: pointer;
-}
-.profile-preview,
-.placeholder {
-  width: 110px;
-  height: 110px;
-  border-radius: 50%;
-  object-fit: cover;
-  background-color: #eee;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32px;
-  border: 2px solid #ccc;
-}
-.toturlabels {
-  display: block;
-  font-size: 0.8rem;
-  margin-top: 0.8rem;
-  margin-bottom: 5px;
-}
-.tutorinputs {
+
+/* INPUT ROWS */
+.create-student-account__inputs-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
   width: 100%;
   margin-bottom: 1rem;
 }
-.tutorinputs > div {
+
+.create-student-account__inputs-row > div {
   width: 100%;
 }
-.progress-container {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 0.2rem;
-  margin-top: 0.6rem;
+
+/* LABEL */
+.create-student-account__label {
+  display: block;
+  font-size: 0.8rem;
+  margin-top: 0.8rem;
+  margin-bottom: 5px;
 }
-.progress-step {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #e2e8f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  color: #64748b;
-  border: none;
-  cursor: pointer;
+
+.create-student-account__icon {
+  margin-left: 5px;
 }
-.progress-step.active {
-  background: #2563eb;
-  color: white;
-}
-.progress-step:hover {
-  transform: scale(1.1);
-  background: #93c3ed;
-  color: white;
-  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.25);
-}
-.tutorinput {
+
+/* INPUT */
+.create-student-account__input {
   width: 95%;
   margin-bottom: 0.2rem;
-  padding: 14px 18px 14px 45px;
+  padding: 14px 18px;
   border: 1.5px solid #d8dfe7;
   border-radius: 10px;
   transition: all 0.25s;
   background: #f6fbff;
 }
-.tutorinput:hover {
+
+.create-student-account__input:hover {
   border-color: #3b82f6;
   background: #ffffff;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
   transform: scale(1.009);
 }
-.tutorinput:focus {
+
+.create-student-account__input:focus {
   outline: none;
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
   border-color: #3b82f6;
   background: #ffffff;
 }
-.tutorbuttons {
-  position: relative;
-  width: 80%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 1.5rem 0;
-  min-height: 60px;
-}
-.movetostep2 {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: white;
-  box-shadow: 0 8px 16px -4px rgba(37, 99, 235, 0.4);
-  padding: 12px 24px;
-  min-width: 320px;
-  max-width: 500px;
-  width: 100%;
-  border-radius: 10px;
-  font-size: 18px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: none;
-  text-align: center;
-  white-space: nowrap;
-}
-.movetostep2:hover {
-  background: linear-gradient(135deg, #2563eb, #1e4fd0);
-  box-shadow: 0 12px 20px -6px rgba(37, 99, 235, 0.5);
-  transform: scale(1.02);
-}
-.cancele {
-  position: absolute;
-  left: 0;
-  background: #f1f5f9;
-  color: #1e293b;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-  padding: 6px 12px;
-  font-size: 14px;
-  min-width: 100px;
-  max-width: 140px;
-  border-radius: 10px;
-  font-weight: 550;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: none;
-  text-align: center;
-  white-space: nowrap;
-}
-.cancele:hover {
-  background: #cbd5e1;
-  color: #1e293b;
-  transform: scale(1.02);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-}
-.haveaccount {
-  text-align: center;
-  font-size: 0.95rem;
-  color: #475569;
-  margin-top: 1rem;
-}
-.haveaccount > a {
-  color: #2563eb;
-  font-weight: 600;
-  text-decoration: none;
-  margin-right: 0.5rem;
-}
-.haveaccount > a:hover {
-  text-decoration: underline;
-}
-@media screen and (max-width: 800px) {
-  .tutorinputs {
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-  .tutorform {
-    width: 85%;
-    padding: 1.5rem;
-  }
-  .tutorbuttons {
-    width: 100%;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    position: static;
-    margin: 1rem 0;
-  }
-  .cancele {
-    position: static;
-    width: 100%;
-    max-width: 200px;
-  }
-  .movetostep2 {
-    width: 100%;
-    max-width: 300px;
-    white-space: normal;
-  }
-  .content {
-    width: 95%;
-  }
-  .titleforstep1 {
-    width: 100%;
-    text-align: center;
-  }
-}
-@media screen and (max-width: 480px) {
-  .steponeheader {
-    padding-right: 1rem;
-    font-size: 0.9rem;
-  }
-  .Alef-logo {
-    width: 3.5rem;
-    height: 3.5rem;
-  }
-  .tutorinputs {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-  .tutorinput {
-    padding: 8px 12px;
-    font-size: 14px;
-    width: 100%;
-  }
-  .movetostep2,
-  .cancele {
-    padding: 10px 16px;
-    font-size: 14px;
-  }
-  .cancele {
-    padding: 6px 12px;
-    font-size: 12px;
-    max-width: none;
-  }
-  .tutorform {
-    width: 95%;
-    padding: 1rem;
-  }
-  .toturlabels {
-    font-size: 0.75rem;
-  }
-}
-.custom-dropdown {
+
+/* DROPDOWN */
+.create-student-account__dropdown {
   position: relative;
   width: 100%;
 }
-.dropdown-selected {
+
+.create-student-account__dropdown-selected {
   width: 95%;
   padding: 14px 18px;
   border: 1.5px solid #d8dfe7;
   border-radius: 10px;
   background: #f6fbff;
-  font-family: "Cairo";
   font-size: 14px;
   color: #1e293b;
-
   display: flex;
   align-items: center;
-
   transition: all 0.25s;
 }
 
-/* لما يكون في placeholder (ما في قيمة مختارة) */
-.dropdown-selected.empty {
-  color: #94a3b8; /* نفس ستايل placeholder تبع inputs */
-}
-.dropdown-selected:hover {
+.create-student-account__dropdown-selected:hover {
   border-color: #3b82f6;
   background: #ffffff;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
   transform: scale(1.009);
 }
 
-.dropdown-selected:active,
-.dropdown-selected:focus {
-  outline: none;
+.create-student-account__dropdown-selected:active {
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
-  border-color: #3b82f6;
-  background: #ffffff;
 }
 
-.dropdown-menu {
+.create-student-account__dropdown-menu {
   position: absolute;
   top: 110%;
   left: 0;
@@ -351,41 +161,154 @@ body {
   overflow-y: auto;
   z-index: 1000;
 }
-.dropdown-item {
+
+.create-student-account__dropdown-item {
   padding: 10px;
   cursor: pointer;
-  font-size: 14px; /* 👈 مهم */
+  font-size: 14px;
   font-family: "Cairo";
 }
 
-.dropdown-item:hover {
+.create-student-account__dropdown-item:hover {
   background: #f2f6ff;
 }
 
-input[type="date"] {
-  direction: rtl;
-  text-align: right;
+/* EMPTY STATE */
+.create-student-account__dropdown-selected.empty {
+  color: #94a3b8;
 }
 
-.error-text {
+/* BUTTONS */
+.create-student-account__actions {
+  position: relative;
+  width: 80%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 1.5rem 0;
+  min-height: 60px;
+}
+
+.create-student-account__btn {
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 10px;
+}
+
+.create-student-account__btn--primary {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  padding: 12px 24px;
+  width: 100%;
+  min-width: 320px;
+  max-width: 500px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.create-student-account__btn--primary:hover {
+  transform: scale(1.02);
+}
+
+.create-student-account__btn--secondary {
+  position: absolute;
+  left: 0;
+  background: #f1f5f9;
+  color: #1e293b;
+  padding: 6px 12px;
+  font-size: 14px;
+  min-width: 100px;
+}
+
+/* ERRORS */
+.create-student-account__error {
   color: #ef4444;
   font-size: 12px;
   margin-top: 4px;
 }
-.login-redirect {
+
+.create-student-account__error--center {
+  text-align: center;
+}
+
+/* LOGIN */
+.create-student-account__login-redirect {
   margin-top: 15px;
   font-size: 13px;
   text-align: center;
   color: #555;
 }
 
-.login-redirect-link {
+.create-student-account__login-link {
   margin-right: 5px;
   color: #3b82f6;
   text-decoration: none;
   font-weight: 600;
 }
 
-.login-redirect-link:hover {
+.create-student-account__login-link:hover {
   text-decoration: underline;
+}
+
+/* DATE RTL */
+input[type="date"] {
+  direction: rtl;
+  text-align: right;
+}
+
+/* RESPONSIVE */
+@media screen and (max-width: 800px) {
+  .create-student-account__inputs-row {
+    grid-template-columns: 1fr;
+  }
+
+  .create-student-account__form {
+    width: 85%;
+  }
+
+  .create-student-account__actions {
+    flex-direction: column;
+    position: static;
+  }
+
+  .create-student-account__btn--secondary {
+    position: static;
+    width: 100%;
+    max-width: 200px;
+  }
+
+  .create-student-account__btn--primary {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .create-student-account__content {
+    width: 95%;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .create-student-account__logo {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+
+  .create-student-account__input {
+    font-size: 14px;
+    width: 100%;
+  }
+
+  .create-student-account__btn--primary {
+    font-size: 14px;
+  }
+
+  .create-student-account__btn--secondary {
+    font-size: 12px;
+  }
+
+  .create-student-account__form {
+    width: 95%;
+    padding: 1rem;
+  }
 }

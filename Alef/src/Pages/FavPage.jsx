@@ -31,25 +31,28 @@ const FavPage = () => {
   return (
     <>
       <Header activeTab="favorites" />
-      <div className="wrapper">
-        <main className="content">
-          <div className="container">
-            <section className="hero">
-              <h1 className="hero-title">المفضلة</h1>
-              <p className="hero-desc">
+      <div className="fav-page__wrapper">
+        <main className="fav-page__content">
+          <div className="fav-page__container">
+            <section className="fav-page__hero">
+              <h1 className="fav-page__hero-title">المفضلة</h1>
+              <p className="fav-page__hero-desc">
                 المدرسون الذين قمت بحفظهم للوصول السريع ومتابعة توفرهم.
               </p>
-              <div className="counter-badge">
+
+              <div className="fav-page__counter-badge">
                 <span className="material-symbols-outlined">group</span>
                 <span>{teachers.length} مدرسين في قائمتك</span>
               </div>
 
               {loading ? (
-                <p>جارٍ تحميل المدرسين...</p>
+                <p className="fav-page__loading">جارٍ تحميل المدرسين...</p>
               ) : teachers.length === 0 ? (
-                <p className="No-Teachers">لا يوجد مدرسين في المفضلة بعد.</p>
+                <p className="fav-page__empty">
+                  لا يوجد مدرسين في المفضلة بعد.
+                </p>
               ) : (
-                <div className="teachers-list">
+                <div className="fav-page__teachers-list">
                   {teachers.map((teacher, index) => (
                     <TeacherCard
                       key={index}
