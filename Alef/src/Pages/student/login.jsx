@@ -83,9 +83,9 @@ export default function Login() {
                 <FaLock className="login-input-icon" /> كلمة السِّر
               </label>
 
-              <a href="#" className="login-forgot-link">
-                هل نسيت كلمة السر ؟
-              </a>
+              <Link to="/otp" className="login-forgot-link">
+                نسيت كلمة المرور؟
+              </Link>
             </div>
 
             <input
@@ -108,7 +108,7 @@ export default function Login() {
           {/* SIGNUP */}
           <p className="login-footer-text">
             ليس لديك حساب ؟
-            <Link to="/register" className="login-signup-link">
+            <Link to="/selection" className="login-signup-link">
               <FaUserPlus className="login-link-icon" /> أنشئ حساباً
             </Link>
           </p>

@@ -113,13 +113,11 @@ export default function CreateStudentAccount() {
     else if (!emailRegex.test(studentEmail.trim()))
       newErrors.email = "البريد الإلكتروني غير صالح";
 
-    if (!studentPassword)
-      newErrors.password = "يرجى إدخال كلمة السر";
+    if (!studentPassword) newErrors.password = "يرجى إدخال كلمة السر";
     else if (studentPassword.length < 8)
       newErrors.password = "كلمة السر يجب أن تكون 8 أحرف على الأقل";
 
-    if (!confirmStudentPassword)
-      newErrors.confirm = "يرجى تأكيد كلمة السر";
+    if (!confirmStudentPassword) newErrors.confirm = "يرجى تأكيد كلمة السر";
     else if (studentPassword !== confirmStudentPassword)
       newErrors.confirm = "كلمة السر غير متطابقة";
 
@@ -182,7 +180,9 @@ export default function CreateStudentAccount() {
                 onChange={(e) => setFirstname(e.target.value)}
               />
               {errors.firstname && (
-                <p className="create-student-account__error">{errors.firstname}</p>
+                <p className="create-student-account__error">
+                  {errors.firstname}
+                </p>
               )}
             </div>
 
@@ -199,7 +199,9 @@ export default function CreateStudentAccount() {
                 onChange={(e) => setLastname(e.target.value)}
               />
               {errors.lastname && (
-                <p className="create-student-account__error">{errors.lastname}</p>
+                <p className="create-student-account__error">
+                  {errors.lastname}
+                </p>
               )}
             </div>
           </div>
@@ -236,7 +238,9 @@ export default function CreateStudentAccount() {
                 onChange={(e) => setBirthdate(e.target.value)}
               />
               {errors.birthdate && (
-                <p className="create-student-account__error">{errors.birthdate}</p>
+                <p className="create-student-account__error">
+                  {errors.birthdate}
+                </p>
               )}
             </div>
           </div>
@@ -311,7 +315,9 @@ export default function CreateStudentAccount() {
                 onChange={(e) => setStudentPassword(e.target.value)}
               />
               {errors.password && (
-                <p className="create-student-account__error">{errors.password}</p>
+                <p className="create-student-account__error">
+                  {errors.password}
+                </p>
               )}
             </div>
 
@@ -329,7 +335,9 @@ export default function CreateStudentAccount() {
                 onChange={(e) => setConfirmStudentPassword(e.target.value)}
               />
               {errors.confirm && (
-                <p className="create-student-account__error">{errors.confirm}</p>
+                <p className="create-student-account__error">
+                  {errors.confirm}
+                </p>
               )}
             </div>
           </div>
@@ -353,11 +361,13 @@ export default function CreateStudentAccount() {
             </button>
 
             <button
-              type="button"
-              className="create-student-account__btn create-student-account__btn--secondary"
+              className="cancele"
+              onClick={() => {
+                navigate("/");
+              }}
             >
-              <FaTimesCircle className="create-student-account__btn-icon" />
-              إلغاء
+              {" "}
+              <FaArrowLeft className="btn-icon" />{" "}
             </button>
           </div>
 

@@ -26,11 +26,9 @@ export default function CreateAccountStep1() {
 
   return (
     <div className="page-container2">
-      <header className="steponeheader">
-        <div className="logoAndtitle">
-          <img className="Alef-logo" src={logo} alt="logo" />
-        </div>
-      </header>
+      
+        <img className="create-student-account__logo" src={logo} alt="logo" />
+      
       <div className="content">
         <div className="titleforstep1">
           <h2>أهلاً بكُم في مِنصَّتنا التَّعليميَّة !</h2>
@@ -136,12 +134,18 @@ export default function CreateAccountStep1() {
             <button
               className="movetostep2"
               type="button"
-              onClick={() => navigate("/teacher/register/step2")}
+              onClick={() => navigate("/create-account/step2")}
             >
               متابعة للخطوة التالية
             </button>
-            <button className="cancele">
-              <FaTimesCircle className="btn-icon" /> إلغاء
+            <button
+              className="cancele"
+              onClick={() => {
+                navigate("/");
+              }}
+            >
+              {" "}
+              <FaArrowLeft className="btn-icon" />{" "}
             </button>
           </div>
           <p className="haveaccount">

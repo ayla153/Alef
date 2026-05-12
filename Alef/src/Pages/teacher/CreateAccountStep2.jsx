@@ -1,12 +1,12 @@
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import "../../styles/tstyle/CreateAccountStep2.css";
 import logo from "../../assets/logo_noBG.png";
-import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
 export default function CreateAccountStep2() {
   const navigate = useNavigate();
-
   const [subjects, setSubjects] = useState([
     { id: 1, name: "الرياضيات", selected: false, years: 0 },
     { id: 2, name: "اللغة العربية", selected: false, years: 0 },
@@ -72,12 +72,9 @@ export default function CreateAccountStep2() {
   };
 
   return (
-    <div className="page-container2">
-      <header className="steponeheader">
-        <div className="logoAndtitle">
-          <img className="Alef-logo" src={logo} alt="logo" />
-        </div>
-      </header>
+    <div className="page-container2 fade-in">
+      <img className="create-student-account__logo" src={logo} alt="logo" />
+
       <div className="content">
         <div className="titleforstep1">
           <h2>المواد و الصفوف الدراسية</h2>
@@ -161,17 +158,21 @@ export default function CreateAccountStep2() {
           <div className="tutorbuttons">
             <button
               className="movetostep2"
-              type="button"
-              onClick={() => navigate("/teacher/register/step3")}
+              onClick={() => {
+                navigate("/create-account/step3");
+              }}
             >
+              <FaArrowRight className="btn-icon" />
               متابعة للخطوة التالية
             </button>
             <button
-              className="back"
-              type="button"
-              onClick={() => navigate("/teacher/register")}
+              className="cancele"
+              onClick={() => {
+                navigate("/teacher/register");
+              }}
             >
-              الرّجوع للخطوة السّابقة
+              {" "}
+              <FaArrowLeft className="btn-icon" />{" "}
             </button>
           </div>
           <p className="haveaccount">

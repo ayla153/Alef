@@ -2,25 +2,24 @@ import "../../styles/tstyle/CreateAccountStep3.css";
 import logo from "../../assets/logo_noBG.png";
 import { useState } from "react";
 import PriceCard from "../../components/PriceCard";
+import { useNavigate } from "react-router-dom";
 import {
   FaArrowLeft,
+  FaArrowRight,
   FaTimesCircle,
   FaLaptop,
   FaUniversity,
   FaChalkboardTeacher,
   FaUserGraduate,
   FaMoneyBillWave,
-} from "react-icons/fa";
+} from "react-icons/fa"; // أضفنا الأيقونة الجديدة
 import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom"; // أضفنا الأيقونة الجديدة
-
 export default function CreateAccountStep3() {
-  const navigate = useNavigate();
   const [selected, setSelected] = useState({
     online: false,
     offline: false,
   });
-
+  const navigate = useNavigate();
   const [experienceYears, setExperienceYears] = useState("");
 
   const handleSelect = (type) => {
@@ -28,13 +27,9 @@ export default function CreateAccountStep3() {
   };
 
   return (
-    <div className="page-container2">
-      <header className="steponeheader">
-        <div className="logoAndtitle">
-          <img className="Alef-logo" src={logo} alt="logo" />
-          إنشاء حساب مُعلّم - منصَّة ألِف
-        </div>
-      </header>
+    <div className="page-container2 fade-in">
+      <img className="create-student-account__logo" src={logo} alt="logo" />
+
       <div className="content">
         <div className="titleforstep1">
           <h2>أهلاً بكُم في مِنصَّتنا التَّعليميَّة !</h2>
@@ -121,15 +116,22 @@ export default function CreateAccountStep3() {
           <PriceCard />
 
           <div className="tutorbuttons">
-            <button className="movetostep2">
-              <FaArrowLeft className="btn-icon" /> متابعة للخطوة التالية
+            <button
+              className="movetostep2"
+              onClick={() => {
+                navigate("/create-account/step4");
+              }}
+            >
+              <FaArrowRight className="btn-icon" /> متابعة للخطوة التالية
             </button>
             <button
-              className="back"
-              type="button"
-              onClick={() => navigate("/teacher/register/step2")}
+              className="cancele"
+              onClick={() => {
+                navigate("/create-account/step2");
+              }}
             >
-              الرّجوع للخطوة السّابقة
+              {" "}
+              <FaArrowLeft className="btn-icon" />{" "}
             </button>
           </div>
           <p className="haveaccount">

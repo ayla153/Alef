@@ -398,20 +398,3 @@
     width: 70%;
   }
 }
-
-.back{
-  background: #f1f5f9;
-  color: #1e293b;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-  padding: 6px 12px;
-  font-size: 14px;
-  min-width: 100px;
-  max-width: 140px;
-  border-radius: 10px;
-  font-weight: 550;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: none;
-  text-align: center;
-  white-space: nowrap;
-}
