@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { FaEnvelope, FaLock, FaArrowLeft, FaUserPlus } from 'react-icons/fa';
-import '../styles/SignUp.css';
+import '../styles/Login.css';
 import signImage from '../assets/signImage.png';
+import { useNavigate } from 'react-router-dom';
 
-export default function SignUp() {
+export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -12,9 +13,10 @@ export default function SignUp() {
     console.log('البريد الإلكتروني:', email);
     console.log('كلمة السر:', password);
   };
+  const navigate = useNavigate();
 
   return (
-    <div className="page-container">
+    <div className="page-container fade-in">
       <form className="signupform" onSubmit={handleSubmit}>
         <div className="image-side">
           <img src={signImage} className="signupimage" alt="تسجيل دخول" />
@@ -53,12 +55,12 @@ export default function SignUp() {
             />
           </div>
 
-          <button type="submit" className="signupbutton">
-            <FaArrowLeft className="btn-icon" /> تسجيل الدُّخول
+          <button type="submit" className="signupbutton" onClick={()=>{navigate('/dashboard')}}>
+            <FaArrowLeft className="btn-icon"/> تسجيل الدُّخول
           </button>
           <p className="haventaccount">
             ليس لديك حساب ؟
-            <a href="#" className="signup-prompt">
+            <a href="#" className="signup-prompt" onClick={(e) => {e.preventDefault(); navigate('/create-account/step1');}}>
               <FaUserPlus className="link-icon" /> أنشئ حساباً
             </a>
           </p>

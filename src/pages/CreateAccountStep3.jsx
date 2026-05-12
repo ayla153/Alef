@@ -2,14 +2,15 @@ import '../styles/CreateAccountStep3.css'
 import logo from '../assets/Alef-logo.jpg';
 import { useState } from 'react';
 import PriceCard from '../components/PriceCard';
-import { FaArrowLeft , FaTimesCircle ,FaLaptop, FaUniversity, FaChalkboardTeacher ,FaUserGraduate , FaMoneyBillWave} from "react-icons/fa"; // أضفنا الأيقونة الجديدة
+import { useNavigate } from 'react-router-dom';
+import { FaArrowLeft , FaArrowRight , FaTimesCircle ,FaLaptop, FaUniversity, FaChalkboardTeacher ,FaUserGraduate , FaMoneyBillWave} from "react-icons/fa"; // أضفنا الأيقونة الجديدة
 
 export default function CreateAccountStep3(){
     const [selected, setSelected] = useState({
         online: false,
         offline: false,
     });
-
+    const navigate = useNavigate();
     const [experienceYears, setExperienceYears] = useState('');
 
     const handleSelect = (type) => {
@@ -18,7 +19,7 @@ export default function CreateAccountStep3(){
 
 
     return(
-        <div className='page-container2'>
+        <div className='page-container2 fade-in'>
             <header className="steponeheader">
                 <div className="logoAndtitle">
                     <img className="Alef-logo" src={logo} alt="logo" />
@@ -102,10 +103,10 @@ export default function CreateAccountStep3(){
                     <PriceCard/>
                     
                     <div className="tutorbuttons">
-                        <button className="movetostep2"><FaArrowLeft className="btn-icon" /> متابعة للخطوة التالية</button>
-                        <button className="cancele"><FaTimesCircle className="btn-icon" /> إلغاء</button>
+                        <button className="movetostep2" onClick={()=>{navigate('/create-account/step4')}}><FaArrowRight className="btn-icon" /> متابعة للخطوة التالية</button>
+                         <button className="cancele" onClick={()=>{navigate('/create-account/step2')}}> <FaArrowLeft className="btn-icon"/> </button>
                     </div>
-                    <p className="haveaccount">لديك حساب بالفعل ؟ <a href="#">تسجيل الدخول</a></p>
+                    <p className="haveaccount">لديك حساب بالفعل ؟ <a href="#" onClick={(e) => {e.preventDefault(); navigate('/login');}}>تسجيل الدخول</a></p>
 
                 </div>
             </div>

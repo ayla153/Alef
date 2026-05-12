@@ -1,10 +1,11 @@
+import { useNavigate } from 'react-router-dom';
 import '../../styles/HowItWorks.css'
 import { useState } from 'react';
 import HowitWorkSteps from '../HowitWorkSteps'
 
 export default function HowItWorksTab() {
   const [activeTab, setActiveTab] = useState("student");
-  
+  const navigate = useNavigate();
   return (
     <div className="howitworks_tab fade-in">
       <section className="hero-short">
@@ -77,7 +78,7 @@ export default function HowItWorksTab() {
               description="قدم دروس سودا أولئك عبر فرصة الإفتراضية أو حضوري. واحصل على تقييمات لزيادة موثوقيتك." 
             />
           </div>
-          <button className='btn-teacher-student'>سجل كمعلم</button>
+          <button className='btn-teacher-student' onClick={()=>{navigate('/create-account/step1')}}>سجل كمعلم</button>
         </div>
       )}
       

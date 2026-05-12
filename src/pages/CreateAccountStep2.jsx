@@ -1,8 +1,11 @@
+import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import '../styles/CreateAccountStep2.css';
+import {FaArrowLeft , FaArrowRight} from 'react-icons/fa'
 import logo from '../assets/Alef-logo.jpg';
 
 export default function CreateAccountStep2() {
+  const navigate = useNavigate();
   const [subjects, setSubjects] = useState([
     { id: 1, name: 'الرياضيات', selected: false, years: 0 },
     { id: 2, name: 'اللغة العربية', selected: false, years: 0 },
@@ -45,7 +48,7 @@ export default function CreateAccountStep2() {
   };
 
   return (
-    <div className="page-container2">
+    <div className="page-container2 fade-in">
       <header className="steponeheader">
         <div className="logoAndtitle">
           <img className="Alef-logo" src={logo} alt="logo" />
@@ -113,10 +116,10 @@ export default function CreateAccountStep2() {
             </div>
           </div>
           <div className="tutorbuttons">
-            <button className="movetostep2">متابعة للخطوة التالية</button>
-            <button className="back">الرّجوع للخطوة السّابقة</button>
+            <button className="movetostep2" onClick={()=>{navigate('/create-account/step3')}}><FaArrowRight className="btn-icon" />متابعة للخطوة التالية</button>
+            <button className="cancele" onClick={()=>{navigate('/create-account/step1')}}> <FaArrowLeft className="btn-icon"/> </button>
           </div>
-          <p className="haveaccount">لديك حساب بالفعل ؟ <a href="#">تسجيل الدخول</a></p>
+          <p className="haveaccount">لديك حساب بالفعل ؟ <a href="#" onClick={(e) => {e.preventDefault(); navigate('/login');}}>تسجيل الدخول</a></p>
         </div>
       </div>
     </div>

@@ -144,35 +144,6 @@
   margin-top: 0.2rem;
   margin-bottom: 1rem;
 }
-/*
-.stepsCards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 320px));
-  justify-content: center;
-  gap: 2rem;
-  margin: 1.8rem auto 3rem;
-  width: 90%;
-  max-width: 1200px;
-}
-
-.stepsCard {
-  background: white;
-  border-radius: 1rem;
-  padding: 1.5rem;
-  text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  width: 100%;
-  max-width: 100%;
-  height: auto;
-  min-height: 260px;
-}
-
-.stepsCard:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 25px 30px -12px rgba(0, 0, 0, 0.2);
-}*/
-
 .stepTitle {
   color: #3b82f6;
   font-size: 1.3rem;
@@ -215,14 +186,16 @@
   margin-bottom: 1rem;
 }
 
-.bestTutorsContainer {
+.section3 .bestTutorsContainer {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 2rem;
   flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  margin: 1.8rem auto 3rem;
+  padding: 0 1rem;
+  max-width: 2000px;
+  width: 100%;
 }
-
 .section4 {
   background-color: rgb(252, 253, 255);
   padding-top: 2rem;

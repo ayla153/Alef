@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import HowitWorkSteps from '../HowitWorkSteps';
 import BesTutors from '../BesTutors';
 import FAQItem from '../FAQItem';
@@ -5,6 +6,7 @@ import '../../styles/HomeTab.css';
 import studentImage from '../../assets/homePageImage.png';
 
 export default function HomeTab() {
+  const navigate = useNavigate();
   const teachers = [
     {
       id: 1,
@@ -69,7 +71,7 @@ export default function HomeTab() {
             <div className="homepagesubtitle">انضم إلى منصة ألف التعليمية وحقق أهدافك الأكاديمية من خلال دروس خصوصية مع معلمين من اختيارك</div>
             <div className="homepagebuttons">
               <button className="btn-glow">انضم كطالب</button>
-              <button className="btn-glow">انضم كمعلم</button>
+              <button className="btn-glow" onClick={()=>{navigate('/create-account/step1')}}>انضم كمعلم</button>
             </div>
           </div>
         </div>

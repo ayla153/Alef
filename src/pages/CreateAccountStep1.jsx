@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { FaUser, FaUserTag, FaPhone, FaEnvelope, FaLock, FaCheckCircle, FaArrowLeft, FaTimesCircle } from 'react-icons/fa';
 import '../styles/CreateAccountStep1.css';
@@ -10,9 +11,10 @@ export default function CreateAccountStep1() {
   const [tutoremail, setTutoremail] = useState('');
   const [tutorpassword, setTutorpassword] = useState('');
   const [coniformtutorpassword, setConiformtutorpassword] = useState('');
+  const navigate = useNavigate();
 
   return (
-    <div className="page-container2">
+    <div className="page-container2 fade-in">
       <header className="steponeheader">
         <div className="logoAndtitle">
           <img className="Alef-logo" src={logo} alt="logo" />
@@ -62,10 +64,10 @@ export default function CreateAccountStep1() {
             </div>
           </div>
           <div className="tutorbuttons">
-              <button className="movetostep2"><FaArrowLeft className="btn-icon" /> متابعة للخطوة التالية</button>
-              <button className="cancele"><FaTimesCircle className="btn-icon" /> إلغاء</button>
+              <button className="movetostep2" onClick={()=>navigate('/create-account/step2')}><FaArrowLeft className="btn-icon" /> متابعة للخطوة التالية</button>
+              <button className="cancele" onClick={()=>{navigate('/')}}><FaTimesCircle className="btn-icon"/> إلغاء</button>
           </div>
-          <p className="haveaccount">لديك حساب بالفعل ؟ <a href="#">تسجيل الدخول</a></p>
+          <p className="haveaccount">لديك حساب بالفعل ؟ <a href="#" onClick={(e) => {e.preventDefault(); navigate('/login');}}>تسجيل الدخول</a></p>
         </form>
       </div>
     </div>

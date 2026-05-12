@@ -1,11 +1,12 @@
 import '../styles/CreateAccountStep4.css'
 import logo from '../assets/Alef-logo.jpg';
-import { FaArrowLeft, FaTimesCircle, FaLightbulb , FaFileAlt } from "react-icons/fa";
+import { useNavigate } from 'react-router-dom';
+import { FaArrowLeft, FaTimesCircle, FaArrowRight , FaLightbulb , FaFileAlt } from "react-icons/fa";
 import { useState } from 'react';
 import CertificatesUpload from '../components/CertificatesUpload'
 
 export default function CreateAccountStep4(){
-
+    const navigate = useNavigate();
     const [bio, setBio] = useState('');
 
     return(
@@ -66,8 +67,8 @@ export default function CreateAccountStep4(){
 
                                 <CertificatesUpload/>
                                 <div className="tutorbuttons">
-                                    <button className="movetostep2"><FaArrowLeft className="btn-icon" /> متابعة للخطوة التالية</button>
-                                    <button className="cancele"><FaTimesCircle className="btn-icon" /> إلغاء</button>
+                                    <button className="movetostep2" onClick={()=>{navigate('/dashboard')}}><FaArrowRight className="btn-icon" /> متابعة للخطوة التالية</button>
+                                    <button className="cancele" ><FaArrowLeft className="btn-icon"/></button>
                                 </div>
                                 <p className="haveaccount">لديك حساب بالفعل ؟ <a href="#">تسجيل الدخول</a></p>
 

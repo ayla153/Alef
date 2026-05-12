@@ -1,8 +1,10 @@
+import { useNavigate } from 'react-router-dom';
 import '../../styles/Header.css';
 import logo from '../../assets/Alef-logo.jpg';
 import { FaHome, FaChalkboardTeacher, FaQuestionCircle, FaUserPlus, FaSignInAlt } from 'react-icons/fa';
 
 export default function Header({ activeTab, setActiveTab }) {
+  const navigate = useNavigate();
   return (
     <header className="steponeheader lanP">
       <div className="logoAndtitle">
@@ -30,8 +32,8 @@ export default function Header({ activeTab, setActiveTab }) {
         </button>
       </div>
       <div className="account-buttons">
-        <button><FaUserPlus className="btn-icon" /> إنشاء حساب</button>
-        <button className="signupbtn"><FaSignInAlt className="btn-icon" /> تسجيل الدخول</button>
+        <button onClick={()=>{navigate('/create-account/step1')}}><FaUserPlus className="btn-icon" /> إنشاء حساب</button>
+        <button onClick={() => navigate('/login')} to="/login" className="signupbtn"><FaSignInAlt className="btn-icon" /> تسجيل الدخول</button>
       </div>
     </header>
   );
