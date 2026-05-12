@@ -1,4 +1,4 @@
-import "../styles/Header.css";
+import "../styles/sstyle/Header.css";
 import { NavLink } from "react-router-dom";
 
 function Header({ avatar }) {

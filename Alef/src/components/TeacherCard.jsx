@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "../styles/TeacherCard.css";
+import "../styles/sstyle/TeacherCard.css";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 
 const TeacherCard = ({ teacher }) => {
