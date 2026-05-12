@@ -6,6 +6,7 @@ import Profile from "./Pages/student/Profile";
 import FavPage from "./Pages/student/FavPage";
 import Notifications from "./Pages/student/notification";
 
+import LandingPageMainPage from "./Pages/teacher/LandingPageMainPage"
 import SelectionPage from "./Pages/student/SelectionPage";
 import CreateStudentAccount from "./Pages/student/CreateStudentAccount";
 import CreateAccountStep1 from "./Pages/teacher/CreateAccountStep1";
@@ -15,15 +16,18 @@ import CreateAccountStep4 from "./Pages/teacher/CreateAccountStep4";
 import Login from "./Pages/student/login";
 import OTP from "./Pages/student/OTP";
 
+import Dashboard from "./Pages/teacher/Dashboard"
+
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<SelectionPage />} />
+      <Route path="/" element={<LandingPageMainPage />} />
+      <Route path="/selection" element={<SelectionPage />} />
       <Route path="/register" element={<CreateStudentAccount />} />
       <Route path="/teacher/register" element={<CreateAccountStep1 />} />
-      <Route path="/teacher/register/step2" element={<CreateAccountStep2 />} />
-      <Route path="/teacher/register/step3" element={<CreateAccountStep3 />} />
-      <Route path="/teacher/register/step4" element={<CreateAccountStep4 />} />
+      <Route path="/create-account/step2" element={<CreateAccountStep2 />} />
+      <Route path="/create-account/step3" element={<CreateAccountStep3 />} />
+      <Route path="/create-account/step4" element={<CreateAccountStep4 />} />
       <Route path="/login" element={<Login />} />
       <Route path="/otp" element={<OTP />} />
 
@@ -32,6 +36,8 @@ function App() {
       <Route path="/favorites" element={<FavPage />} />
       <Route path="/notifications" element={<Notifications />} />
       <Route path="/profile" element={<Profile />} />
+
+      <Route path="/Dashboard" element={<Dashboard />} />
     </Routes>
   );
 }

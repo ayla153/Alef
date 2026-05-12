@@ -77,7 +77,7 @@ const OTP = () => {
     <main className="auth-container" dir="rtl">
       {/* 🔵 اللوجو */}
       <div className="otp-logo-container">
-        <img src={logo} alt="logo" className="logo" />
+        <img src={logo} alt="logo" className="otp-logo" />
       </div>
 
       <div className="otp-card">
