@@ -7,7 +7,6 @@ const Sidebar = ({ orders }) => {
       <div className="whiteBox lastOrders">
         <div className="boxHeader">
           <h3>آخر الطلبات</h3>
-          <a href="#">عرض الكل</a>
         </div>
 
         {orders.map((order, i) => (
