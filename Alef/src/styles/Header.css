@@ -1,5 +1,4 @@
-
-header {
+.app-header {
   width: 100%;
   background-color: var(--white);
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
@@ -9,83 +8,90 @@ header {
   font-size: 0.95rem;
 }
 
-header .container {
+/* container */
+.app-header__container {
   max-width: 1500px;
   margin: 0 auto;
   padding: 0.5rem 1rem;
+
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-direction: row; /* RTL */
+  flex-direction: row;
 }
 
-header .header-left {
+/* left section */
+.app-header__left {
   display: flex;
-  align-items:center;
+  align-items: center;
   gap: 2.5rem;
 }
 
-header .logo-img {
+/* logo */
+.app-header__logo-img {
   width: 60px;
   height: 60px;
   object-fit: cover;
   border-radius: 8px;
   margin-left: 20px;
 }
-header nav {
-  display: flex !important; /* التأكيد على وضعية الصف */
-  flex-direction: row; 
+
+/* nav */
+.app-header__nav {
+  display: flex !important;
+  flex-direction: row;
   align-items: center;
-  gap: 10px; /* المسافة بين التابات */
+  gap: 10px;
   margin: 0 20px;
 }
-header nav a {
+
+/* links */
+.app-header__link {
   display: flex;
   align-items: center;
   gap: 6px;
-  white-space: nowrap; /* منع انكسار السطر في التابة الواحدة */
+  white-space: nowrap;
   padding: 8px 12px;
   text-decoration: none;
   font-size: 0.9rem;
   border-radius: 12px;
   transition: 0.3s;
   color: var(--text-main);
-
 }
 
-header nav a:hover {
+.app-header__link:hover {
   background-color: var(--accent-light);
 }
 
-header nav a.active {
+.app-header__link.is-active {
   background-color: var(--background-light);
   color: var(--primary);
 }
 
-header .search-input {
+/* search */
+.app-header__search {
   position: relative;
   height: 36px;
   flex-shrink: 0;
 }
 
-header .search-input input {
-  height: 42px;               /* نفس ارتفاع الجرس */
-  width: 400px;                /* عرض مناسب */
+.app-header__search input {
+  height: 42px;
+  width: 400px;
   padding: 0 2.3rem 0 0.65rem;
-  border: none;                /* إزالة الحدود */
-  border-radius: 20px;         /* دائرية متناسقة مع الجرس */
-  background-color: #f0f0f0;   /* خلفية رمادية فاتحة مثل الجرس */
+  border: none;
+  border-radius: 20px;
+  background-color: #f0f0f0;
   outline: none;
   font-size: 0.9rem;
   color: var(--text-main);
 }
 
-header .search-input input:focus {
-  border-color: transparent;   /* إزالة أي لون عند التركيز */
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); /* ظل تركيز خفيف */
+.app-header__search input:focus {
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
 }
 
-header .search-input span {
+.app-header__search span {
   position: absolute;
   right: 0.4rem;
   top: 50%;
@@ -95,74 +101,68 @@ header .search-input span {
   font-size: 1.1rem;
 }
 
-header .header-right {
+/* right section */
+.app-header__right {
   display: flex;
   align-items: center;
   gap: 0.8rem;
   margin-right: 80px;
 }
 
-header .icon-btn,
-header .avatar {
-  width: 42px;               /* عرض موحّد */
-  height: 42px;              /* ارتفاع موحّد */
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s, transform 0.2s;
-}
-
-/* إزالة أي حدود أو outline عن الجرس */
-header .icon-btn {
-  border: none;             /* إزالة أي حد */
-  outline: none;            /* إزالة تأثير التركيز */
-  background-color: #f0f0f0;
+/* notification button */
+.app-header__icon-btn {
   width: 42px;
   height: 42px;
   border-radius: 50%;
+  border: none;
+  outline: none;
+
+  background-color: #f0f0f0;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
+
   transition: background-color 0.2s, transform 0.2s;
 }
 
-header .icon-btn:focus {
-  outline: none;            /* التأكيد على عدم ظهور الخط عند التركيز */
-  box-shadow: none;         /* إزالة أي ظل افتراضي */
+.app-header__icon-btn:hover {
+  background-color: #e2e2e2;
 }
 
-header .icon-btn:hover {
-  background-color: #e2e2e2; /* تغيير خفيف عند المرور */
+.app-header__icon-btn:focus {
+  outline: none;
+  box-shadow: none;
 }
 
-
-header .icon-btn span {
-  font-size: 1.5rem;           /* حجم الأيقونة */
-  color: #555;                 /* اللون الرمادي الداكن */
+.app-header__icon-btn span {
+  font-size: 1.5rem;
+  color: #555;
 }
 
-
-header .avatar {
+/* avatar */
+.app-header__avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
   object-fit: cover;
 }
 
 /* ===== Responsive ===== */
 @media (max-width: 1024px) {
-  header nav {
+  .app-header__nav {
     display: none;
   }
-  header .search-input {
+
+  .app-header__search {
     display: none;
   }
 }
 
 @media (max-width: 768px) {
-  header .container {
+  .app-header__container {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.4rem;
   }
 }
-

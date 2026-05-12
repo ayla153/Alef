@@ -21,26 +21,26 @@ body {
 
 
 /* ===== Container ===== */
-.container {
+.home-container {
   max-width: 1400px;
   margin: 0 auto;
   padding: 40px 20px;
 }
 
 /* ===== Page Header ===== */
-.pageHeader h1 {
+.home-pageHeader h1 {
   font-weight: 900;
   font-size: 2.2rem;
   margin-bottom: 8px;
 }
-.pageHeader p {
+.home-pageHeader p {
   color: var(--text-gray);
   font-size: 1.1rem;
   margin-bottom: 40px;
 }
 
 /* ===== Stats ===== */
-.statsContainer {
+.home-statsContainer {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;

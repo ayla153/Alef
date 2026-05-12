@@ -1,47 +1,45 @@
 import React, { useState } from "react";
-import '../styles/TeacherCard.css'
+import "../styles/TeacherCard.css";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 
 const TeacherCard = ({ teacher }) => {
   const [saved, setSaved] = useState(false);
 
   return (
-    <div className="card">
+    <div className="tc-card">
 
       {/* HEADER */}
-      <div className="card-header">
+      <div className="tc-card-header">
 
         <img
           src={teacher.image || "https://via.placeholder.com/80"}
           alt={teacher.name}
-          className="profile-img"
+          className="tc-profile-img"
         />
 
-        <div className="info">
-          <h3>{teacher.name}</h3>
+        <div className="tc-info">
+          <h3 className="tc-name">{teacher.name}</h3>
 
-          {/* تخصص أو وصف */}
-          <p className="subtitle">
+          <p className="tc-subtitle">
             {teacher.subtitle || "مدرس محترف"}
           </p>
 
-          {/* التقييم */}
-          <div className="rating">
-            <span className="star">★</span>
-            <span className="score">{teacher.rating}</span>
-            <span className="reviews-count">
+          <div className="tc-rating">
+            <span className="tc-star">★</span>
+            <span className="tc-score">{teacher.rating}</span>
+            <span className="tc-reviews">
               ({teacher.reviews || "0 تقييم"})
             </span>
           </div>
 
-          <div className="experience">
+          <div className="tc-experience">
             {teacher.experience} سنوات خبرة
           </div>
         </div>
 
         {/* Bookmark */}
         <button
-          className="fav-btn"
+          className="tc-fav-btn"
           onClick={() => setSaved(!saved)}
         >
           {saved ? (
@@ -52,39 +50,37 @@ const TeacherCard = ({ teacher }) => {
         </button>
       </div>
 
-      {/* المواد */}
-      <div className="tags">
+      {/* subjects */}
+      <div className="tc-tags">
         {teacher.subjects.map((sub, i) => (
-          <span key={i} className="tag">
+          <span key={i} className="tc-tag">
             {sub}
           </span>
         ))}
       </div>
 
-      
-      <div className="services">
+      {/* services */}
+      <div className="tc-services">
 
-        
         <div
-          className={`service-item ${
+          className={`tc-service-item ${
             teacher.modes?.includes("online") ? "" : "disabled"
           }`}
         >
-          <span className="service-name online"> أونلاين</span>
-          <span className="price">
+          <span className="tc-service-name online">أونلاين</span>
+          <span className="tc-price">
             {teacher.modes?.includes("online") ? teacher.onlinePrice : "0"} $
             <small>/ساعة</small>
           </span>
         </div>
 
-        
         <div
-          className={`service-item ${
+          className={`tc-service-item ${
             teacher.modes?.includes("offline") ? "" : "disabled"
           }`}
         >
-          <span className="service-name offline"> حضوري</span>
-          <span className="price">
+          <span className="tc-service-name offline">حضوري</span>
+          <span className="tc-price">
             {teacher.modes?.includes("offline") ? teacher.offlinePrice : "0"} $
             <small>/ساعة</small>
           </span>
@@ -92,7 +88,7 @@ const TeacherCard = ({ teacher }) => {
 
       </div>
 
-      <button className="profile-btn">
+      <button className="tc-profile-btn">
         عرض الملف الشخصي
       </button>
 

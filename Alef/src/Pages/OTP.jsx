@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import "../styles/OTP.css";
-import logo from "../assets/Logoo.jpg";
+import logo from "../assets/logo_noBG.png";
 import { useNavigate } from "react-router-dom";
 
 const OTP = () => {
@@ -76,14 +76,14 @@ const OTP = () => {
   return (
     <main className="auth-container" dir="rtl">
       {/* 🔵 اللوجو */}
-      <div className="logo-container">
-        <img src={logo} alt="logo" className="logo" />
+      <div className="otp-logo-container">
+        <img src={logo} alt="logo" className="otp-logo" />
       </div>
 
-      <div className="card">
-        <div className="card-header">
+      <div className="otp-card">
+        <div className="otp-card-header">
           <h1>تحقق من الرمز</h1>
-          <p className="card-text">أدخل الرمز المكون من 6 أرقام المرسل إلى</p>
+          <p className="otp-card-text">أدخل الرمز المكون من 6 أرقام المرسل إلى</p>
           <div className="email-highlight">user@example.com</div>
         </div>
 
@@ -107,13 +107,13 @@ const OTP = () => {
             ))}
           </div>
 
-          <button type="submit" className="submit-btn">
+          <button type="submit" className="otp-submit-btn">
             <span>تأكيد الرمز</span>
             <span className="material-symbols-outlined">verified_user</span>
           </button>
         </form>
 
-        <div className="card-footer">
+        <div className="otp-card-footer">
           <p>
             لم يصلك الرمز؟
             <button type="button" className="resend-link">

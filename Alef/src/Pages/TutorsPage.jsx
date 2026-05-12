@@ -80,8 +80,8 @@ function TutorsPage() {
   return (
     <>
       <Header activeTab="tutors" />
-      <main className="container">
-        <div className="page-header">
+      <main className="tutors-container">
+        <div className="tutor-page-header">
           <h1>الأساتذة</h1>
           <p>ابحث عن المعلم المناسب لاحتياجاتك التعليمية من بين نخبة من أفضل المعلمين المسجلين في المنصة.</p>
         </div>

@@ -41,7 +41,7 @@ body {
 }
 
 /* الكارد */
-.card {
+.otp-card {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     width: 100%;
@@ -52,13 +52,13 @@ body {
 }
 
 @media (max-width: 768px) {
-    .card {
+    .otp-card {
         padding: 2rem;
     }
 }
 
 /* الهيدر */
-.card-header {
+.otp-card-header {
     text-align: center;
     margin-bottom: 3rem;
 
@@ -74,7 +74,7 @@ body {
 }
 
 /* النص */
-.card-text {
+.otp-card-text {
     color: var(--slate-500);
     font-size: 1.125rem;
     line-height: 1.6;
@@ -131,7 +131,7 @@ body {
 }
 
 /* الزر */
-.submit-btn {
+.otp-submit-btn {
     width: 100%;
     padding: 1.25rem;
     background: var(--primary);
@@ -153,12 +153,12 @@ body {
 }
 
 /* footer */
-.card-footer {
+.otp-card-footer {
     margin-top: 3rem;
     text-align: center;
 }
 
-.card-footer p {
+.otp-card-footer p {
     color: var(--slate-600);
     font-size: 1.125rem;
 }
@@ -186,14 +186,14 @@ body {
 }
 
 /* 🔵 اللوجو */
-.logo-container {
+.otp-logo-container {
   display: flex;
   justify-content: center;
   margin-bottom: 1.5rem;
 }
 
-.logo {
-  width: 80px;
+.otp-logo {
+  width: 120px;
   height: auto;
   object-fit: contain;
 }
