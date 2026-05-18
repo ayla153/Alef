@@ -363,7 +363,7 @@ export default function CreateStudentAccount() {
             <button
               className="cancele"
               onClick={() => {
-                navigate("/");
+                navigate("/selection");
               }}
             >
               {" "}
