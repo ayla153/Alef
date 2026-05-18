@@ -67,7 +67,7 @@ const HomePage = () => {
 
   return (
     <>
-    <div className="page-container">
+    <div className="page-container fade-in">
       <Header/>
       <div className="homePage">
         <div className="home-container">

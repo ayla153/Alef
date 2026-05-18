@@ -1,61 +1,134 @@
-import { useState, useRef, useEffect } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+} from "react";
 
-function FiltersBar() {
-  const [openDropdown, setOpenDropdown] = useState(null);
-  const [highlightedIndex, setHighlightedIndex] = useState(0);
+function FiltersBar({
+  subjectSelected,
+  setSubjectSelected,
+  stageSelected,
+  setStageSelected,
+  sortSelected,
+  setSortSelected,
+  modeSelected,
+  setModeSelected,
+}) {
+  const [openDropdown, setOpenDropdown] =
+    useState(null);
 
-  const [subjectSelected, setSubjectSelected] = useState(null);
-  const [stageSelected, setStageSelected] = useState(null);
-  const [sortSelected, setSortSelected] = useState(null);
+  const [highlightedIndex, setHighlightedIndex] =
+    useState(0);
 
   const filtersRef = useRef();
 
-  const subjects = ["رياضيات","فيزياء","كيمياء","علوم","عربي","انجليزي","قومية","ديانة","فرنسي","اجتماعيات"];
-  const stages = ["ابتدائي", "متوسط", "ثانوي"];
-  const sorts = ["الأعلى تقييمًا", "الأقل سعرًا"];
+  const subjects = [
+    "رياضيات",
+    "فيزياء",
+    "كيمياء",
+    "علوم",
+    "عربي",
+    "انجليزي",
+    "قومية",
+    "ديانة",
+    "فرنسي",
+    "اجتماعيات",
+  ];
+
+  const stages = [
+    "ابتدائي",
+    "متوسط",
+    "ثانوي",
+  ];
+
+  const sorts = [
+    "الأعلى تقييمًا",
+    "الأقل سعرًا",
+  ];
+
+  const modes = ["online", "offline"];
 
   // إغلاق عند الضغط خارج الفلاتر
   useEffect(() => {
     function handleClickOutside(e) {
-      if (filtersRef.current && !filtersRef.current.contains(e.target)) {
+      if (
+        filtersRef.current &&
+        !filtersRef.current.contains(e.target)
+      ) {
         setOpenDropdown(null);
       }
     }
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
+
+    document.addEventListener(
+      "click",
+      handleClickOutside
+    );
+
+    return () =>
+      document.removeEventListener(
+        "click",
+        handleClickOutside
+      );
   }, []);
 
-  // Keyboard navigation
+  // كيبورد نافيجيشن
   useEffect(() => {
     function handleKeyDown(e) {
       if (!openDropdown) return;
 
       let options = [];
-      if (openDropdown === "subject") options = subjects;
-      if (openDropdown === "stage") options = stages;
-      if (openDropdown === "sort") options = sorts;
+
+      if (openDropdown === "subject")
+        options = subjects;
+
+      if (openDropdown === "stage")
+        options = stages;
+
+      if (openDropdown === "sort")
+        options = sorts;
+
+      if (openDropdown === "mode")
+        options = modes;
 
       if (e.key === "ArrowDown") {
         e.preventDefault();
         setHighlightedIndex((prev) =>
-          prev < options.length - 1 ? prev + 1 : 0,
+          prev < options.length - 1
+            ? prev + 1
+            : 0
         );
       }
 
       if (e.key === "ArrowUp") {
         e.preventDefault();
         setHighlightedIndex((prev) =>
-          prev > 0 ? prev - 1 : options.length - 1,
+          prev > 0
+            ? prev - 1
+            : options.length - 1
         );
       }
 
       if (e.key === "Enter") {
         e.preventDefault();
-        const selected = options[highlightedIndex];
 
-        if (openDropdown === "subject") setSubjectSelected(selected);
-        if (openDropdown === "stage") setStageSelected(selected);
-        if (openDropdown === "sort") setSortSelected(selected);
+        const selected =
+          options[highlightedIndex];
+
+        if (openDropdown === "subject") {
+          setSubjectSelected(selected);
+        }
+
+        if (openDropdown === "stage") {
+          setStageSelected(selected);
+        }
+
+        if (openDropdown === "sort") {
+          setSortSelected(selected);
+        }
+
+        if (openDropdown === "mode") {
+          setModeSelected(selected);
+        }
 
         setOpenDropdown(null);
       }
@@ -65,26 +138,51 @@ function FiltersBar() {
       }
     }
 
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [openDropdown, highlightedIndex]);
+    document.addEventListener(
+      "keydown",
+      handleKeyDown
+    );
 
-  // دالة لإعادة استخدام الكود لكل فلتر
-  const renderFilter = (label, selected, setSelected, options, type, icon) => (
+    return () =>
+      document.removeEventListener(
+        "keydown",
+        handleKeyDown
+      );
+  }, [
+    openDropdown,
+    highlightedIndex,
+  ]);
+
+  // فلتر UI reusable
+  const renderFilter = (
+    label,
+    selected,
+    setSelected,
+    options,
+    type
+  ) => (
     <div
       className="filter-item"
       onClick={() => {
-        setOpenDropdown(openDropdown === type ? null : type);
+        setOpenDropdown(
+          openDropdown === type
+            ? null
+            : type
+        );
+
         setHighlightedIndex(0);
       }}
     >
-      <span className="icon">{icon}</span>
-
-      <span className={`selected ${!selected ? "placeholder" : ""}`}>
+      <span
+        className={`selected ${
+          !selected
+            ? "placeholder"
+            : ""
+        }`}
+      >
         {selected || label}
       </span>
 
-      {/* زر ✕ لإلغاء الفلتر */}
       {selected && (
         <span
           className="clear-btn"
@@ -97,14 +195,24 @@ function FiltersBar() {
         </span>
       )}
 
-      <span className={`arrow ${openDropdown === type ? "open" : ""}`}></span>
+      <span
+        className={`arrow ${
+          openDropdown === type
+            ? "open"
+            : ""
+        }`}
+      ></span>
 
       {openDropdown === type && (
         <ul className="dropdown">
           {options.map((opt, idx) => (
             <li
               key={idx}
-              className={highlightedIndex === idx ? "active" : ""}
+              className={
+                highlightedIndex === idx
+                  ? "active"
+                  : ""
+              }
               onClick={(e) => {
                 e.stopPropagation();
                 setSelected(opt);
@@ -120,10 +228,41 @@ function FiltersBar() {
   );
 
   return (
-    <div className="filters-bar" ref={filtersRef}>
-      {renderFilter("فلترة حسب المادة", subjectSelected, setSubjectSelected, subjects, "subject")}
-      {renderFilter("فلترة حسب المرحلة", stageSelected, setStageSelected, stages, "stage")}
-      {renderFilter("ترتيب حسب التميز", sortSelected, setSortSelected, sorts, "sort")}
+    <div
+      className="filters-bar"
+      ref={filtersRef}
+    >
+      {renderFilter(
+        "فلترة حسب المادة",
+        subjectSelected,
+        setSubjectSelected,
+        subjects,
+        "subject"
+      )}
+
+      {renderFilter(
+        "فلترة حسب المرحلة",
+        stageSelected,
+        setStageSelected,
+        stages,
+        "stage"
+      )}
+
+      {renderFilter(
+        "طريقة التدريس",
+        modeSelected,
+        setModeSelected,
+        modes,
+        "mode"
+      )}
+
+      {renderFilter(
+        "ترتيب حسب التميز",
+        sortSelected,
+        setSortSelected,
+        sorts,
+        "sort"
+      )}
     </div>
   );
 }

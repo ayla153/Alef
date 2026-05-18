@@ -5,6 +5,7 @@ import TutorsPage from "./Pages/student/TutorsPage";
 import Profile from "./Pages/student/Profile";
 import FavPage from "./Pages/student/FavPage";
 import Notifications from "./Pages/student/notification";
+import TeacherProfile from "./Pages/student/TeacherProfile";
 
 import LandingPageMainPage from "./Pages/teacher/LandingPageMainPage"
 import SelectionPage from "./Pages/student/SelectionPage";
@@ -36,6 +37,7 @@ function App() {
       <Route path="/favorites" element={<FavPage />} />
       <Route path="/notifications" element={<Notifications />} />
       <Route path="/profile" element={<Profile />} />
+      <Route path="/teacher/profile" element={<TeacherProfile />} />
 
       <Route path="/Dashboard" element={<Dashboard />} />
     </Routes>

@@ -141,7 +141,7 @@ export default function CreateAccountStep1() {
             <button
               className="cancele"
               onClick={() => {
-                navigate("/");
+                navigate("/selection");
               }}
             >
               {" "}

@@ -7,10 +7,8 @@ const TeacherCard = ({ teacher }) => {
 
   return (
     <div className="tc-card">
-
       {/* HEADER */}
       <div className="tc-card-header">
-
         <img
           src={teacher.image || "https://via.placeholder.com/80"}
           alt={teacher.name}
@@ -20,33 +18,20 @@ const TeacherCard = ({ teacher }) => {
         <div className="tc-info">
           <h3 className="tc-name">{teacher.name}</h3>
 
-          <p className="tc-subtitle">
-            {teacher.subtitle || "مدرس محترف"}
-          </p>
+          <p className="tc-subtitle">{teacher.stage || "غير محدد"}</p>
 
           <div className="tc-rating">
             <span className="tc-star">★</span>
             <span className="tc-score">{teacher.rating}</span>
-            <span className="tc-reviews">
-              ({teacher.reviews || "0 تقييم"})
-            </span>
+            <span className="tc-reviews">({teacher.reviews || "0 تقييم"})</span>
           </div>
 
-          <div className="tc-experience">
-            {teacher.experience} سنوات خبرة
-          </div>
+          <div className="tc-experience">{teacher.experience} سنوات خبرة</div>
         </div>
 
         {/* Bookmark */}
-        <button
-          className="tc-fav-btn"
-          onClick={() => setSaved(!saved)}
-        >
-          {saved ? (
-            <FaBookmark color="#2563eb" />
-          ) : (
-            <FaRegBookmark />
-          )}
+        <button className="tc-fav-btn" onClick={() => setSaved(!saved)}>
+          {saved ? <FaBookmark color="#2563eb" /> : <FaRegBookmark />}
         </button>
       </div>
 
@@ -61,7 +46,6 @@ const TeacherCard = ({ teacher }) => {
 
       {/* services */}
       <div className="tc-services">
-
         <div
           className={`tc-service-item ${
             teacher.modes?.includes("online") ? "" : "disabled"
@@ -85,13 +69,9 @@ const TeacherCard = ({ teacher }) => {
             <small>/ساعة</small>
           </span>
         </div>
-
       </div>
 
-      <button className="tc-profile-btn">
-        عرض الملف الشخصي
-      </button>
-
+      <button className="tc-profile-btn">عرض الملف الشخصي</button>
     </div>
   );
 };
