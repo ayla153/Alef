@@ -11,15 +11,18 @@ import {
 import { useState } from "react";
 import CertificatesUpload from "../../components/CertificatesUpload";
 import { Link } from "react-router-dom";
+import Header from '../../components/common/Header';
 
 export default function CreateAccountStep4() {
   const navigate = useNavigate();
   const [bio, setBio] = useState("");
 
   return (
+    <>
+    <Header/>
     <div>
       <div className="page-container2">
-        <img className="Alef-logo" src={logo} alt="logo" />
+       
 
         <div className="content">
           <div className="titleforstep1">
@@ -111,5 +114,6 @@ export default function CreateAccountStep4() {
         </div>
       </div>
     </div>
+    </>
   );
 }

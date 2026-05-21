@@ -4,6 +4,7 @@ import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import "../../styles/tstyle/CreateAccountStep2.css";
 import logo from "../../assets/logo_noBG.png";
 import { Link } from "react-router-dom";
+import Header from '../../components/common/Header';
 
 export default function CreateAccountStep2() {
   const navigate = useNavigate();
@@ -72,8 +73,10 @@ export default function CreateAccountStep2() {
   };
 
   return (
+    <>
+    <Header/>
     <div className="page-container2 fade-in">
-      <img className="create-student-account__logo" src={logo} alt="logo" />
+     
 
       <div className="content">
         <div className="titleforstep1">
@@ -181,5 +184,6 @@ export default function CreateAccountStep2() {
         </div>
       </div>
     </div>
+    </>
   );
 }
