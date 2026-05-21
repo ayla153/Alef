@@ -48,7 +48,7 @@ function Header({ avatar }) {
             <NavLink to="/favorites" className={({ isActive }) =>
               isActive ? "app-header__link is-active" : "app-header__link"
             }>
-              <span className="material-symbols-outlined">favorite</span>
+              <span className="material-symbols-outlined">bookmark</span>
               المفضلة
             </NavLink>
           </nav>

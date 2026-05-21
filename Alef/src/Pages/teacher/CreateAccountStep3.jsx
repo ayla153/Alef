@@ -3,6 +3,7 @@ import logo from "../../assets/logo_noBG.png";
 import { useState } from "react";
 import PriceCard from "../../components/PriceCard";
 import { useNavigate } from "react-router-dom";
+import Header from '../../components/common/Header';
 import {
   FaArrowLeft,
   FaArrowRight,
@@ -27,8 +28,10 @@ export default function CreateAccountStep3() {
   };
 
   return (
+    <>
+    <Header/>
     <div className="page-container2 fade-in">
-      <img className="create-student-account__logo" src={logo} alt="logo" />
+     
 
       <div className="content">
         <div className="titleforstep1">
@@ -140,5 +143,6 @@ export default function CreateAccountStep3() {
         </div>
       </div>
     </div>
+    </>
   );
 }

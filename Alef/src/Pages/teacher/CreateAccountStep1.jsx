@@ -13,6 +13,7 @@ import "../../styles/tstyle/CreateAccountStep1.css";
 import logo from "../../assets/logo_noBG.png";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import Header from '../../components/common/Header';
 
 export default function CreateAccountStep1() {
   const navigate = useNavigate();
@@ -25,9 +26,10 @@ export default function CreateAccountStep1() {
   const [coniformtutorpassword, setConiformtutorpassword] = useState("");
 
   return (
+    <>
+    <Header/>
     <div className="page-container2">
-      
-        <img className="create-student-account__logo" src={logo} alt="logo" />
+    
       
       <div className="content">
         <div className="titleforstep1">
@@ -154,5 +156,6 @@ export default function CreateAccountStep1() {
         </form>
       </div>
     </div>
+    </>
   );
 }
