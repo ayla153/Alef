@@ -31,7 +31,7 @@ function Header({ avatar }) {
               الأساتذة
             </NavLink>
 
-            <NavLink to="/create-order" className={({ isActive }) =>
+            <NavLink to="/Create/Lead" className={({ isActive }) =>
               isActive ? "app-header__link is-active" : "app-header__link"
             }>
               <span className="material-symbols-outlined">add</span>
