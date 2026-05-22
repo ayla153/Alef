@@ -19,6 +19,9 @@ import OTP from "./Pages/student/OTP";
 
 import Dashboard from "./Pages/teacher/Dashboard"
 
+
+import CreateLeadWizard from "./Pages/student/CreateLeadWizard"
+
 function App() {
   return (
     <Routes>
@@ -40,6 +43,10 @@ function App() {
       <Route path="/teacher/profile" element={<TeacherProfile />} />
 
       <Route path="/Dashboard" element={<Dashboard />} />
+
+      <Route path="/Create/Lead" element={<CreateLeadWizard />} />
+
+      
     </Routes>
   );
 }
