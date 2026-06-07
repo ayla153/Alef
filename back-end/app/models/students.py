@@ -27,5 +27,9 @@ class Student(Base):
     #relationships
     favorites : Mapped[List["Favorite"]] = relationship("Favorite", back_populates="student", cascade="all, delete-orphan")
     reviews : Mapped[List["Review"]] = relationship("Review", back_populates="student", cascade="all, delete-orphan")
-    post_requirements : Mapped[List["PostRequirement"]] = relationship("PostRequirement", back_populates="student", cascade="all, delete-orphan")
+    post_requirements: Mapped[List["PostRequirement"]] = relationship(
+        "PostRequirement",
+        back_populates="student",
+        cascade="all, delete-orphan",
+    )
     address : Mapped[Optional["Address"]] = relationship("Address", back_populates="student", uselist=False, cascade="all, delete-orphan")

@@ -10,10 +10,26 @@ class TuitionTypeEnum(str, Enum):
     BOTH = "both"
 
 class post_status_enum(str, Enum):
+    """Legacy — removed with post_status table; kept for migration downgrade only."""
+
     NO_RESPONSE = "no_response"
     ACCEPTED = "accepted"
     REJECTED = "rejected"
     CLOSED = "closed"
+
+
+class LeadStatusEnum(str, Enum):
+    OPEN = "open"
+    CLOSED_SHORTLIST = "closed_shortlist"
+    CLOSED_EMPTY = "closed_empty"
+    CLOSED_MATCHED = "closed_matched"
+    CLOSED_EXPIRED = "closed_expired"
+
+
+class LeadApplicationStatusEnum(str, Enum):
+    PENDING = "pending"
+    REJECTED = "rejected"
+    WITHDRAWN = "withdrawn"
 
 class student_grade_enum(str, Enum):
     PRIMARY_1 = "primary_1"
