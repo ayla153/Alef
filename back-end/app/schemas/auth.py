@@ -1,8 +1,8 @@
-from datetime import datetime
+from datetime import datetime, date
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
-from app.schemas.enums import TuitionTypeEnum
+from app.schemas.enums import TuitionTypeEnum, student_grade_enum
 
 
 class Token(BaseModel):
@@ -20,8 +20,9 @@ class StudentRegister(BaseModel):
     last_name: str = Field(..., max_length=50)
     email: EmailStr
     password: str = Field(..., min_length=8)
-    date_birth: datetime
+    date_birth: date
     phone_number: str = Field(..., max_length=20)
+    grade_level: student_grade_enum
 
     @field_validator("password")
     @classmethod
@@ -37,7 +38,7 @@ class TutorRegister(BaseModel):
     last_name: str = Field(..., max_length=50)
     email: EmailStr
     password: str = Field(..., min_length=8)
-    date_birth: datetime
+    date_birth: date
     phone_number: str = Field(..., max_length=20)
     tution_type: TuitionTypeEnum
     bio: str | None = Field(None, max_length=500)
@@ -69,7 +70,7 @@ class TutorRegisterStep1(BaseModel):
     last_name: str = Field(..., max_length=50)
     email: EmailStr
     password: str = Field(..., min_length=8)
-    date_birth: datetime
+    date_birth: date
     phone_number: str = Field(..., max_length=20)
 
     @field_validator("password")

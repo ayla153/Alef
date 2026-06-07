@@ -7,7 +7,7 @@ import re
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from app.schemas.enums import TuitionTypeEnum
-from app.api.routers.Reviews.Review_out import ReviewOut
+from app.schemas.reviews import ReviewOut
 from app.api.routers.Addresses.Address_out import AddressOut
 from app.api.routers.Tutor_Subjects.Tutor_Subjects_out import TutorSubjectsOut
 

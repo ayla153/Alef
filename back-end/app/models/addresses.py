@@ -17,8 +17,8 @@ class Address(Base):
     #foreign keys
     student_id: Mapped[Optional[int]] = mapped_column(ForeignKey("students.student_id"), nullable=True, unique=True, index=True)
     tutor_id: Mapped[Optional[int]] = mapped_column(ForeignKey("tutors.tutor_id"), nullable=True, unique=True, index=True)
-    city_id: Mapped[int] = mapped_column(ForeignKey("cities.city_id"), nullable=False)
-    area_id: Mapped[int] = mapped_column(ForeignKey("areas.area_id"), nullable=False)
+    city_id: Mapped[int] = mapped_column(ForeignKey("cities.city_id", ondelete="CASCADE"), nullable=False)
+    area_id: Mapped[int] = mapped_column(ForeignKey("areas.area_id", ondelete="CASCADE"), nullable=False)
 
     #relationships
     student : Mapped[Optional["Student"]] = relationship("Student", back_populates="address")

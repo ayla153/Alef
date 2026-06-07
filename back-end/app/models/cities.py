@@ -15,5 +15,15 @@ class City(Base):
     title: Mapped[str] = mapped_column(String, nullable=False)
 
     #relationships
-    addresses : Mapped[List["Address"]] = relationship("Address", back_populates="city")
-    areas : Mapped[List["Area"]] = relationship("Area", back_populates="city")
+    addresses : Mapped[List["Address"]] = relationship(
+        "Address",
+        back_populates="city",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    areas : Mapped[List["Area"]] = relationship(
+        "Area",
+        back_populates="city",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
