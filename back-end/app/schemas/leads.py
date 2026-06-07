@@ -13,6 +13,21 @@ from app.schemas.enums import (
 )
 
 
+class CreatePublicLeadIn(BaseModel):
+    """Public marketplace lead only (SCRUM-60). No private fields."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    title: str = Field(..., min_length=1, max_length=100)
+    description: str = Field(..., min_length=1, max_length=500)
+    foundation_tution: bool = False
+    tution_type: TuitionTypeEnum
+    expected_fee: float = Field(..., ge=0)
+    preferred_gender: Optional[gender_enum] = None
+    subject_id: int = Field(..., gt=0)
+    level_id: int = Field(..., gt=0)
+
+
 class CreateLeadIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

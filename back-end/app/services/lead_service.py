@@ -6,12 +6,16 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.models.lead_applications import LeadApplication
 from app.models.lead_targets import LeadTarget
+from app.models.levels import Level
 from app.models.post_requirements import PostRequirement
+from app.models.students import Student
+from app.models.subjects import Subject
 from app.schemas.enums import LeadApplicationStatusEnum, LeadStatusEnum
-from app.schemas.leads import LeadApplicationOut, LeadBrowseCardOut, LeadOut
+from app.schemas.leads import CreatePublicLeadIn, LeadApplicationOut, LeadBrowseCardOut, LeadOut
 
 MAX_PUBLIC_PENDING_OFFERS = 5
 LEAD_AUTO_CLOSE_DAYS = 10
+LEAD_DEFAULT_EXPIRY_DAYS = 30
 SUBJECT_COOLDOWN_DAYS = 14
 MAX_ACTIVE_PRIVATE_LEADS = 1  # private lead (lead_targets row): max one open per student (v1)
 OFFERS_PER_TUTOR_PER_LEAD = 1
@@ -199,6 +203,114 @@ def lead_to_browse_card_out(lead: PostRequirement) -> LeadBrowseCardOut:
         pending_offer_count=pending,
         max_applications=lead.max_applications,
     )
+
+
+def assert_lead_owner(lead: PostRequirement, student: Student) -> None:
+    if lead.student_id != student.student_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not own this lead.",
+        )
+
+
+def get_lead_for_student(db: Session, lead_id: int, student: Student) -> PostRequirement:
+    lead = get_lead_by_id(db, lead_id)
+    if not lead:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead not found.")
+    assert_lead_owner(lead, student)
+    return lead
+
+
+def list_leads_for_student(db: Session, student_id: int) -> list[LeadOut]:
+    leads = (
+        db.query(PostRequirement)
+        .options(
+            joinedload(PostRequirement.student),
+            joinedload(PostRequirement.lead_target),
+            joinedload(PostRequirement.lead_applications).joinedload(LeadApplication.tutor),
+        )
+        .filter(PostRequirement.student_id == student_id)
+        .order_by(PostRequirement.created_at.desc())
+        .all()
+    )
+    return [lead_to_out(lead) for lead in leads]
+
+
+def create_public_lead(db: Session, student: Student, data: CreatePublicLeadIn) -> LeadOut:
+    if db.get(Subject, data.subject_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Subject not found.")
+    if db.get(Level, data.level_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Level not found.")
+
+    check_public_subject_cooldown(db, student.student_id, data.subject_id)
+
+    now = datetime.utcnow()
+    lead = PostRequirement(
+        title=data.title.strip(),
+        description=data.description.strip(),
+        foundation_tution=data.foundation_tution,
+        tution_type=data.tution_type,
+        expected_fee=data.expected_fee,
+        created_at=now,
+        expired_at=now + timedelta(days=LEAD_DEFAULT_EXPIRY_DAYS),
+        preferred_gender=data.preferred_gender,
+        student_id=student.student_id,
+        subject_id=data.subject_id,
+        level_id=data.level_id,
+        lead_status=LeadStatusEnum.OPEN,
+        is_public=True,
+        accepting_applications=True,
+        max_applications=MAX_PUBLIC_PENDING_OFFERS,
+    )
+    db.add(lead)
+    db.commit()
+    db.refresh(lead)
+    refreshed = get_lead_by_id(db, lead.post_requirements_id)
+    assert refreshed is not None
+    return lead_to_out(refreshed)
+
+
+def reject_offer(
+    db: Session,
+    lead: PostRequirement,
+    offer_id: int,
+    student: Student,
+) -> LeadOut:
+    assert_lead_owner(lead, student)
+    assert_lead_is_open(lead)
+    if lead.lead_target is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Reject offer applies to public leads only.",
+        )
+
+    application = next(
+        (app for app in lead.lead_applications if app.lead_application_id == offer_id),
+        None,
+    )
+    if application is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Offer not found.")
+    if application.application_status != LeadApplicationStatusEnum.PENDING:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Only pending offers can be rejected.",
+        )
+
+    application.application_status = LeadApplicationStatusEnum.REJECTED
+    sync_accepting_applications(db, lead)
+    db.commit()
+    refreshed = get_lead_by_id(db, lead.post_requirements_id)
+    assert refreshed is not None
+    return lead_to_out(refreshed)
+
+
+def close_lead_public_for_student(
+    db: Session,
+    lead: PostRequirement,
+    student: Student,
+) -> LeadOut:
+    assert_lead_owner(lead, student)
+    return close_lead_public(db, lead)
 
 
 def close_lead_public(db: Session, lead: PostRequirement) -> LeadOut:
