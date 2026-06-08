@@ -27,7 +27,7 @@ class PostRequirement(Base):
     expired_at: Mapped[TIMESTAMP] = mapped_column(TIMESTAMP, nullable=False)
     preferred_gender: Mapped[Optional[gender_enum]] = mapped_column(Enum(gender_enum), nullable=True)
     lead_status: Mapped[LeadStatusEnum] = mapped_column(
-        Enum(LeadStatusEnum),
+        Enum(LeadStatusEnum, values_callable=lambda enum: [member.value for member in enum]),
         nullable=False,
         default=LeadStatusEnum.OPEN,
     )

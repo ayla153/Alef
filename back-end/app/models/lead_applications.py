@@ -23,7 +23,10 @@ class LeadApplication(Base):
     first_session_note: Mapped[str] = mapped_column(String(200), nullable=False)
     message: Mapped[str] = mapped_column(String(500), nullable=False)
     application_status: Mapped[LeadApplicationStatusEnum] = mapped_column(
-        Enum(LeadApplicationStatusEnum),
+        Enum(
+            LeadApplicationStatusEnum,
+            values_callable=lambda enum: [member.value for member in enum],
+        ),
         nullable=False,
         default=LeadApplicationStatusEnum.PENDING,
     )

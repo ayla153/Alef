@@ -31,12 +31,18 @@ LEAD_APPLICATION_STATUS_ENUM = sa.Enum(
     "withdrawn",
     name="leadapplicationstatusenum",
 )
-
-
 def upgrade() -> None:
     bind = op.get_bind()
-    LEAD_STATUS_ENUM.create(bind, checkfirst=True)
-    LEAD_APPLICATION_STATUS_ENUM.create(bind, checkfirst=True)
+
+    # Base.metadata.create_all() (main.py) may have created lead tables with
+    # UPPERCASE enum labels (OPEN, PENDING). This migration uses lowercase
+    # values (open, pending) matching LeadStatusEnum.value.
+    op.execute("DROP TABLE IF EXISTS lead_applications CASCADE")
+    op.execute("DROP TABLE IF EXISTS lead_targets CASCADE")
+    op.execute("DROP TYPE IF EXISTS leadapplicationstatusenum CASCADE")
+    op.execute("DROP TYPE IF EXISTS leadstatusenum CASCADE")
+
+    LEAD_STATUS_ENUM.create(bind, checkfirst=False)
 
     op.add_column(
         "post_requirements",
@@ -44,7 +50,7 @@ def upgrade() -> None:
             "lead_status",
             LEAD_STATUS_ENUM,
             nullable=False,
-            server_default="open",
+            server_default=sa.text("'open'::leadstatusenum"),
         ),
     )
     op.add_column(
@@ -99,7 +105,7 @@ def upgrade() -> None:
             "application_status",
             LEAD_APPLICATION_STATUS_ENUM,
             nullable=False,
-            server_default="pending",
+            server_default=sa.text("'pending'::leadapplicationstatusenum"),
         ),
         sa.Column("contact_revealed_at", sa.TIMESTAMP(), nullable=True),
         sa.Column("created_at", sa.TIMESTAMP(), nullable=False, server_default=sa.text("NOW()")),
@@ -136,7 +142,7 @@ def upgrade() -> None:
             'Migrated from legacy post_status',
             'Migrated from legacy post_status',
             CASE ps.post_status::text
-                WHEN 'rejected' THEN 'rejected'::leadapplicationstatusenum
+                WHEN 'REJECTED' THEN 'rejected'::leadapplicationstatusenum
                 ELSE 'pending'::leadapplicationstatusenum
             END,
             NOW(),
@@ -154,7 +160,7 @@ def upgrade() -> None:
             accepting_applications = FALSE
         FROM post_status ps
         WHERE pr.post_requirements_id = ps.post_requirements_id
-          AND ps.post_status::text = 'closed'
+          AND ps.post_status::text = 'CLOSED'
         """
     )
     op.drop_table("post_status")
