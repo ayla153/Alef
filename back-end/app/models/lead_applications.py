@@ -5,7 +5,7 @@ from sqlalchemy import Enum, Float, ForeignKey, Integer, String, TIMESTAMP, Uniq
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
-from app.schemas.enums import LeadApplicationStatusEnum
+from app.schemas.enums import LeadApplicationStatusEnum, enum_values_callable
 
 if TYPE_CHECKING:
     from app.models.post_requirements import PostRequirement
@@ -23,7 +23,7 @@ class LeadApplication(Base):
     first_session_note: Mapped[str] = mapped_column(String(200), nullable=False)
     message: Mapped[str] = mapped_column(String(500), nullable=False)
     application_status: Mapped[LeadApplicationStatusEnum] = mapped_column(
-        Enum(LeadApplicationStatusEnum),
+        Enum(LeadApplicationStatusEnum, values_callable=enum_values_callable),
         nullable=False,
         default=LeadApplicationStatusEnum.PENDING,
     )

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 from datetime import datetime, date
 from typing import Optional, List, TYPE_CHECKING
-from app.schemas.enums import student_grade_enum
+from app.schemas.enums import enum_values_callable, student_grade_enum
 
 if TYPE_CHECKING:
     from app.models.addresses import Address
@@ -23,7 +23,10 @@ class Student(Base):
     phone_number: Mapped[Optional[str]] = mapped_column(String(20),nullable=False)
     student_photo:Mapped[Optional[str]] = mapped_column(String,nullable=True)
     registered_at: Mapped[datetime] = mapped_column(TIMESTAMP, nullable=False)
-    grade_level: Mapped[student_grade_enum] = mapped_column(SAEnum(student_grade_enum), nullable=False)
+    grade_level: Mapped[student_grade_enum] = mapped_column(
+        SAEnum(student_grade_enum, values_callable=enum_values_callable),
+        nullable=False,
+    )
     #relationships
     favorites : Mapped[List["Favorite"]] = relationship("Favorite", back_populates="student", cascade="all, delete-orphan")
     reviews : Mapped[List["Review"]] = relationship("Review", back_populates="student", cascade="all, delete-orphan")

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -11,6 +12,54 @@ from app.schemas.enums import (
     TuitionTypeEnum,
     gender_enum,
 )
+
+
+class TutorPublicOfferOutcome(str, Enum):
+    """Tutor-facing status for a submitted public offer (student response)."""
+
+    PENDING = "pending"
+    REJECTED = "rejected"
+    CONTACT_SHARED = "contact_shared"
+    LEAD_CLOSED_EMPTY = "lead_closed_empty"
+    LEAD_CLOSED_EXPIRED = "lead_closed_expired"
+
+
+class CreatePrivateLeadIn(BaseModel):
+    """Private lead from tutor profile (SCRUM-62). target_tutor_id is required."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    title: str = Field(..., min_length=1, max_length=100)
+    description: str = Field(..., min_length=1, max_length=500)
+    foundation_tution: bool = False
+    tution_type: TuitionTypeEnum
+    expected_fee: float = Field(..., ge=0)
+    preferred_gender: Optional[gender_enum] = None
+    subject_id: int = Field(..., gt=0)
+    level_id: int = Field(..., gt=0)
+    target_tutor_id: int = Field(..., gt=0)
+    publish_public_copy: bool = Field(
+        False,
+        description="Optional anonymized public browse card (no student name).",
+    )
+
+
+class ClosePrivateLeadIn(BaseModel):
+    """Private close: matched=True → closed_matched; matched=False → closed_empty (revokes phones)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    matched: bool
+
+
+class AcceptContactIn(BaseModel):
+    """Optional offer fields when tutor accepts private lead contact."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    proposed_fee: Optional[float] = Field(None, ge=0)
+    first_session_note: Optional[str] = Field(None, min_length=1, max_length=200)
+    message: Optional[str] = Field(None, min_length=1, max_length=500)
 
 
 class CreatePublicLeadIn(BaseModel):
@@ -105,6 +154,38 @@ class LeadOut(BaseModel):
         description="Populated only after contact reveal rules apply.",
     )
     applications: list[LeadApplicationOut] = Field(default_factory=list)
+
+
+class TutorPublicOfferOut(BaseModel):
+    """One public offer this tutor submitted, with student response / contact outcome."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    lead_application_id: int
+    post_requirements_id: int
+    proposed_fee: float
+    first_session_note: str
+    message: str
+    application_status: LeadApplicationStatusEnum
+    offer_created_at: datetime
+    contact_revealed_at: Optional[datetime] = None
+
+    lead_title: str
+    lead_status: LeadStatusEnum
+    lead_closed_at: Optional[datetime] = None
+    subject_id: int
+    level_id: int
+
+    outcome: TutorPublicOfferOutcome = Field(
+        description=(
+            "Status only (no push notifications): pending | rejected | contact_shared "
+            "| lead_closed_empty | lead_closed_expired. Tutor sees this when opening عروضي."
+        ),
+    )
+    student_phone_number: Optional[str] = Field(
+        None,
+        description="Populated when outcome is contact_shared (student shared numbers with shortlist).",
+    )
 
 
 class LeadBrowseCardOut(BaseModel):
