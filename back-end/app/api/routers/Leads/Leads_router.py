@@ -14,6 +14,7 @@ from app.schemas.leads import (
     LeadBrowseCardOut,
     LeadOut,
     OfferIn,
+    TutorPublicOfferOut,
 )
 from app.services import lead_service
 
@@ -107,9 +108,11 @@ def list_my_leads(
     description=(
         "**Auth:** verified tutor Bearer token.\n\n"
         "**When:** Tutor opens inbox for **private** requests sent directly to them (profile contact flow).\n\n"
-        "**Response:** Open private leads where this tutor is `target_tutor_id`. "
-        "Includes student requirement fields; **no student phone** until tutor accepts contact.\n\n"
-        "**UI:** List cards with «أوافق على التواصل» → call `POST /leads/{id}/accept-contact`."
+        "**Response:** Private leads for this tutor: `open` (awaiting accept) and "
+        "`closed_matched` (tutor already accepted). Includes requirement fields; "
+        "**no student phone** until tutor accepts; after accept, mutual phones and `closed_matched`.\n\n"
+        "**UI:** Open cards → «أوافق على التواصل» (`POST /leads/{id}/accept-contact`). "
+        "Matched cards → show contact details (refresh-safe)."
     ),
 )
 def tutor_private_inbox(
@@ -117,6 +120,27 @@ def tutor_private_inbox(
     current_tutor: Tutor = Depends(get_verified_tutor),
 ) -> list[LeadOut]:
     return lead_service.list_tutor_private_inbox(db, current_tutor)
+
+
+@router.get(
+    "/tutor/offers",
+    response_model=list[TutorPublicOfferOut],
+    summary="Tutor: my public lead offers",
+    description=(
+        "**Auth:** verified tutor Bearer token.\n\n"
+        "**When:** Tutor opens «عروضي» — track every offer submitted on **public** leads.\n\n"
+        "**Response:** Newest first. Each row includes the offer, lead title/status, "
+        "`outcome` (`pending`, `rejected`, `contact_shared`, `lead_closed_empty`, `lead_closed_expired`), "
+        "`notification_message` for UI badges, and `student_phone_number` when the student "
+        "closed with shortlist (public accept = share contacts with all pending offers).\n\n"
+        "**v1:** No push notifications — poll this endpoint or show unread from `student_responded_at`."
+    ),
+)
+def tutor_public_offers(
+    db: DbSession,
+    current_tutor: Tutor = Depends(get_verified_tutor),
+) -> list[TutorPublicOfferOut]:
+    return lead_service.list_tutor_public_offers(db, current_tutor)
 
 
 @router.get(
@@ -151,7 +175,7 @@ def browse_leads(
         "**Success:** `201` + offer row. Max 5 pending offers per lead; one offer per tutor per lead.\n\n"
         "**Errors:** `409` slots full or duplicate offer; `403` tutor doesn't teach subject; "
         "`400` not a public lead.\n\n"
-        "**UI:** After submit, show pending state. Student sees offer in shortlist (no phones yet)."
+        "**UI:** After submit, show pending on `GET /leads/tutor/offers`. Student sees offer in shortlist (no phones yet)."
     ),
 )
 def submit_offer(
@@ -171,10 +195,9 @@ def submit_offer(
         "**Auth:** verified tutor Bearer token (must be the **target** tutor on this private lead).\n\n"
         "**When:** Tutor taps «أوافق على التواصل» on an inbox private request.\n\n"
         "**Body:** `AcceptContactIn` — all fields optional (fee, session note, message).\n\n"
-        "**Success:** Mutual phone reveal — response includes `student_phone_number` and "
-        "target tutor phone on the application. Student may see numbers before close; "
-        "off-platform contact allowed after student closes as matched.\n\n"
-        "**Errors:** `403` wrong tutor; `409` already accepted."
+        "**Success:** Lead becomes `closed_matched` immediately. Mutual phone reveal — "
+        "`student_phone_number` and tutor phone on the application. Off-platform contact allowed.\n\n"
+        "**Errors:** `403` wrong tutor; `409` already accepted or lead not open."
     ),
 )
 def accept_private_contact(

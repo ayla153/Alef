@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from fastapi import HTTPException, status
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session, joinedload
 
 from app.models.lead_applications import LeadApplication
@@ -22,6 +22,8 @@ from app.schemas.leads import (
     LeadBrowseCardOut,
     LeadOut,
     OfferIn,
+    TutorPublicOfferOut,
+    TutorPublicOfferOutcome,
 )
 
 MAX_PUBLIC_PENDING_OFFERS = 5
@@ -193,6 +195,90 @@ def lead_to_out(lead: PostRequirement) -> LeadOut:
             for app in sorted(lead.lead_applications, key=lambda a: a.created_at)
         ],
     )
+
+
+def _tutor_public_offer_outcome(
+    app: LeadApplication,
+    lead: PostRequirement,
+) -> TutorPublicOfferOutcome:
+    if app.application_status == LeadApplicationStatusEnum.REJECTED:
+        return TutorPublicOfferOutcome.REJECTED
+    if app.contact_revealed_at is not None:
+        return TutorPublicOfferOutcome.CONTACT_SHARED
+    if lead.lead_status == LeadStatusEnum.CLOSED_EMPTY:
+        return TutorPublicOfferOutcome.LEAD_CLOSED_EMPTY
+    if lead.lead_status == LeadStatusEnum.CLOSED_EXPIRED:
+        return TutorPublicOfferOutcome.LEAD_CLOSED_EXPIRED
+    return TutorPublicOfferOutcome.PENDING
+
+
+def _tutor_public_offer_notification(outcome: TutorPublicOfferOutcome) -> str | None:
+    messages = {
+        TutorPublicOfferOutcome.PENDING: None,
+        TutorPublicOfferOutcome.REJECTED: "لم يتم اختيار عرضك لهذا الطلب",
+        TutorPublicOfferOutcome.CONTACT_SHARED: "أغلق الطالب الطلب — تم مشاركة أرقام التواصل",
+        TutorPublicOfferOutcome.LEAD_CLOSED_EMPTY: "أغلق الطالب الطلب دون عروض — لا تبادل أرقام",
+        TutorPublicOfferOutcome.LEAD_CLOSED_EXPIRED: "انتهت صلاحية الطلب — لا تبادل أرقام",
+    }
+    return messages[outcome]
+
+
+def application_to_tutor_public_offer_out(
+    app: LeadApplication,
+    lead: PostRequirement,
+) -> TutorPublicOfferOut:
+    outcome = _tutor_public_offer_outcome(app, lead)
+    student_phone = None
+    if outcome == TutorPublicOfferOutcome.CONTACT_SHARED and lead.student:
+        student_phone = lead.student.phone_number
+    responded_at = lead.closed_at if outcome in {
+        TutorPublicOfferOutcome.CONTACT_SHARED,
+        TutorPublicOfferOutcome.LEAD_CLOSED_EMPTY,
+        TutorPublicOfferOutcome.LEAD_CLOSED_EXPIRED,
+    } else None
+    return TutorPublicOfferOut(
+        lead_application_id=app.lead_application_id,
+        post_requirements_id=lead.post_requirements_id,
+        proposed_fee=app.proposed_fee,
+        first_session_note=app.first_session_note,
+        message=app.message,
+        application_status=app.application_status,
+        offer_created_at=app.created_at,
+        contact_revealed_at=app.contact_revealed_at,
+        lead_title=lead.title,
+        lead_status=lead.lead_status,
+        lead_closed_at=lead.closed_at,
+        subject_id=lead.subject_id,
+        level_id=lead.level_id,
+        outcome=outcome,
+        student_responded_at=responded_at,
+        student_phone_number=student_phone,
+        notification_message=_tutor_public_offer_notification(outcome),
+    )
+
+
+def list_tutor_public_offers(db: Session, tutor: Tutor) -> list[TutorPublicOfferOut]:
+    """Public marketplace offers this tutor submitted (excludes private inbox leads)."""
+    applications = (
+        db.query(LeadApplication)
+        .join(PostRequirement, LeadApplication.post_requirements_id == PostRequirement.post_requirements_id)
+        .outerjoin(LeadTarget, LeadTarget.post_requirements_id == PostRequirement.post_requirements_id)
+        .options(
+            joinedload(LeadApplication.lead).joinedload(PostRequirement.student),
+        )
+        .filter(
+            LeadApplication.tutor_id == tutor.tutor_id,
+            LeadTarget.lead_target_id.is_(None),
+            PostRequirement.is_public.is_(True),
+        )
+        .order_by(LeadApplication.created_at.desc())
+        .all()
+    )
+    return [
+        application_to_tutor_public_offer_out(app, app.lead)
+        for app in applications
+        if app.lead is not None
+    ]
 
 
 def browse_public_leads(db: Session, tutor: Tutor) -> list[LeadBrowseCardOut]:
@@ -475,7 +561,10 @@ def list_tutor_private_inbox(db: Session, tutor: Tutor) -> list[LeadOut]:
         )
         .filter(
             LeadTarget.tutor_id == tutor.tutor_id,
-            PostRequirement.lead_status == LeadStatusEnum.OPEN,
+            or_(
+                PostRequirement.lead_status == LeadStatusEnum.OPEN,
+                PostRequirement.lead_status == LeadStatusEnum.CLOSED_MATCHED,
+            ),
         )
         .order_by(PostRequirement.created_at.desc())
         .all()
@@ -514,6 +603,9 @@ def accept_private_contact(
         )
 
     now = datetime.utcnow()
+    lead.lead_status = LeadStatusEnum.CLOSED_MATCHED
+    lead.closed_at = now
+    lead.accepting_applications = False
     proposed_fee = data.proposed_fee if data.proposed_fee is not None else lead.expected_fee
     first_session_note = (data.first_session_note or "Flexible").strip()
     message = (data.message or "أوافق على التواصل").strip()

@@ -1,5 +1,11 @@
 from enum import Enum
 
+
+def enum_values_callable(enum_cls):
+    """Persist str Enum .value in PostgreSQL (e.g. high_3), not member name (HIGH_3)."""
+    return [member.value for member in enum_cls]
+
+
 class gender_enum(str, Enum):
     MALE = "male"
     FEMALE = "female"

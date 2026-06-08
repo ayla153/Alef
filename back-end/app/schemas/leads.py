@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -11,6 +12,16 @@ from app.schemas.enums import (
     TuitionTypeEnum,
     gender_enum,
 )
+
+
+class TutorPublicOfferOutcome(str, Enum):
+    """Tutor-facing status for a submitted public offer (student response)."""
+
+    PENDING = "pending"
+    REJECTED = "rejected"
+    CONTACT_SHARED = "contact_shared"
+    LEAD_CLOSED_EMPTY = "lead_closed_empty"
+    LEAD_CLOSED_EXPIRED = "lead_closed_expired"
 
 
 class CreatePrivateLeadIn(BaseModel):
@@ -143,6 +154,43 @@ class LeadOut(BaseModel):
         description="Populated only after contact reveal rules apply.",
     )
     applications: list[LeadApplicationOut] = Field(default_factory=list)
+
+
+class TutorPublicOfferOut(BaseModel):
+    """One public offer this tutor submitted, with student response / contact outcome."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    lead_application_id: int
+    post_requirements_id: int
+    proposed_fee: float
+    first_session_note: str
+    message: str
+    application_status: LeadApplicationStatusEnum
+    offer_created_at: datetime
+    contact_revealed_at: Optional[datetime] = None
+
+    lead_title: str
+    lead_status: LeadStatusEnum
+    lead_closed_at: Optional[datetime] = None
+    subject_id: int
+    level_id: int
+
+    outcome: TutorPublicOfferOutcome = Field(
+        description="pending | rejected | contact_shared (student closed shortlist) | lead_closed_empty | lead_closed_expired",
+    )
+    student_responded_at: Optional[datetime] = Field(
+        None,
+        description="When the student closed the lead (shortlist or no match); use for inbox badges / polling.",
+    )
+    student_phone_number: Optional[str] = Field(
+        None,
+        description="Populated when outcome is contact_shared (student shared numbers with shortlist).",
+    )
+    notification_message: Optional[str] = Field(
+        None,
+        description="Human-readable outcome for tutor UI (v1: no push; poll this endpoint).",
+    )
 
 
 class LeadBrowseCardOut(BaseModel):

@@ -3,7 +3,7 @@ from app.database import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING, Optional, List
 from datetime import datetime, date
-from app.schemas.enums import TuitionTypeEnum
+from app.schemas.enums import TuitionTypeEnum, enum_values_callable
 
 if TYPE_CHECKING:
     from app.models.addresses import Address
@@ -28,7 +28,10 @@ class Tutor(Base):
     bio: Mapped[str] = mapped_column(String(500),nullable=True)
     total_experience_years: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     registered_at: Mapped[datetime] = mapped_column(TIMESTAMP, nullable=False)
-    tution_type: Mapped[TuitionTypeEnum] = mapped_column(Enum(TuitionTypeEnum), nullable=False)
+    tution_type: Mapped[TuitionTypeEnum] = mapped_column(
+        Enum(TuitionTypeEnum, values_callable=enum_values_callable),
+        nullable=False,
+    )
     verified: Mapped[bool] = mapped_column(nullable=False, default=False)
 
     #relationships

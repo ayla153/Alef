@@ -5,7 +5,7 @@ from sqlalchemy import Boolean, Enum, Float, ForeignKey, Integer, String, TIMEST
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
-from app.schemas.enums import LeadStatusEnum, TuitionTypeEnum, gender_enum
+from app.schemas.enums import LeadStatusEnum, TuitionTypeEnum, enum_values_callable, gender_enum
 
 if TYPE_CHECKING:
     from app.models.lead_applications import LeadApplication
@@ -21,13 +21,19 @@ class PostRequirement(Base):
     title: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str] = mapped_column(String(500), nullable=False)
     foundation_tution: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    tution_type: Mapped[TuitionTypeEnum] = mapped_column(Enum(TuitionTypeEnum), nullable=False)
+    tution_type: Mapped[TuitionTypeEnum] = mapped_column(
+        Enum(TuitionTypeEnum, values_callable=enum_values_callable),
+        nullable=False,
+    )
     expected_fee: Mapped[Float] = mapped_column(Float, nullable=False)
     created_at: Mapped[TIMESTAMP] = mapped_column(TIMESTAMP, nullable=False)
     expired_at: Mapped[TIMESTAMP] = mapped_column(TIMESTAMP, nullable=False)
-    preferred_gender: Mapped[Optional[gender_enum]] = mapped_column(Enum(gender_enum), nullable=True)
+    preferred_gender: Mapped[Optional[gender_enum]] = mapped_column(
+        Enum(gender_enum, values_callable=enum_values_callable),
+        nullable=True,
+    )
     lead_status: Mapped[LeadStatusEnum] = mapped_column(
-        Enum(LeadStatusEnum, values_callable=lambda enum: [member.value for member in enum]),
+        Enum(LeadStatusEnum, values_callable=enum_values_callable),
         nullable=False,
         default=LeadStatusEnum.OPEN,
     )
