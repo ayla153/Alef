@@ -1,0 +1,117 @@
+.requests-card {
+  width: 300px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: #ffffff;
+  border-radius: 15px;
+  padding: 1rem 1rem;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02);
+  border: 1px solid #edf2f7;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.requests-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 24px -8px rgba(0, 0, 0, 0.08);
+  border-color: #cbdffc;
+  background: #e9f4ff;
+}
+
+.card-icon-wrapper {
+  width: 63px;
+  height: 63px;
+  border-radius: 63px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.requests-card:hover .card-icon-wrapper {
+  background: #e0e7ff;
+}
+
+.card-icon-wrapper svg {
+  font-size: 2rem;
+  transition: transform 0.15s;
+}
+
+.requests-card:hover .card-icon-wrapper svg {
+  transform: scale(1.03);
+}
+
+.card-content {
+  flex: 1;
+  overflow: hidden;
+}
+
+.requests-card .card-title {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #1e293b;
+  margin: 0 0 0.2rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.requests-card .card-count {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #2563eb;
+  margin: 0;
+  line-height: 1.1;
+}
+
+@media (max-width: 800px) {
+  .requests-card {
+    width: 220px;
+    height: 100px;
+    padding: 0.6rem 0.8rem;
+  }
+  .card-icon-wrapper {
+    width: 54px;
+    height: 54px;
+  }
+  .card-icon-wrapper svg {
+    font-size: 1.4rem;
+  }
+  .requests-card .card-title {
+    font-size: 0.9rem;
+  }
+  .requests-card .card-count {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .requests-grid {
+    flex-direction: column;
+    align-items: center;
+  }
+  .requests-card {
+    width: 100%;
+    max-width: 280px;
+    height: auto;
+    min-height: 100px;
+  }
+  .requests-card .card-title {
+    white-space: normal;
+    font-size: 1rem;
+  }
+  .requests-card .card-count {
+    font-size: 1rem;
+  }
+  .card-icon-wrapper {
+    width: 48px;
+    height: 48px;
+  }
+  .card-icon-wrapper svg {
+    font-size: 1.3rem;
+  }
+}
