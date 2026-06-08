@@ -139,16 +139,37 @@ def check_max_active_private_leads(db: Session, student_id: int) -> None:
         )
 
 
-def _phones_revealed_for_lead(lead: PostRequirement) -> bool:
+def _application_phones_revealed(app: LeadApplication, lead: PostRequirement) -> bool:
+    """Whether this offer row may show the tutor phone to the student."""
+    if app.application_status == LeadApplicationStatusEnum.REJECTED:
+        return False
     if lead.lead_status == LeadStatusEnum.CLOSED_SHORTLIST:
+        return app.application_status == LeadApplicationStatusEnum.PENDING
+    if lead.lead_status == LeadStatusEnum.CLOSED_MATCHED:
+        return app.contact_revealed_at is not None
+    if lead.lead_status == LeadStatusEnum.CLOSED_EXPIRED:
+        return (
+            app.application_status == LeadApplicationStatusEnum.PENDING
+            or app.contact_revealed_at is not None
+        )
+    return app.contact_revealed_at is not None
+
+
+def _student_phone_visible(lead: PostRequirement) -> bool:
+    """Whether the student may see tutor phones (and their own on shared views)."""
+    if lead.lead_status in {
+        LeadStatusEnum.CLOSED_SHORTLIST,
+        LeadStatusEnum.CLOSED_MATCHED,
+    }:
         return True
-    if lead.lead_status == LeadStatusEnum.CLOSED_MATCHED:  # private lead: student closed after tutor accept
-        return True
+    if lead.lead_status == LeadStatusEnum.CLOSED_EXPIRED:
+        return any(_application_phones_revealed(app, lead) for app in lead.lead_applications)
     return any(app.contact_revealed_at is not None for app in lead.lead_applications)
 
 
-def _application_to_out(app: LeadApplication, phones_revealed: bool) -> LeadApplicationOut:
+def _application_to_out(app: LeadApplication, lead: PostRequirement) -> LeadApplicationOut:
     tutor = app.tutor
+    show_phone = _application_phones_revealed(app, lead)
     return LeadApplicationOut(
         lead_application_id=app.lead_application_id,
         tutor_id=app.tutor_id,
@@ -159,16 +180,19 @@ def _application_to_out(app: LeadApplication, phones_revealed: bool) -> LeadAppl
         contact_revealed_at=app.contact_revealed_at,
         created_at=app.created_at,
         tutor_first_name=tutor.first_name if tutor else None,
-        tutor_phone_number=tutor.phone_number if phones_revealed and tutor else None,
+        tutor_phone_number=tutor.phone_number if show_phone and tutor else None,
     )
 
 
 def lead_to_out(lead: PostRequirement) -> LeadOut:
-    phones_revealed = _phones_revealed_for_lead(lead)
     pending = sum(
         1 for app in lead.lead_applications if app.application_status == LeadApplicationStatusEnum.PENDING
     )
-    student_phone = lead.student.phone_number if phones_revealed and lead.student else None
+    student_phone = (
+        lead.student.phone_number
+        if _student_phone_visible(lead) and lead.student
+        else None
+    )
     return LeadOut(
         post_requirements_id=lead.post_requirements_id,
         title=lead.title,
@@ -191,7 +215,7 @@ def lead_to_out(lead: PostRequirement) -> LeadOut:
         target_tutor_id=lead.lead_target.tutor_id if lead.lead_target else None,
         student_phone_number=student_phone,
         applications=[
-            _application_to_out(app, phones_revealed)
+            _application_to_out(app, lead)
             for app in sorted(lead.lead_applications, key=lambda a: a.created_at)
         ],
     )
@@ -208,19 +232,10 @@ def _tutor_public_offer_outcome(
     if lead.lead_status == LeadStatusEnum.CLOSED_EMPTY:
         return TutorPublicOfferOutcome.LEAD_CLOSED_EMPTY
     if lead.lead_status == LeadStatusEnum.CLOSED_EXPIRED:
+        if app.application_status == LeadApplicationStatusEnum.PENDING:
+            return TutorPublicOfferOutcome.CONTACT_SHARED
         return TutorPublicOfferOutcome.LEAD_CLOSED_EXPIRED
     return TutorPublicOfferOutcome.PENDING
-
-
-def _tutor_public_offer_notification(outcome: TutorPublicOfferOutcome) -> str | None:
-    messages = {
-        TutorPublicOfferOutcome.PENDING: None,
-        TutorPublicOfferOutcome.REJECTED: "لم يتم اختيار عرضك لهذا الطلب",
-        TutorPublicOfferOutcome.CONTACT_SHARED: "أغلق الطالب الطلب — تم مشاركة أرقام التواصل",
-        TutorPublicOfferOutcome.LEAD_CLOSED_EMPTY: "أغلق الطالب الطلب دون عروض — لا تبادل أرقام",
-        TutorPublicOfferOutcome.LEAD_CLOSED_EXPIRED: "انتهت صلاحية الطلب — لا تبادل أرقام",
-    }
-    return messages[outcome]
 
 
 def application_to_tutor_public_offer_out(
@@ -231,11 +246,6 @@ def application_to_tutor_public_offer_out(
     student_phone = None
     if outcome == TutorPublicOfferOutcome.CONTACT_SHARED and lead.student:
         student_phone = lead.student.phone_number
-    responded_at = lead.closed_at if outcome in {
-        TutorPublicOfferOutcome.CONTACT_SHARED,
-        TutorPublicOfferOutcome.LEAD_CLOSED_EMPTY,
-        TutorPublicOfferOutcome.LEAD_CLOSED_EXPIRED,
-    } else None
     return TutorPublicOfferOut(
         lead_application_id=app.lead_application_id,
         post_requirements_id=lead.post_requirements_id,
@@ -251,9 +261,7 @@ def application_to_tutor_public_offer_out(
         subject_id=lead.subject_id,
         level_id=lead.level_id,
         outcome=outcome,
-        student_responded_at=responded_at,
         student_phone_number=student_phone,
-        notification_message=_tutor_public_offer_notification(outcome),
     )
 
 
@@ -382,7 +390,7 @@ def submit_offer(
     db.commit()
     db.refresh(application)
     application.tutor = tutor
-    return _application_to_out(application, phones_revealed=False)
+    return _application_to_out(application, lead)
 
 
 def lead_to_browse_card_out(lead: PostRequirement) -> LeadBrowseCardOut:
@@ -720,3 +728,40 @@ def close_lead_public(db: Session, lead: PostRequirement) -> LeadOut:
     refreshed = get_lead_by_id(db, lead.post_requirements_id)
     assert refreshed is not None
     return lead_to_out(refreshed)
+
+
+def expire_due_leads(db: Session) -> int:
+    """Auto-close open leads past LEAD_AUTO_CLOSE_DAYS (SCRUM-63).
+
+    Pending public offers at expiry behave like shortlist close: mutual phone reveal
+    so students/tutors who return later still see numbers on closed_expired leads.
+    """
+    now = datetime.utcnow()
+    cutoff = now - timedelta(days=LEAD_AUTO_CLOSE_DAYS)
+    open_leads = (
+        db.query(PostRequirement)
+        .options(joinedload(PostRequirement.lead_applications))
+        .filter(
+            PostRequirement.lead_status == LeadStatusEnum.OPEN,
+            PostRequirement.created_at <= cutoff,
+        )
+        .all()
+    )
+    expired_count = 0
+    for lead in open_leads:
+        pending_apps = [
+            app
+            for app in lead.lead_applications
+            if app.application_status == LeadApplicationStatusEnum.PENDING
+        ]
+        if pending_apps and lead.lead_target is None:
+            for app in pending_apps:
+                if app.contact_revealed_at is None:
+                    app.contact_revealed_at = now
+        lead.lead_status = LeadStatusEnum.CLOSED_EXPIRED
+        lead.closed_at = now
+        lead.accepting_applications = False
+        expired_count += 1
+    if expired_count:
+        db.commit()
+    return expired_count

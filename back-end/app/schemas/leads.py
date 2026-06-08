@@ -177,19 +177,14 @@ class TutorPublicOfferOut(BaseModel):
     level_id: int
 
     outcome: TutorPublicOfferOutcome = Field(
-        description="pending | rejected | contact_shared (student closed shortlist) | lead_closed_empty | lead_closed_expired",
-    )
-    student_responded_at: Optional[datetime] = Field(
-        None,
-        description="When the student closed the lead (shortlist or no match); use for inbox badges / polling.",
+        description=(
+            "Status only (no push notifications): pending | rejected | contact_shared "
+            "| lead_closed_empty | lead_closed_expired. Tutor sees this when opening عروضي."
+        ),
     )
     student_phone_number: Optional[str] = Field(
         None,
         description="Populated when outcome is contact_shared (student shared numbers with shortlist).",
-    )
-    notification_message: Optional[str] = Field(
-        None,
-        description="Human-readable outcome for tutor UI (v1: no push; poll this endpoint).",
     )
 
 

@@ -131,9 +131,9 @@ def tutor_private_inbox(
         "**When:** Tutor opens «عروضي» — track every offer submitted on **public** leads.\n\n"
         "**Response:** Newest first. Each row includes the offer, lead title/status, "
         "`outcome` (`pending`, `rejected`, `contact_shared`, `lead_closed_empty`, `lead_closed_expired`), "
-        "`notification_message` for UI badges, and `student_phone_number` when the student "
-        "closed with shortlist (public accept = share contacts with all pending offers).\n\n"
-        "**v1:** No push notifications — poll this endpoint or show unread from `student_responded_at`."
+        "and `student_phone_number` when contacts were shared.\n\n"
+        "**No notifications:** v1 does not push or badge tutors. They see updates only when "
+        "they open this screen."
     ),
 )
 def tutor_public_offers(
@@ -220,8 +220,8 @@ def accept_private_contact(
         "**When:** Student opens a single lead — review offers, status, and phones after reveal.\n\n"
         "**Response:** Full `LeadOut` with `applications` list.\n\n"
         "**Errors:** `404` not found; `403` not owner.\n\n"
-        "**Phones:** Populated only after public `closed_shortlist`, private tutor accept, "
-        "or private `closed_matched`."
+        "**Phones:** Populated after public `closed_shortlist`, public `closed_expired` "
+        "(pending offers at auto-close), private tutor accept, or `closed_matched`."
     ),
 )
 def get_lead(
