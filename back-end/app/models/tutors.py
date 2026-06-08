@@ -9,7 +9,8 @@ if TYPE_CHECKING:
     from app.models.addresses import Address
     from app.models.favorites import Favorite
     from app.models.reviews import Review
-    from app.models.post_statuses import PostStatus
+    from app.models.lead_applications import LeadApplication
+    from app.models.lead_targets import LeadTarget
     from app.models.tutor_subjects import TutorSubject
 
 class Tutor(Base):
@@ -33,7 +34,11 @@ class Tutor(Base):
     #relationships
     favorites : Mapped[List["Favorite"]] = relationship("Favorite", back_populates="tutor", cascade="all, delete-orphan")
     reviews : Mapped[List["Review"]] = relationship("Review", back_populates="tutor", cascade="all, delete-orphan")
-    post_statuses : Mapped["PostStatus"] = relationship("PostStatus", back_populates="tutor")
+    lead_targets: Mapped[List["LeadTarget"]] = relationship("LeadTarget", back_populates="tutor")
+    lead_applications: Mapped[List["LeadApplication"]] = relationship(
+        "LeadApplication",
+        back_populates="tutor",
+    )
     tutor_subjects : Mapped[List["TutorSubject"]] = relationship("TutorSubject", back_populates="tutor")
     address : Mapped[Optional["Address"]] = relationship("Address", back_populates="tutor", uselist=False, cascade="all, delete-orphan")
     
