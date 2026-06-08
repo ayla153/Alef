@@ -13,6 +13,44 @@ from app.schemas.enums import (
 )
 
 
+class CreatePrivateLeadIn(BaseModel):
+    """Private lead from tutor profile (SCRUM-62). target_tutor_id is required."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    title: str = Field(..., min_length=1, max_length=100)
+    description: str = Field(..., min_length=1, max_length=500)
+    foundation_tution: bool = False
+    tution_type: TuitionTypeEnum
+    expected_fee: float = Field(..., ge=0)
+    preferred_gender: Optional[gender_enum] = None
+    subject_id: int = Field(..., gt=0)
+    level_id: int = Field(..., gt=0)
+    target_tutor_id: int = Field(..., gt=0)
+    publish_public_copy: bool = Field(
+        False,
+        description="Optional anonymized public browse card (no student name).",
+    )
+
+
+class ClosePrivateLeadIn(BaseModel):
+    """Private close: matched=True → closed_matched; matched=False → closed_empty (revokes phones)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    matched: bool
+
+
+class AcceptContactIn(BaseModel):
+    """Optional offer fields when tutor accepts private lead contact."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    proposed_fee: Optional[float] = Field(None, ge=0)
+    first_session_note: Optional[str] = Field(None, min_length=1, max_length=200)
+    message: Optional[str] = Field(None, min_length=1, max_length=500)
+
+
 class CreatePublicLeadIn(BaseModel):
     """Public marketplace lead only (SCRUM-60). No private fields."""
 

@@ -13,7 +13,16 @@ from app.models.subjects import Subject
 from app.models.tutor_subjects import TutorSubject
 from app.models.tutors import Tutor
 from app.schemas.enums import LeadApplicationStatusEnum, LeadStatusEnum
-from app.schemas.leads import CreatePublicLeadIn, LeadApplicationOut, LeadBrowseCardOut, LeadOut, OfferIn
+from app.schemas.leads import (
+    AcceptContactIn,
+    ClosePrivateLeadIn,
+    CreatePrivateLeadIn,
+    CreatePublicLeadIn,
+    LeadApplicationOut,
+    LeadBrowseCardOut,
+    LeadOut,
+    OfferIn,
+)
 
 MAX_PUBLIC_PENDING_OFFERS = 5
 LEAD_AUTO_CLOSE_DAYS = 10
@@ -410,13 +419,184 @@ def reject_offer(
     return lead_to_out(refreshed)
 
 
+def create_private_lead(db: Session, student: Student, data: CreatePrivateLeadIn) -> LeadOut:
+    if db.get(Subject, data.subject_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Subject not found.")
+    if db.get(Level, data.level_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Level not found.")
+    tutor = db.get(Tutor, data.target_tutor_id)
+    if tutor is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tutor not found.")
+
+    check_max_active_private_leads(db, student.student_id)
+
+    now = datetime.utcnow()
+    is_public = data.publish_public_copy
+    lead = PostRequirement(
+        title=data.title.strip(),
+        description=data.description.strip(),
+        foundation_tution=data.foundation_tution,
+        tution_type=data.tution_type,
+        expected_fee=data.expected_fee,
+        created_at=now,
+        expired_at=now + timedelta(days=LEAD_DEFAULT_EXPIRY_DAYS),
+        preferred_gender=data.preferred_gender,
+        student_id=student.student_id,
+        subject_id=data.subject_id,
+        level_id=data.level_id,
+        lead_status=LeadStatusEnum.OPEN,
+        is_public=is_public,
+        accepting_applications=is_public,
+        max_applications=MAX_PUBLIC_PENDING_OFFERS,
+    )
+    db.add(lead)
+    db.flush()
+
+    db.add(
+        LeadTarget(
+            post_requirements_id=lead.post_requirements_id,
+            tutor_id=data.target_tutor_id,
+        )
+    )
+    db.commit()
+    refreshed = get_lead_by_id(db, lead.post_requirements_id)
+    assert refreshed is not None
+    return lead_to_out(refreshed)
+
+
+def list_tutor_private_inbox(db: Session, tutor: Tutor) -> list[LeadOut]:
+    leads = (
+        db.query(PostRequirement)
+        .join(LeadTarget, LeadTarget.post_requirements_id == PostRequirement.post_requirements_id)
+        .options(
+            joinedload(PostRequirement.student),
+            joinedload(PostRequirement.lead_target),
+            joinedload(PostRequirement.lead_applications).joinedload(LeadApplication.tutor),
+        )
+        .filter(
+            LeadTarget.tutor_id == tutor.tutor_id,
+            PostRequirement.lead_status == LeadStatusEnum.OPEN,
+        )
+        .order_by(PostRequirement.created_at.desc())
+        .all()
+    )
+    return [lead_to_out(lead) for lead in leads]
+
+
+def accept_private_contact(
+    db: Session,
+    lead_id: int,
+    tutor: Tutor,
+    data: AcceptContactIn,
+) -> LeadOut:
+    lead = get_lead_by_id(db, lead_id)
+    if not lead:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead not found.")
+    assert_lead_is_open(lead)
+    if lead.lead_target is None or lead.lead_target.tutor_id != tutor.tutor_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the targeted tutor may accept this private lead.",
+        )
+
+    existing = (
+        db.query(LeadApplication)
+        .filter(
+            LeadApplication.post_requirements_id == lead_id,
+            LeadApplication.tutor_id == tutor.tutor_id,
+        )
+        .first()
+    )
+    if existing is not None and existing.contact_revealed_at is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Contact already accepted for this lead.",
+        )
+
+    now = datetime.utcnow()
+    proposed_fee = data.proposed_fee if data.proposed_fee is not None else lead.expected_fee
+    first_session_note = (data.first_session_note or "Flexible").strip()
+    message = (data.message or "أوافق على التواصل").strip()
+
+    if existing is not None:
+        existing.proposed_fee = proposed_fee
+        existing.first_session_note = first_session_note
+        existing.message = message
+        existing.application_status = LeadApplicationStatusEnum.PENDING
+        existing.contact_revealed_at = now
+        application = existing
+    else:
+        application = LeadApplication(
+            proposed_fee=proposed_fee,
+            first_session_note=first_session_note,
+            message=message,
+            application_status=LeadApplicationStatusEnum.PENDING,
+            contact_revealed_at=now,
+            created_at=now,
+            post_requirements_id=lead_id,
+            tutor_id=tutor.tutor_id,
+        )
+        db.add(application)
+
+    db.commit()
+    refreshed = get_lead_by_id(db, lead_id)
+    assert refreshed is not None
+    return lead_to_out(refreshed)
+
+
+def close_lead_private(
+    db: Session,
+    lead: PostRequirement,
+    student: Student,
+    body: ClosePrivateLeadIn,
+) -> LeadOut:
+    assert_lead_owner(lead, student)
+    assert_lead_is_open(lead)
+    if lead.lead_target is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Use the public close flow for public-only leads.",
+        )
+
+    now = datetime.utcnow()
+    if body.matched:
+        lead.lead_status = LeadStatusEnum.CLOSED_MATCHED
+    else:
+        lead.lead_status = LeadStatusEnum.CLOSED_EMPTY
+        for app in lead.lead_applications:
+            app.contact_revealed_at = None
+
+    lead.closed_at = now
+    lead.accepting_applications = False
+    db.commit()
+    refreshed = get_lead_by_id(db, lead.post_requirements_id)
+    assert refreshed is not None
+    return lead_to_out(refreshed)
+
+
+def close_lead_for_student(
+    db: Session,
+    lead: PostRequirement,
+    student: Student,
+    private_close: ClosePrivateLeadIn | None = None,
+) -> LeadOut:
+    assert_lead_owner(lead, student)
+    if lead.lead_target is not None:
+        if private_close is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Private leads require body: { \"matched\": true|false }.",
+            )
+        return close_lead_private(db, lead, student, private_close)
+    return close_lead_public(db, lead)
+
+
 def close_lead_public_for_student(
     db: Session,
     lead: PostRequirement,
     student: Student,
 ) -> LeadOut:
-    assert_lead_owner(lead, student)
-    return close_lead_public(db, lead)
+    return close_lead_for_student(db, lead, student)
 
 
 def close_lead_public(db: Session, lead: PostRequirement) -> LeadOut:
