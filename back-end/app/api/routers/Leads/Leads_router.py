@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, status
 
-from app.api.deps import DbSession, get_current_student
+from app.api.deps import DbSession, get_current_student, get_verified_tutor
 from app.models.students import Student
-from app.schemas.leads import CreatePublicLeadIn, LeadOut
+from app.models.tutors import Tutor
+from app.schemas.leads import CreatePublicLeadIn, LeadApplicationOut, LeadBrowseCardOut, LeadOut, OfferIn
 from app.services import lead_service
 
 router = APIRouter(
@@ -31,6 +32,28 @@ def list_my_leads(
     current_student: Student = Depends(get_current_student),
 ) -> list[LeadOut]:
     return lead_service.list_leads_for_student(db, current_student.student_id)
+
+
+@router.get("/browse", response_model=list[LeadBrowseCardOut])
+def browse_leads(
+    db: DbSession,
+    current_tutor: Tutor = Depends(get_verified_tutor),
+) -> list[LeadBrowseCardOut]:
+    return lead_service.browse_public_leads(db, current_tutor)
+
+
+@router.post(
+    "/{lead_id}/offers",
+    response_model=LeadApplicationOut,
+    status_code=status.HTTP_201_CREATED,
+)
+def submit_offer(
+    lead_id: int,
+    body: OfferIn,
+    db: DbSession,
+    current_tutor: Tutor = Depends(get_verified_tutor),
+) -> LeadApplicationOut:
+    return lead_service.submit_offer(db, lead_id, current_tutor, body)
 
 
 @router.get("/{lead_id}", response_model=LeadOut)

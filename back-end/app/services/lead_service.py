@@ -10,8 +10,10 @@ from app.models.levels import Level
 from app.models.post_requirements import PostRequirement
 from app.models.students import Student
 from app.models.subjects import Subject
+from app.models.tutor_subjects import TutorSubject
+from app.models.tutors import Tutor
 from app.schemas.enums import LeadApplicationStatusEnum, LeadStatusEnum
-from app.schemas.leads import CreatePublicLeadIn, LeadApplicationOut, LeadBrowseCardOut, LeadOut
+from app.schemas.leads import CreatePublicLeadIn, LeadApplicationOut, LeadBrowseCardOut, LeadOut, OfferIn
 
 MAX_PUBLIC_PENDING_OFFERS = 5
 LEAD_AUTO_CLOSE_DAYS = 10
@@ -182,6 +184,110 @@ def lead_to_out(lead: PostRequirement) -> LeadOut:
             for app in sorted(lead.lead_applications, key=lambda a: a.created_at)
         ],
     )
+
+
+def browse_public_leads(db: Session, tutor: Tutor) -> list[LeadBrowseCardOut]:
+    """Open public leads accepting offers; tutor must teach the lead subject (anonymous cards)."""
+    tutor_subject_ids = {
+        ts.subject_id
+        for ts in db.query(TutorSubject)
+        .filter(TutorSubject.tutor_id == tutor.tutor_id)
+        .all()
+    }
+    if not tutor_subject_ids:
+        return []
+
+    leads = (
+        db.query(PostRequirement)
+        .options(joinedload(PostRequirement.lead_applications))
+        .filter(
+            PostRequirement.is_public.is_(True),
+            PostRequirement.lead_status == LeadStatusEnum.OPEN,
+            PostRequirement.accepting_applications.is_(True),
+            PostRequirement.subject_id.in_(tutor_subject_ids),
+        )
+        .order_by(PostRequirement.created_at.desc())
+        .all()
+    )
+    return [lead_to_browse_card_out(lead) for lead in leads]
+
+
+def submit_offer(
+    db: Session,
+    lead_id: int,
+    tutor: Tutor,
+    data: OfferIn,
+) -> LeadApplicationOut:
+    lead = get_lead_by_id(db, lead_id)
+    if not lead:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead not found.")
+
+    assert_lead_is_open(lead)
+    if not lead.is_public:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Offers apply to public leads only.",
+        )
+    if not lead.accepting_applications:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Application slots are full for this lead.",
+        )
+
+    teaches_subject = (
+        db.query(TutorSubject.tutor_subject_id)
+        .filter(
+            TutorSubject.tutor_id == tutor.tutor_id,
+            TutorSubject.subject_id == lead.subject_id,
+        )
+        .first()
+    )
+    if teaches_subject is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not teach the subject for this lead.",
+        )
+
+    existing = (
+        db.query(LeadApplication)
+        .filter(
+            LeadApplication.post_requirements_id == lead_id,
+            LeadApplication.tutor_id == tutor.tutor_id,
+        )
+        .first()
+    )
+    if existing is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="You have already submitted an offer for this lead.",
+        )
+
+    pending = count_pending_applications(db, lead_id)
+    if pending >= lead.max_applications:
+        lead.accepting_applications = False
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Application slots are full for this lead.",
+        )
+
+    now = datetime.utcnow()
+    application = LeadApplication(
+        proposed_fee=data.proposed_fee,
+        first_session_note=data.first_session_note.strip(),
+        message=data.message.strip(),
+        application_status=LeadApplicationStatusEnum.PENDING,
+        created_at=now,
+        post_requirements_id=lead_id,
+        tutor_id=tutor.tutor_id,
+    )
+    db.add(application)
+    db.flush()
+    sync_accepting_applications(db, lead)
+    db.commit()
+    db.refresh(application)
+    application.tutor = tutor
+    return _application_to_out(application, phones_revealed=False)
 
 
 def lead_to_browse_card_out(lead: PostRequirement) -> LeadBrowseCardOut:

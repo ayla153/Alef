@@ -82,6 +82,17 @@ def get_current_tutor(
     return tutor
 
 
+def get_verified_tutor(
+    current_tutor: Annotated[Tutor, Depends(get_current_tutor)],
+) -> Tutor:
+    if not current_tutor.verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Verified tutor account required.",
+        )
+    return current_tutor
+
+
 def get_current_tutor_registration(
     db: DbSession,
     payload: Annotated[TokenPayload, Depends(get_token_payload)],
