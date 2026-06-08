@@ -8,7 +8,7 @@ function Header({ avatar }) {
         
         <div className="app-header__left">
           
-          <NavLink to="/" className="app-header__logo">
+          <NavLink to="/home" className="app-header__logo">
             <img
               src="/src/assets/Logoo.jpg"
               alt="أَلِفْ"
@@ -38,7 +38,7 @@ function Header({ avatar }) {
               إنشاء طلب
             </NavLink>
 
-            <NavLink to="/orders" className={({ isActive }) =>
+            <NavLink to="/MyLeads" className={({ isActive }) =>
               isActive ? "app-header__link is-active" : "app-header__link"
             }>
               <span className="material-symbols-outlined">list_alt</span>

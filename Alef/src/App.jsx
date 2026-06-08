@@ -7,7 +7,7 @@ import FavPage from "./Pages/student/FavPage";
 import Notifications from "./Pages/student/notification";
 import TeacherProfile from "./Pages/student/TeacherProfile";
 
-import LandingPageMainPage from "./Pages/teacher/LandingPageMainPage"
+import LandingPageMainPage from "./Pages/teacher/LandingPageMainPage";
 import SelectionPage from "./Pages/student/SelectionPage";
 import CreateStudentAccount from "./Pages/student/CreateStudentAccount";
 import CreateAccountStep1 from "./Pages/teacher/CreateAccountStep1";
@@ -17,10 +17,12 @@ import CreateAccountStep4 from "./Pages/teacher/CreateAccountStep4";
 import Login from "./Pages/student/login";
 import OTP from "./Pages/student/OTP";
 
-import Dashboard from "./Pages/teacher/Dashboard"
+import Dashboard from "./Pages/teacher/Dashboard";
 
+import CreateLeadWizard from "./Pages/student/CreateLeadWizard";
+import MyLeads from "./Pages/student/MyLeads";
+import LeadDetailsPage from "./Pages/student/LeadDetailsContainer";
 
-import CreateLeadWizard from "./Pages/student/CreateLeadWizard"
 
 function App() {
   return (
@@ -45,8 +47,11 @@ function App() {
       <Route path="/Dashboard" element={<Dashboard />} />
 
       <Route path="/Create/Lead" element={<CreateLeadWizard />} />
-
+      <Route path="/MyLeads" element={<MyLeads />} />
+     <Route path="/lead/:id" element={<LeadDetailsPage />} />
       
+
+
     </Routes>
   );
 }

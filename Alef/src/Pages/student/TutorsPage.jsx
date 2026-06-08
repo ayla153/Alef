@@ -6,6 +6,7 @@ import TeacherCard from "../../components/TeacherCard";
 
 import "../../styles/sstyle/TutorsPage.css";
 import teacherImg from "../../assets/user-avatar.jpg";
+import { useLocation, useNavigate } from "react-router-dom";
 
 function TutorsPage() {
   const teachers = [
@@ -67,6 +68,11 @@ function TutorsPage() {
   const [sortSelected, setSortSelected] = useState(null);
   const [modeSelected, setModeSelected] = useState(null);
 
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const mode = location.state?.from === "create-lead" ? "select" : "view";
+
   // ===== السعر الذكي حسب mode =====
   const getPrice = (teacher) => {
     // حضوري فقط
@@ -94,23 +100,17 @@ function TutorsPage() {
 
     // فلترة المادة
     if (subjectSelected) {
-      result = result.filter((t) =>
-        t.subjects.includes(subjectSelected)
-      );
+      result = result.filter((t) => t.subjects.includes(subjectSelected));
     }
 
     // فلترة المرحلة
     if (stageSelected) {
-      result = result.filter(
-        (t) => t.stage === stageSelected
-      );
+      result = result.filter((t) => t.stage === stageSelected);
     }
 
     // فلترة mode
     if (modeSelected) {
-      result = result.filter((t) =>
-        t.modes.includes(modeSelected)
-      );
+      result = result.filter((t) => t.modes.includes(modeSelected));
     }
 
     // ترتيب
@@ -123,24 +123,16 @@ function TutorsPage() {
     }
 
     return result;
-  }, [
-    teachers,
-    subjectSelected,
-    stageSelected,
-    sortSelected,
-    modeSelected,
-  ]);
+  }, [teachers, subjectSelected, stageSelected, sortSelected, modeSelected]);
 
   return (
     <>
       <Header activeTab="tutors" />
 
-      <main className="tutors-container fade-in">
+      <main className="tutors-container ">
         <div className="tutor-page-header">
           <h1>الأساتذة</h1>
-          <p>
-            ابحث عن المعلم المناسب لاحتياجاتك التعليمية
-          </p>
+          <p>ابحث عن المعلم المناسب لاحتياجاتك التعليمية</p>
         </div>
 
         <FiltersBar
@@ -158,14 +150,20 @@ function TutorsPage() {
           {filteredTeachers.length > 0 ? (
             filteredTeachers.map((teacher, index) => (
               <TeacherCard
-                key={index}
                 teacher={teacher}
+                mode={mode}
+                onSelect={(t) => {
+                  navigate("/Create/Lead", {
+                    state: {
+                      from: "create-lead",
+                      selectedTeacher: t,
+                    },
+                  });
+                }}
               />
             ))
           ) : (
-            <p className="no-results">
-              لا يوجد أساتذة مطابقين للفلاتر
-            </p>
+            <p className="no-results">لا يوجد أساتذة مطابقين للفلاتر</p>
           )}
         </section>
       </main>

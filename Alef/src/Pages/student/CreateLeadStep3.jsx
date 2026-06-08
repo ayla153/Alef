@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import "../../styles/sstyle/CreateLeadStep3.css";
 import Header from "../../components/Header";
 
-const CreateLeadStep3 = ({ formData, updateForm, onBack, onSubmit }) => {
+const CreateLeadStep3 = ({ formData, updateForm, onBack, onSubmit, origin }) => {
 
-  const [privacyType, setPrivacyType] = useState("public");
+  const [privacyType, setPrivacyType] = useState(
+  origin === "teacher" ? "private" : "public"
+);
   const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
@@ -33,6 +35,10 @@ const CreateLeadStep3 = ({ formData, updateForm, onBack, onSubmit }) => {
     if (!privacyType) {
       newErrors.privacy_type = "الرجاء اختيار نوع الخصوصية";
     }
+
+    if (privacyType === "private" && !selectedTeacher) {
+  newErrors.selectedTeacher = "يجب اختيار معلم للطلب الخاص";
+}
 
     setErrors(newErrors);
 

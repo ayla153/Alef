@@ -31,7 +31,7 @@ const FavPage = () => {
   return (
     <>
       <Header activeTab="favorites" />
-      <div className="fav-page__wrapper fade-in">
+      <div className="fav-page__wrapper ">
         <main className="fav-page__content">
           <div className="fav-page__container">
             <section className="fav-page__hero">

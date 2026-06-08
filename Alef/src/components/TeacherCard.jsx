@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "../styles/sstyle/TeacherCard.css";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 
-const TeacherCard = ({ teacher }) => {
+const TeacherCard = ({ teacher, mode = "view", onSelect }) => {
   const [saved, setSaved] = useState(false);
 
   return (
@@ -71,7 +71,13 @@ const TeacherCard = ({ teacher }) => {
         </div>
       </div>
 
-      <button className="tc-profile-btn">عرض الملف الشخصي</button>
+      {mode === "select" ? (
+        <button className="tc-profile-btn" onClick={() => onSelect(teacher)}>
+          اختيار المعلم
+        </button>
+      ) : (
+        <button className="tc-profile-btn">عرض الملف الشخصي</button>
+      )}
     </div>
   );
 };
