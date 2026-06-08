@@ -2,9 +2,15 @@ import React, { useState } from "react";
 import CreateLeadStep1 from "./CreateLeadStep1";
 import CreateLeadStep2 from "./CreateLeadStep2";
 import CreateLeadStep3 from "./CreateLeadStep3";
+import { useLocation } from "react-router-dom";
 
 const CreateLeadWizard = () => {
   const [step, setStep] = useState(1);
+
+  const location = useLocation();
+
+  const origin = location.state?.origin || "create";
+  const [selectedTeacher, setSelectedTeacher] = useState(null);
 
   const [formData, setFormData] = useState({
     subject: "",
@@ -48,6 +54,7 @@ const CreateLeadWizard = () => {
     <div>
       {step === 1 && (
         <CreateLeadStep1
+          origin={origin}
           formData={formData}
           updateForm={updateForm}
           onNext={nextStep}
@@ -56,6 +63,7 @@ const CreateLeadWizard = () => {
 
       {step === 2 && (
         <CreateLeadStep2
+          origin={origin}
           formData={formData}
           updateForm={updateForm}
           onNext={nextStep}
@@ -65,10 +73,13 @@ const CreateLeadWizard = () => {
 
       {step === 3 && (
         <CreateLeadStep3
+          origin={origin}
           formData={formData}
           updateForm={updateForm}
           onBack={prevStep}
           onSubmit={submitForm}
+          selectedTeacher={selectedTeacher}
+          setSelectedTeacher={setSelectedTeacher}
         />
       )}
     </div>

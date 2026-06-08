@@ -53,7 +53,7 @@ const CreateLeadStep1 = ({ formData, updateForm, onNext }) => {
   };
 
   return (
-    <div className="createLeadStep1_appContainer fade-in" dir="rtl">
+    <div className="createLeadStep1_appContainer " dir="rtl">
       <Header />
 
       <main className="createLeadStep1_mainContent">

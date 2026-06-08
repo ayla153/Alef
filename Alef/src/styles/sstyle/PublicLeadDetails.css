@@ -1,0 +1,869 @@
+@import url("https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap");
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Public Sans", sans-serif;
+  background-color: #f8fafc;
+  color: #334155;
+}
+
+/* =========================
+   App Wrapper
+========================= */
+.pod-app-container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================
+   Main Layout
+========================= */
+.pod-main-content {
+  flex-grow: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .pod-main-content {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+}
+
+/* =========================
+   Breadcrumb
+========================= */
+.pod-breadcrumb {
+  font-size: 0.875rem;
+  margin-bottom: -0.5rem;
+}
+
+.pod-back-link {
+  text-decoration: none;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: color 0.2s;
+}
+
+.pod-back-link:hover {
+  color: #2563eb;
+}
+
+.pod-back-link span {
+  font-size: 18px;
+}
+
+/* =========================
+   Cards Base
+========================= */
+.pod-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+/* =========================
+   Header Card
+========================= */
+.pod-header-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.pod-header-top {
+  padding: 1.5rem 1.5rem 0.5rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.pod-badges-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pod-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.pod-badge span {
+  font-size: 14px;
+}
+
+.pod-badge-public {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #dbeafe;
+}
+
+.pod-badge-pending {
+  background-color: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fef3c7;
+}
+
+.pod-badge-open {
+  background-color: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #dcfce7;
+}
+
+.pod-order-id {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin-right: auto;
+}
+
+.pod-header-title-zone {
+  padding: 0 1.5rem 1.5rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.pod-main-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .pod-main-title {
+    font-size: 1.875rem;
+  }
+}
+
+.pod-creation-date {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+/* =========================
+   Specs Grid
+========================= */
+.pod-specs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  background-color: rgba(248, 250, 252, 0.5);
+}
+
+@media (min-width: 768px) {
+  .pod-specs-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.pod-spec-item {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.pod-specs-grid .pod-spec-item:not(:last-child) {
+  border-left: 1px solid #f1f5f9;
+}
+
+.pod-spec-icon {
+  color: #94a3b8;
+  margin-bottom: 0.25rem;
+}
+
+.pod-spec-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.pod-spec-value {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.pod-unit {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #64748b;
+}
+
+/* =========================
+   Waiting Section
+========================= */
+.pod-waiting-section {
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .pod-waiting-section {
+    padding: 3rem;
+  }
+}
+
+.pod-top-gradient-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(to right, #60a5fa, #2563eb, #60a5fa);
+}
+
+.pod-radar-container {
+  position: relative;
+  width: 6rem;
+  height: 6rem;
+  margin-bottom: 1.5rem;
+}
+
+.pod-radar-pulse {
+  position: absolute;
+  inset: 0;
+  background-color: #dbeafe;
+  border-radius: 9999px;
+  animation: podPing 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+  opacity: 0.75;
+}
+
+@keyframes podPing {
+  75%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.pod-radar-bg {
+  position: absolute;
+  inset: 0.5rem;
+  background-color: #eff6ff;
+  border-radius: 9999px;
+}
+
+.pod-radar-core {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  background-color: #ffffff;
+  border-radius: 9999px;
+  border: 1px solid #dbeafe;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.pod-icon-radar {
+  color: #2563eb;
+  font-size: 2.25rem;
+  font-variation-settings: "FILL" 1;
+}
+
+.pod-sub-icon {
+  position: absolute;
+  background-color: #ffffff;
+  border-radius: 9999px;
+  padding: 0.25rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pod-icon-search {
+  top: -0.5rem;
+  right: -0.5rem;
+  color: #f59e0b;
+  animation: podBounce 1s infinite;
+  animation-delay: 0.1s;
+}
+
+.pod-icon-check {
+  bottom: 0;
+  left: -0.75rem;
+  padding: 0.375rem;
+  color: #22c55e;
+  animation: podBounce 1s infinite;
+  animation-delay: 0.3s;
+}
+
+@keyframes podBounce {
+  0%,
+  100% {
+    transform: translateY(-25%);
+  }
+  50% {
+    transform: none;
+  }
+}
+
+.pod-section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .pod-section-title {
+    font-size: 1.5rem;
+  }
+}
+
+.pod-section-desc {
+  color: #64748b;
+  max-width: 28rem;
+  margin: 0 auto;
+  line-height: 1.625;
+}
+
+.pod-loading-dots {
+  margin-top: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pod-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background-color: #2563eb;
+  animation: podPulse 2s infinite;
+}
+
+.pod-dot:nth-child(2) {
+  background-color: #60a5fa;
+  animation-delay: 0.2s;
+}
+
+.pod-dot:nth-child(3) {
+  background-color: #bfdbfe;
+  animation-delay: 0.4s;
+}
+
+@keyframes podPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* =========================
+   Offers Section
+========================= */
+.pod-offers-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.pod-offers-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pod-offers-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.pod-offers-count {
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  background-color: #dbeafe;
+  color: #1d4ed8;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.pod-offers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* =========================
+   Teacher Card
+========================= */
+.pod-teacher-card {
+  padding: 1.25rem;
+  transition: border-color 0.2s;
+}
+
+.pod-teacher-card:hover {
+  border-color: #93c5fd;
+}
+
+.pod-teacher-card.pod-accepted {
+  background-color: rgba(239, 246, 255, 0.3);
+  border-color: #60a5fa;
+  border-width: 2px;
+}
+
+.pod-teacher-flex {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .pod-teacher-flex {
+    flex-direction: row;
+  }
+}
+
+.pod-teacher-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 9999px;
+  overflow: hidden;
+  border: 2px solid #f1f5f9;
+  flex-shrink: 0;
+}
+
+.pod-teacher-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pod-teacher-info {
+  flex-grow: 1;
+  width: 100%;
+}
+
+.pod-teacher-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.pod-teacher-name {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 1.125rem;
+  display: inline-block;
+  margin-left: 0.5rem;
+}
+
+.pod-accepted-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  background-color: #dbeafe;
+  color: #1d4ed8;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.pod-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #f59e0b;
+  margin-top: 0.25rem;
+}
+
+.pod-star-icon {
+  font-size: 18px;
+  font-variation-settings: "FILL" 1;
+}
+
+.pod-rating-score {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.pod-rating-count {
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+.pod-price-zone {
+  text-align: left;
+}
+
+.pod-price-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.pod-price-unit {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.pod-teacher-bio {
+  color: #475569;
+  font-size: 0.875rem;
+  line-height: 1.625;
+  margin-bottom: 1rem;
+}
+
+/* =========================
+   Buttons
+========================= */
+.pod-action-buttons-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.pod-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border: none;
+}
+
+.pod-btn-primary {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.pod-btn-primary:hover {
+  background-color: #1d4ed8;
+}
+
+.pod-btn-secondary {
+  background-color: #ffffff;
+  border: 1px solid #2563eb;
+  color: #2563eb;
+}
+
+.pod-btn-secondary:hover {
+  background-color: #eff6ff;
+}
+
+/* =========================
+   Contact Zone
+========================= */
+.pod-contact-zone {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #ffffff;
+  border: 1px solid #bfdbfe;
+  border-radius: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+@media (min-width: 768px) {
+  .pod-contact-zone {
+    flex-direction: row;
+  }
+}
+
+.pod-contact-method {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pod-contact-icon-bg {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  background-color: #eff6ff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pod-contact-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.pod-contact-number {
+  font-weight: 700;
+  color: #334155;
+  letter-spacing: 0.05em;
+}
+
+.pod-contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .pod-contact-actions {
+    width: auto;
+  }
+}
+
+.pod-btn-whatsapp {
+  background-color: #25d366;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-grow: 1;
+}
+
+@media (min-width: 768px) {
+  .pod-btn-whatsapp {
+    flex-grow: 0;
+  }
+}
+
+.pod-btn-whatsapp:hover {
+  background-color: #20bd5a;
+}
+
+.pod-whatsapp-svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+/* =========================
+   Info Card
+========================= */
+.pod-info-card {
+  background-color: rgba(239, 246, 255, 0.5);
+  border-color: #dbeafe;
+  padding: 1.5rem;
+}
+
+.pod-info-card-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1e3a8a;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pod-info-card-title span {
+  font-size: 18px;
+}
+
+.pod-info-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .pod-info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.pod-info-box {
+  background-color: #ffffff;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #eff6ff;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.pod-info-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  background-color: #eff6ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2563eb;
+  flex-shrink: 0;
+}
+
+.pod-info-box-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.pod-info-box-value {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #334155;
+}
+
+/* =========================
+   Footer Actions
+========================= */
+.pod-footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .pod-footer-actions {
+    justify-content: flex-start;
+  }
+}
+
+.pod-right-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.pod-btn-footer {
+  padding: 0.625rem 1.5rem;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.pod-btn-footer:hover {
+  background-color: #f8fafc;
+}
+
+.pod-btn-footer span {
+  font-size: 18px;
+}
+
+.pod-btn-danger-text {
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+.pod-btn-danger-text:hover {
+  background-color: #fef2f2;
+}
+
+.pod-btn-report {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: color 0.2s;
+  margin-right: auto;
+}
+
+.pod-btn-report:hover {
+  color: #ef4444;
+}
+
+.pod-btn-report span {
+  font-size: 18px;
+}
+
+
+.pod-warning-message {
+  background: #fff3cd;
+  color: #856404;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.pod-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pod-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.pod-modal {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  width: 350px;
+  text-align: center;
+}
+
+.pod-modal-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  gap: 10px;
+}

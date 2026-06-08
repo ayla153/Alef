@@ -12,6 +12,7 @@ const subjectColors = {
   العربي: "red",
   التاريخ: "yellow",
   الجغرافيا: "teal",
+  معلوماتية: "indigo",
 };
 
 const subjectIcons = {
@@ -23,6 +24,7 @@ const subjectIcons = {
   العربي: "menu_book",
   التاريخ: "history_edu",
   الجغرافيا: "public",
+  معلوماتية: "computer",
 };
 
 export default function TeacherProfile() {
@@ -146,7 +148,14 @@ export default function TeacherProfile() {
               <div className="divider"></div>
 
               <div className="action-buttons">
-                <button className="btn-primary">
+                <button
+                  className="btn-primary"
+                  onClick={() =>
+                    navigate("/Create/Lead", {
+                      state: { origin: "teacher" },
+                    })
+                  }
+                >
                   <span className="material-symbols-outlined">send</span>
                   <span>طلب درس</span>
                 </button>
