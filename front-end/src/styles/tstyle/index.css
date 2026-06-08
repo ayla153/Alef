@@ -1,0 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap');
+body {
+  margin: 0px auto;
+  font-family: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+.container{
+  padding: 0 10px;
+  margin: 0 auto;
+}
+
+/* ========== PAGE FADE-IN ANIMATION ========== */
+/* التأثير يطبق على كل الصفحات */
+#root {
+  animation: fadeInPage 0.6s ease-out forwards;
+}
+
+@keyframes fadeInPage {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

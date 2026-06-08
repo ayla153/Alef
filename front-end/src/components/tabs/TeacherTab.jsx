@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import BesTutors from "../BesTutors";
+<<<<<<< HEAD
 import "../../styles/TeacherTab.css";
+=======
+import "../../styles/tstyle/TeacherTab.css";
+>>>>>>> 8041f6f5 (new name)
 import { 
   FaSearch, 
   FaStar, 
@@ -12,7 +16,11 @@ import {
   FaBookmark 
 } from "react-icons/fa";
 
+<<<<<<< HEAD
 export default function TeachersTab({ setSelectedTeacher, setActiveTab }) {
+=======
+export default function TeachersTab() {
+>>>>>>> 8041f6f5 (new name)
   // حالات الفلاتر
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedRating, setSelectedRating] = useState(0); // 0 يعني الكل
@@ -206,11 +214,14 @@ export default function TeachersTab({ setSelectedTeacher, setActiveTab }) {
     return true;
   });
 
+<<<<<<< HEAD
   const handleViewProfile = (teacher) => {
     setSelectedTeacher(teacher);
     setActiveTab('profile');
   };
 
+=======
+>>>>>>> 8041f6f5 (new name)
   return (
     <div className="teachers_tab fade-in">
       <div className="hero-section">

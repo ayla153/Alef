@@ -1,0 +1,223 @@
+.step4content{
+    width: 80%;
+    background: #ffffff;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.stp4Title{
+    font-size: 1.5rem;
+    font-weight: 900;
+    margin-top: 1rem ;
+}
+.stp4Subtitle{
+    font-size:1rem;
+    font-weight: 500;
+    color: gray;
+}
+.stp4tc{
+    min-width: 60%;
+}
+.advicesforCV{
+    background: #ffffff;
+    border: solid #3b82f6 1px;
+    border-radius: 15px;
+    min-width: 60%;
+    margin: 2rem auto ;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.titleforadvices{
+    font-size:1.2rem;
+    font-weight: 700;
+    color: #3b82f6;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.bulb-icon {
+    font-size: 1.4rem;
+    color: #3b82f6;
+}
+.advices{
+    min-width: 90%;
+    margin: 0.4rem auto;
+}
+.adivceTitle{
+    font-size: 1rem;
+    font-weight: 620;
+    color: rgb(133, 133, 133);
+    position: relative;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+}
+.adivceTitle::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    right: 0;
+    width: 40px;
+    height: 2px;
+    background-color: #3b82f6;
+    border-radius: 2px;
+}
+
+/* تنسيق احترافي للنقاط (الخطوات) */
+.advices > div:not(.adivceTitle) {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+    color: #2c3e50;
+    line-height: 1.4;
+    margin: 0.6rem 0;
+    padding-right: 0.3rem;
+}
+
+.advices > div:not(.adivceTitle)::before {
+    content: "✓";
+    color: #3b82f6;
+    font-weight: bold;
+    font-size: 0.9rem;
+    background: #eef2ff;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.CVcontainer {
+    min-width: 60%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    margin: 1rem 0;
+}
+
+.titleCV {
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #1e293b;
+}
+
+.cv-icon {
+    font-size: 1.3rem;
+    color: #3b82f6;
+    transition: transform 0.2s;
+}
+
+.titleCV:hover .cv-icon {
+    transform: scale(1.05);
+}
+
+.CVinput {
+    min-width: 100%;
+    border: 1.5px solid #50555a;
+    border-radius: 16px;
+    padding: 0.8rem 1rem;
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #1e293b;
+    background: #ffffff;
+    resize: vertical;   
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.CVinput:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.CVinput::placeholder {
+    color: #94a3b8;
+    font-weight: 400;
+}
+/* ========== RESPONSIVE MEDIA QUERIES (لتوحيد عرض المكونات الثلاثة) ========== */
+
+/* للشاشات المتوسطة (تابلت، شاشات أقل من 992px) */
+@media (max-width: 992px) {
+  .step4content {
+    width: 90%;
+  }
+  .advicesforCV,
+  .CVcontainer,
+  .certificates-container {
+    min-width: 90%;
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* للشاشات الصغيرة (هواتف كبيرة، أقل من 768px) */
+@media (max-width: 768px) {
+  .step4content {
+    width: 95%;
+  }
+  .advicesforCV,
+  .CVcontainer,
+  .certificates-container {
+    min-width: 95%;
+    width: 95%;
+  }
+  .stp4Title {
+    font-size: 1.3rem;
+    text-align: center;
+  }
+  .stp4Subtitle {
+    font-size: 0.9rem;
+    text-align: center;
+  }
+  .advices > div:not(.adivceTitle) {
+    font-size: 0.8rem;
+  }
+}
+
+/* للشاشات الصغيرة جداً (هواتف صغيرة، أقل من 576px) */
+@media (max-width: 576px) {
+  .step4content {
+    width: 100%;
+    padding: 0 0.5rem;
+  }
+  .advicesforCV,
+  .CVcontainer,
+  .certificates-container {
+    min-width: 100%;
+    width: 100%;
+  }
+  .titleforadvices {
+    font-size: 1rem;
+    text-align: center;
+  }
+  .titleCV {
+    font-size: 1rem;
+  }
+  .CVinput {
+    font-size: 0.85rem;
+    padding: 0.6rem;
+  }
+  .advices > div:not(.adivceTitle) {
+    font-size: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+  }
+  .advices > div:not(.adivceTitle)::before {
+    width: 16px;
+    height: 16px;
+    font-size: 0.75rem;
+  }
+}
