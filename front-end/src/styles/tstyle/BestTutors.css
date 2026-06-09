@@ -1,0 +1,327 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.bestTutorsContainer,
+.bestTutosCon {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0 1.5rem;
+  margin: 0 auto;
+  direction: rtl;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+  font-family: 'Cairo', sans-serif;
+  direction: rtl;
+  position: relative;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 25px 35px -12px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+
+.profile-img {
+  width: 75px;
+  height: 75px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e2e8f0;
+  background: #f8fafc;
+  transition: all 0.3s ease;
+}
+
+.card:hover .profile-img {
+  transform: scale(1.05);
+  border-color: #3b82f6;
+  box-shadow: 0 8px 20px -6px rgba(59, 130, 246, 0.3);
+}
+
+.info {
+  flex: 1;
+  text-align: right;
+}
+
+.info h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 4px;
+  transition: color 0.2s;
+}
+
+.card:hover .info h3 {
+  color: #2563eb;
+}
+
+.subtitle {
+  font-size: 0.75rem;
+  color: #475569;
+  margin-bottom: 6px;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.card:hover .subtitle {
+  color: #1e293b;
+}
+
+.rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fefce8;
+  padding: 2px 8px;
+  border-radius: 30px;
+  margin-bottom: 6px;
+  transition: all 0.2s;
+}
+
+.card:hover .rating {
+  background: #fef3c7;
+  transform: scale(1.02);
+}
+
+.star {
+  color: #fbbf24;
+  font-size: 0.75rem;
+}
+
+.score {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.75rem;
+}
+
+.reviews-count {
+  font-size: 0.65rem;
+  color: #64748b;
+}
+
+.experience {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #3b82f6;
+  background: #eff6ff;
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 30px;
+  transition: all 0.2s;
+}
+
+.card:hover .experience {
+  background: #dbeafe;
+  transform: translateY(-1px);
+}
+
+.fav-btn {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.fav-btn:hover {
+  background: #f1f5f9;
+  transform: scale(1.1);
+}
+
+.fav-btn svg {
+  font-size: 16px;
+  color: #94a3b8;
+  transition: color 0.2s;
+}
+
+.fav-btn:hover svg {
+  color: #2563eb;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+  justify-content: flex-start;
+}
+
+.tag {
+  background: #f1f5f9;
+  color: #1e293b;
+  font-size: 0.7rem;
+  padding: 4px 12px;
+  border-radius: 30px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.card:hover .tag {
+  background: #3b82f6;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.services {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #eef2ff;
+  transition: all 0.2s;
+}
+
+.service-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  background: #fafcff;
+  padding: 6px 12px;
+  border-radius: 40px;
+  transition: all 0.2s;
+}
+
+.card:hover .service-item {
+  background: #f0f4fe;
+  transform: translateX(-3px);
+}
+
+.service-name {
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 2px 12px;
+  border-radius: 30px;
+}
+
+.service-name.online {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.service-name.offline {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.price {
+  font-weight: 800;
+  color: #2563eb;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.card:hover .price {
+  transform: scale(1.02);
+}
+
+.price small {
+  font-weight: 400;
+  font-size: 0.65rem;
+  color: #64748b;
+}
+
+.service-item.disabled {
+  opacity: 0.5;
+  filter: grayscale(0.1);
+}
+
+.service-item.disabled .price {
+  text-decoration: line-through;
+  color: #94a3b8;
+}
+
+.profile-btn {
+  width: 100%;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 40px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  font-family: 'Cairo', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 12px;
+}
+
+.card:hover .profile-btn {
+  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px -4px rgba(37, 99, 235, 0.4);
+}
+
+@media (max-width: 768px) {
+  .bestTutorsContainer,
+  .bestTutosCon {
+    gap: 1rem;
+    padding: 0 1rem;
+  }
+  .card {
+    max-width: 100%;
+    padding: 16px;
+  }
+  .profile-img {
+    width: 65px;
+    height: 65px;
+  }
+  .info h3 {
+    font-size: 1rem;
+  }
+  .subtitle {
+    font-size: 0.7rem;
+  }
+  .service-item {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .bestTutorsContainer,
+  .bestTutosCon {
+    gap: 0.8rem;
+    padding: 0 0.75rem;
+  }
+  .card-header {
+    gap: 10px;
+  }
+  .profile-img {
+    width: 55px;
+    height: 55px;
+  }
+  .tag {
+    font-size: 0.65rem;
+    padding: 3px 10px;
+  }
+}
