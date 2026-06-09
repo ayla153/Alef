@@ -30,8 +30,8 @@ export default function Login() {
       console.log("LOGIN SUCCESS:", response.data);
 
       // لو الباك بيرجع token
-      if (response.data?.token) {
-        localStorage.setItem("token", response.data.token);
+      if (response.data?.access_token) {
+        localStorage.setItem("token", response.data.access_token);
       }
 
       // تحويل إلى الصفحة الرئيسية

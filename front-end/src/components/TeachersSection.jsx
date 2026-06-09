@@ -16,9 +16,13 @@ const TeachersSection = ({ teachers = [] }) => {
 
       {/* الكروت */}
       <div className="teachersGrid">
-        {teachers.map((teacher, i) => (
-          <TeacherCard2 key={i} {...teacher} />
-        ))}
+        {teachers.length === 0 ? (
+          <p style={{ color: "#9ca3af", textAlign: "center", width: "100%" }}>
+            لا يوجد مدرسون متاحون حالياً
+          </p>
+        ) : (
+          teachers.map((teacher, i) => <TeacherCard2 key={i} {...teacher} />)
+        )}
       </div>
     </div>
   );
