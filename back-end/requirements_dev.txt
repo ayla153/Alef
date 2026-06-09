@@ -1,0 +1,39 @@
+# Core
+python-multipart==0.0.12
+uvicorn==0.30.6
+fastapi==0.115.0
+
+# Database
+SQLAlchemy==2.0.35
+alembic
+starlette==0.38.6
+
+# Security
+python-jose
+passlib==1.7.4
+cryptography==43.0.1
+psycopg2-binary==2.9.9
+bcrypt==4.0.1
+python-dotenv==1.0.1
+
+# Validation
+pydantic==2.9.2
+pydantic_core==2.23.4
+email_validator==2.2.0
+
+# Dev tools
+ipython
+black
+isort
+flake8
+
+# Testing
+pytest
+pytest-asyncio
+httpx
+coverage
+pytest-cov
+
+# Logging & Utilities
+python-json-logger
+fastapi-utils
