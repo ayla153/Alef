@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import CreateLeadStep1 from "./CreateLeadStep1";
 import CreateLeadStep2 from "./CreateLeadStep2";
 import CreateLeadStep3 from "./CreateLeadStep3";
+import RequestSuccess from "./RequestSuccess"; 
 import { useLocation } from "react-router-dom";
 
 const CreateLeadWizard = () => {
@@ -11,6 +12,7 @@ const CreateLeadWizard = () => {
 
   const origin = location.state?.origin || "create";
   const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [submitted, setSubmitted] = useState(false);
 
   const [formData, setFormData] = useState({
     subject: "",
@@ -45,6 +47,7 @@ const CreateLeadWizard = () => {
 
   const submitForm = () => {
     console.log("FINAL FORM DATA:", formData);
+    setSubmitted(true);
 
     // هنا لاحقاً تربطه API
     // axios.post(...)
@@ -52,6 +55,10 @@ const CreateLeadWizard = () => {
 
   return (
     <div>
+      {submitted ? (
+      <RequestSuccess />
+    ) : (
+      <>
       {step === 1 && (
         <CreateLeadStep1
           origin={origin}
@@ -81,6 +88,8 @@ const CreateLeadWizard = () => {
           selectedTeacher={selectedTeacher}
           setSelectedTeacher={setSelectedTeacher}
         />
+      )}
+      </>
       )}
     </div>
   );

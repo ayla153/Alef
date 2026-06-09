@@ -24,6 +24,8 @@ import MyLeads from "./Pages/student/MyLeads";
 import LeadDetailsPage from "./Pages/student/LeadDetailsContainer";
 
 
+
+
 function App() {
   return (
     <Routes>
@@ -49,6 +51,8 @@ function App() {
       <Route path="/Create/Lead" element={<CreateLeadWizard />} />
       <Route path="/MyLeads" element={<MyLeads />} />
      <Route path="/lead/:id" element={<LeadDetailsPage />} />
+
+     
       
 
 
