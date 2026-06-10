@@ -204,7 +204,25 @@ body{
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
 }
+.validation-error {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    border-radius: 16px;
+    padding: 0.6rem 1rem;
+    margin: 0.8rem auto 0 auto;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 500;
+    width: fit-content;
+    min-width: 50%;
+}
 
+.stages-error {
+    margin: -0.5rem auto 1rem auto;
+    width: fit-content;
+    max-width: 90%;
+}
 .exp-input {
   width: 100%;
   border: none;

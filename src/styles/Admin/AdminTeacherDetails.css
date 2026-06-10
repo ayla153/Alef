@@ -1,0 +1,64 @@
+.teacher-details-card {
+  background: white;
+  border-radius: 32px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #eef2ff;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.02);
+}
+
+.teacher-details-card h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  border-right: 4px solid #3b82f6;
+  padding-right: 0.8rem;
+}
+
+.info-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+}
+
+.info-row span:first-child {
+  font-weight: 700;
+  color: #475569;
+  min-width: 140px;
+}
+
+.info-row span:last-child {
+  color: #0f172a;
+  font-weight: 500;
+}
+
+.delete-teacher-btn {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.5rem;
+  border-radius: 40px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.delete-teacher-btn:hover {
+  background: #b91c1c;
+  transform: translateY(-2px);
+}
+
+.back-btn {
+  background: transparent;
+  border: none;
+  color: #3b82f6;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-bottom: 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+}

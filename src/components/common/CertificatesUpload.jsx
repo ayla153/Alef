@@ -1,8 +1,8 @@
-import React, { useState, useRef } from 'react';
-import '../styles/CertificatesUpload.css';
+import React, { useState, useRef, forwardRef, useImperativeHandle } from 'react';
+import '../../styles/CertificatesUpload.css';
 import { FaFileAlt , FaCloudUploadAlt, FaFilePdf, FaFileImage, FaTrashAlt, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 
-export default function CertificatesUpload () {
+const CertificatesUpload = forwardRef((props, ref) => {
   const [files, setFiles] = useState([]);
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
@@ -15,7 +15,7 @@ export default function CertificatesUpload () {
   // التحقق من الملف
   const validateFile = (file) => {
     if (!ALLOWED_TYPES.includes(file.type)) {
-      setError(`نوع المغير غير مدعوم: ${file.name}. الأنواع المسموحة: PDF, JPG, PNG`);
+      setError(`نوع الملف غير مدعوم: ${file.name}. الأنواع المسموحة: PDF, JPG, PNG`);
       return false;
     }
     if (file.size > MAX_FILE_SIZE) {
@@ -36,7 +36,7 @@ export default function CertificatesUpload () {
           file: file,
           name: file.name,
           size: (file.size / (1024 * 1024)).toFixed(1),
-          uploaded: false, // سيتم تحديثها بعد الرفع الفعلي إلى الخادم
+          uploaded: false,
         });
       }
     }
@@ -48,11 +48,8 @@ export default function CertificatesUpload () {
     setFiles(prev => prev.filter(f => f.id !== id));
   };
 
-  // محاكاة رفع الملفات إلى الخادم (تحديث حالة uploaded إلى true)
+  // محاكاة رفع الملفات إلى الخادم
   const handleUpload = async () => {
-    // هنا يمكنك استدعاء API لرفع الملفات
-    // بعد نجاح الرفع، نغير حالة uploaded لكل ملف
-    // للمثال: سنقوم بتحديث uploaded لكل الملفات بعد 1 ثانية
     const updatedFiles = files.map(f => ({ ...f, uploaded: true }));
     setFiles(updatedFiles);
     alert('تم رفع الملفات بنجاح (محاكاة)');
@@ -79,7 +76,7 @@ export default function CertificatesUpload () {
   const handleFileInputChange = (e) => {
     const selected = Array.from(e.target.files);
     addFiles(selected);
-    e.target.value = ''; // إعادة تعيين الإدخال
+    e.target.value = '';
   };
 
   // أيقونة الملف حسب النوع
@@ -87,6 +84,12 @@ export default function CertificatesUpload () {
     if (type === 'application/pdf') return <FaFilePdf className="file-icon pdf" />;
     return <FaFileImage className="file-icon image" />;
   };
+
+  // دوال مكشوفة للمكون الأب
+  useImperativeHandle(ref, () => ({
+    getFilesCount: () => files.length,
+    getFiles: () => files,
+  }));
 
   return (
     <div className="certificates-container">
@@ -117,7 +120,6 @@ export default function CertificatesUpload () {
           style={{ display: 'none' }}
         />
       </div>
-
 
       {files.length > 0 && (
         <div className="files-list">
@@ -156,6 +158,6 @@ export default function CertificatesUpload () {
       )}
     </div>
   );
-};
+});
 
-
+export default CertificatesUpload;

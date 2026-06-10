@@ -1,50 +1,57 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import '../styles/CreateAccountStep2.css';
-import {FaArrowLeft , FaArrowRight} from 'react-icons/fa'
+import { FaArrowLeft, FaArrowRight, FaPlus, FaTrashAlt } from 'react-icons/fa';
 import logo from '../assets/Alef-logo.jpg';
 
 export default function CreateAccountStep2() {
   const navigate = useNavigate();
-  const [subjects, setSubjects] = useState([
-    { id: 1, name: 'الرياضيات', selected: false, years: 0 },
-    { id: 2, name: 'اللغة العربية', selected: false, years: 0 },
-    { id: 3, name: 'اللغة الانكليزية', selected: false, years: 0 },
-    { id: 4, name: 'اللغة الفرنسية', selected: false, years: 0 },
-    { id: 5, name: 'العلوم', selected: false, years: 0 },
-    { id: 6, name: 'الفيزياء', selected: false, years: 0 },
-    { id: 7, name: 'الكيمياء', selected: false, years: 0 },
-    { id: 8, name: 'التربية الاسلامية', selected: false, years: 0 },
-    { id: 9, name: 'التاريخ', selected: false, years: 0 },
-    { id: 10, name: 'الجغرافية', selected: false, years: 0 },
-    { id: 11, name: 'الوطنية', selected: false, years: 0 },
-    { id: 12, name: 'معلوماتية', selected: false, years: 0 }
-  ]);
 
-  const [levels, setLevels] = useState([
-    { id: 1, name: 'المرحلة الابتدائية', description: 'من الصف الأول إلى الصف السادس', selected: false },
-    { id: 2, name: 'المرحلة الإعدادية', description: 'من الصف السابع إلى الصف التاسع', selected: false },
-    { id: 3, name: 'المرحلة الثانوية', description: 'من الصف العاشر إلى البكالوريا', selected: false },
-    { id: 4, name: 'تأسيس', description: '', selected: false }
-  ]);
+  const allSubjects = [
+    'الرياضيات', 'اللغة العربية', 'اللغة الانكليزية', 'اللغة الفرنسية',
+    'العلوم', 'الفيزياء', 'الكيمياء', 'ديانة',
+    'التاريخ', 'الجغرافية', 'الوطنية', 'معلوماتية'
+  ];
 
-  const toggleSubject = (id) => {
-    setSubjects(subjects.map(subject =>
-      subject.id === id ? { ...subject, selected: !subject.selected } : subject
-    ));
+  const [selectedSubject, setSelectedSubject] = useState('');
+  const [selectedYears, setSelectedYears] = useState(0);
+  const [addedSubjects, setAddedSubjects] = useState([]);
+  const [error, setError] = useState('');
+
+  const addSubject = () => {
+    if (!selectedSubject) {
+      setError('يرجى اختيار مادة');
+      return;
+    }
+    if (addedSubjects.find(s => s.name === selectedSubject)) {
+      setError('هذه المادة مضافة بالفعل');
+      return;
+    }
+    setAddedSubjects([...addedSubjects, { name: selectedSubject, years: selectedYears }]);
+    setSelectedSubject('');
+    setSelectedYears(0);
+    setError('');
   };
 
-  const handleYearsChange = (id, value) => {
-    const numericValue = Number(value);
-    setSubjects(subjects.map(subject =>
-      subject.id === id ? { ...subject, years: numericValue } : subject
-    ));
+  const removeSubject = (index) => {
+    const newList = [...addedSubjects];
+    newList.splice(index, 1);
+    setAddedSubjects(newList);
+    setError('');
   };
 
-  const toggleLevels = (id) => {
-    setLevels(levels.map(level =>
-      level.id === id ? { ...level, selected: !level.selected } : level
-    ));
+  const updateYears = (index, newYears) => {
+    const newList = [...addedSubjects];
+    newList[index].years = Number(newYears);
+    setAddedSubjects(newList);
+  };
+
+  const handleNext = () => {
+    if (addedSubjects.length === 0) {
+      setError('يجب إضافة مادة واحدة على الأقل للمتابعة');
+      return;
+    }
+    navigate('/create-account/step3');
   };
 
   return (
@@ -57,8 +64,8 @@ export default function CreateAccountStep2() {
       </header>
       <div className="content">
         <div className="titleforstep1">
-          <h2>المواد و الصفوف الدراسية</h2>
-          <p className="welcom">يرجى اختيار المواد و المراحل الدراسية التي تُدرِّسُها .</p>
+          <h2>المواد والصفوف الدراسية</h2>
+          <p className="welcom">اختر المواد التي تُدرِّسها وحدد سنوات خبرتك لكل مادة.</p>
           <div className="progress-bar-wrapper">
             <p className="personalinfo">الخطوةُ 2 من 4 : بيانات التّدريس</p>
             <div className="progress-bar">
@@ -66,61 +73,77 @@ export default function CreateAccountStep2() {
             </div>
           </div>
         </div>
-        <div className="subjectsandlevels">
-          <div className="subjectssection">
-            <div className="levelsandsubjects">المواد الدّراسيّة</div>
-            <div className="subjects">
-              {subjects.map(subject => (
-                <div key={subject.id} className={`subject-card ${subject.selected ? 'subject-cardselected' : ''}`}>
-                  <div className="subject-card__info">
-                    <input
-                      type="checkbox"
-                      checked={subject.selected}
-                      onChange={() => toggleSubject(subject.id)}
-                      id={`subject-${subject.id}`}
-                      className="subject-checkbox"
-                    />
-                    <label htmlFor={`subject-${subject.id}`} className="subject-label">{subject.name}</label>
+
+        <div className="subjects-white-container">
+          <div className="add-subject-section">
+            <div className="add-subject-controls">
+              <select
+                className="subject-select"
+                value={selectedSubject}
+                onChange={(e) => setSelectedSubject(e.target.value)}
+              >
+                <option value="">-- اختر المادة --</option>
+                {allSubjects.map((sub, idx) => (
+                  <option key={idx} value={sub}>{sub}</option>
+                ))}
+              </select>
+              <div className="years-input-group">
+                <input
+                  type="number"
+                  className="years-input-add"
+                  placeholder="سنوات الخبرة"
+                  value={selectedYears}
+                  onChange={(e) => setSelectedYears(e.target.value)}
+                  min="0"
+                />
+                <button className="add-btn" onClick={addSubject}>
+                  <FaPlus /> إضافة مادة
+                </button>
+              </div>
+            </div>
+            {error && <div className="error-message-subjects">{error}</div>}
+          </div>
+
+          {addedSubjects.length > 0 && (
+            <div className="added-subjects-list">
+              <div className="subjects-header">
+                <span className="subjects-header-title">المواد المضافة</span>
+              </div>
+              {addedSubjects.map((subject, index) => (
+                <div key={index} className="subject-item-added">
+                  <div className="subject-info-added">
+                    <span className="subject-name-added">{subject.name}</span>
+                    <div className="subject-years-edit">
+                      <label className="years-label-small">سنوات الخبرة:</label>
+                      <input
+                        type="number"
+                        className="years-edit-input"
+                        value={subject.years}
+                        onChange={(e) => updateYears(index, e.target.value)}
+                        min="0"
+                      />
+                    </div>
                   </div>
-                  <div className="subject-years">
-                    <span className="subject-years__text">سنوات الخبرة:</span>
-                    <input
-                      type="number"
-                      min="0"
-                      value={subject.years}
-                      onChange={(e) => handleYearsChange(subject.id, e.target.value)}
-                      disabled={!subject.selected}
-                      className="subject-input"
-                    />
-                  </div>
+                  <button className="delete-subject-btn" onClick={() => removeSubject(index)}>
+                    <FaTrashAlt />
+                  </button>
                 </div>
               ))}
             </div>
-            <div className="levelsandsubjects">المراحل الدّراسيّة</div>
-            <div className="levels">
-              {levels.map(level => (
-                <div key={level.id} className={`levelCard ${level.selected ? 'levelCardselected' : ''}`}>
-                  <div>
-                    <input
-                      type="checkbox"
-                      checked={level.selected}
-                      onChange={() => toggleLevels(level.id)}
-                      id={`level-${level.id}`}
-                      className="level-checkbox"
-                    />
-                    <label htmlFor={`level-${level.id}`} className="level-label">{level.name}</label>
-                  </div>
-                  <div className="description">{level.description}</div>
-                </div>
-              ))}
-            </div>
+          )}
+            <div className="tutorbuttons">
+            <button className="movetostep2" onClick={handleNext}>
+              <FaArrowRight className="btn-icon" /> متابعة للخطوة التالية
+            </button>
+            <button className="cancele" onClick={() => navigate('/create-account/step1')}>
+              <FaArrowLeft className="btn-icon" /> رجوع
+            </button>
           </div>
-          <div className="tutorbuttons">
-            <button className="movetostep2" onClick={()=>{navigate('/create-account/step3')}}><FaArrowRight className="btn-icon" />متابعة للخطوة التالية</button>
-            <button className="cancele" onClick={()=>{navigate('/create-account/step1')}}> <FaArrowLeft className="btn-icon"/> </button>
-          </div>
-          <p className="haveaccount">لديك حساب بالفعل ؟ <a href="#" onClick={(e) => {e.preventDefault(); navigate('/login');}}>تسجيل الدخول</a></p>
+          <p className="haveaccount">
+            لديك حساب بالفعل ؟ <a href="#" onClick={(e) => { e.preventDefault(); navigate('/login'); }}>تسجيل الدخول</a>
+          </p>
         </div>
+        
       </div>
     </div>
   );

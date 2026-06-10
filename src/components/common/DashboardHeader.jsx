@@ -1,14 +1,14 @@
 import '../../styles/DashboardHeader.css';
 import logo from '../../assets/Alef-logo.jpg';
 import { FaUserCircle, FaBell, FaHome, FaChalkboardTeacher } from 'react-icons/fa';
-
 export default function DashboardHeader({ activeTab, setActiveTab }) {
+
   const handleProfile = () => {
-    console.log('فتح الملف الشخصي');
+    setActiveTab('profile')
   };
 
   const handleNotifications = () => {
-    console.log('فتح الإشعارات');
+    setActiveTab('Notifications')
   };
 
   return (
@@ -25,10 +25,16 @@ export default function DashboardHeader({ activeTab, setActiveTab }) {
           <FaHome className="tab-icon" /> الصفحة الرئيسيّة
         </button>
         <button
+          className={activeTab === 'requets' ? 'active-tab' : ''}
+          onClick={() => setActiveTab('requets')}
+        >
+          <FaChalkboardTeacher className="tab-icon" /> الطلبات
+        </button>
+        <button
           className={activeTab === 'teachers' ? 'active-tab' : ''}
           onClick={() => setActiveTab('teachers')}
         >
-          <FaChalkboardTeacher className="tab-icon" /> الطلبات
+          <FaChalkboardTeacher className="tab-icon" /> الأساتذة
         </button>
       </div>
       <div className="user-actions">

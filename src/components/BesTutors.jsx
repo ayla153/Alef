@@ -58,7 +58,7 @@ export default function BesTutors({ teacher = {} }) {
         </div>
       </div>
 
-      <button className="profile-btn">عرض الملف الشخصي</button>
+      <button className="profile-btn" onClick={()=>{}}>عرض الملف الشخصي</button>
     </div>
   );
 }

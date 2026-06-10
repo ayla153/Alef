@@ -65,6 +65,17 @@ body{
   color: #1e293b;
   margin-bottom: 0.55rem;
 }
+.error-input {
+  border-color: #ef4444 !important;
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 0.7rem;
+  margin-top: 0.25rem;
+  display: block;
+  text-align: right;
+}
 .steponeheader{
   color: #183275;
   font-weight: 800;
@@ -141,6 +152,7 @@ body{
     border-radius: 10px;
     transition: all 0.25s;
     background: #f6fbff;
+    font-size: 1.1rem;
 }
 .tutorinput:hover {
   border-color: #3b82f6;

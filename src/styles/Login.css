@@ -107,7 +107,20 @@ body {
   transition: color 0.2s;
   text-decoration: none;
 }
+/* أنماط الأخطاء */
+.error-input {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+}
 
+.error-message {
+  color: #dc2626;
+  font-size: 0.7rem;
+  margin-top: 0.25rem;
+  display: block;
+  text-align: right;
+  font-weight: 500;
+}
 .forgot-link:hover {
   color: #1e4fd0;
   text-decoration: underline;

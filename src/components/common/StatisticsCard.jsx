@@ -1,4 +1,4 @@
-import '../../styles/RequestsCard.css'
+import '../../styles/StatisticsCard.css'
 import { FaEnvelope, FaClock, FaStar } from 'react-icons/fa';
 
 export default function RequestsCard({title , icon , count , bgcolor , hcolor}){
