@@ -17,8 +17,6 @@ class TutorSubjectsOut(BaseModel):
     tutor_id: int
     subject: Optional[SubjectOut] = None
     level: Optional[LevelOut] = None
-    level_id: int
-    subject_name: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
     
