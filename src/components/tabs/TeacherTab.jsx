@@ -12,7 +12,7 @@ import {
   FaBookmark 
 } from "react-icons/fa";
 
-export default function TeachersTab() {
+export default function TeachersTab({ setSelectedTeacher, setActiveTab }) {
   // حالات الفلاتر
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedRating, setSelectedRating] = useState(0); // 0 يعني الكل
@@ -206,6 +206,11 @@ export default function TeachersTab() {
     return true;
   });
 
+  const handleViewProfile = (teacher) => {
+    setSelectedTeacher(teacher);
+    setActiveTab('profile');
+  };
+
   return (
     <div className="teachers_tab fade-in">
       <div className="hero-section">
@@ -299,7 +304,11 @@ export default function TeachersTab() {
       {/* بطاقات الأساتذة */}
       <div className="bestTutorsContainer">
         {filteredTeachers.map((teacher) => (
-          <BesTutors key={teacher.id} teacher={teacher} />
+          <BesTutors 
+            key={teacher.id} 
+            teacher={teacher} 
+            onViewProfile={handleViewProfile}
+          />
         ))}
       </div>
     </div>

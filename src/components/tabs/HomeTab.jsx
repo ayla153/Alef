@@ -5,7 +5,7 @@ import FAQItem from '../FAQItem';
 import '../../styles/HomeTab.css';
 import studentImage from '../../assets/homePageImage.png';
 
-export default function HomeTab() {
+export default function HomeTab({ onViewProfile }) {
   const navigate = useNavigate();
   const teachers = [
     {
@@ -61,6 +61,7 @@ export default function HomeTab() {
       offlinePrice: 0,
     }
   ];
+
   return (
     <>
       <div className="firstsection fade-in">
@@ -81,10 +82,7 @@ export default function HomeTab() {
       </div>
 
       <div className="section2 fade-in">
-        <div className="howitWork">
-          كيف تعمل منصة ألف
-          <div><span>تربطك بأفضل المعلمين من خلال عملية مبسطة مكونة من ثلاث خطوات</span></div>
-        </div>
+        <div className="howitWork">كيف تعمل منصة ألف</div>
         <div className="stepsCards">
           <HowitWorkSteps title="ابحث" description="تصفح الملفات الشخصية، إقرأ التقييمات، و قم بالتصفية حسب المادة لتجد معلمك المناسب." />
           <HowitWorkSteps title="تواصل" description="راسل المعلمين مباشرة و ناقش معهم أهدافك ثم سارع لحجز جلسة تناسب جدولك الدراسي" />
@@ -98,9 +96,9 @@ export default function HomeTab() {
           <div className="bestTutorssubtitle">اختر المعلم الأنسب لك من بين مجموعة واسعة من الخبراء في جميع المجالات الدراسية</div>
         </div>
         <div className="bestTutorsContainer">
-            {teachers.map((teacher) => (
-                <BesTutors key={teacher.id} teacher={teacher} />
-              ))}
+          {teachers.map((teacher) => (
+            <BesTutors key={teacher.id} teacher={teacher} onViewProfile={onViewProfile} />
+          ))}
         </div>
       </div>
 

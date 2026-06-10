@@ -11,7 +11,8 @@ import HowItWorksTab from './components/tabs/HowItWorksTab';
 import AdminTeacherDetails from './pages/Admin/AdminTeacherDetails';
 import TeachersTab from './components/tabs/TeacherTab';
 import AdminDashboard from './pages/admin/AdminDashboard.jsx'
-import AdminRequestDetails from './pages/admin/AdminRequestDetails.jsx'
+import AdminRequestDetails from './pages/admin/AdminRequestDetails.jsx';
+import TeacherProfile from './components/TeacherProfile.jsx';
 
 export default function App() {
   return (
@@ -30,7 +31,7 @@ export default function App() {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/request/:id" element={<AdminRequestDetails />} />
         <Route path="/admin/teacher/:id" element={<AdminTeacherDetails />} />
-
+        <Route path="/teacher-profile/:id" element={<TeacherProfile />} />
       </Routes>
     </BrowserRouter>
   );

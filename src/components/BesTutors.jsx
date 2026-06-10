@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import '../styles/BestTutors.css';
 
-export default function BesTutors({ teacher = {} }) {
+export default function BesTutors({ teacher = {}, onViewProfile }) {
   const [saved, setSaved] = useState(false);
 
   const {
@@ -17,6 +17,12 @@ export default function BesTutors({ teacher = {} }) {
     onlinePrice = 0,
     offlinePrice = 0,
   } = teacher;
+
+  const handleClick = () => {
+    if (onViewProfile) {
+      onViewProfile(teacher);
+    }
+  };
 
   return (
     <div className="card">
@@ -58,7 +64,9 @@ export default function BesTutors({ teacher = {} }) {
         </div>
       </div>
 
-      <button className="profile-btn" onClick={()=>{}}>عرض الملف الشخصي</button>
+      <button className="profile-btn" onClick={handleClick}>
+        عرض الملف الشخصي
+      </button>
     </div>
   );
 }
