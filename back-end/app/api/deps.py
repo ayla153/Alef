@@ -3,12 +3,13 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.core.security import decode_access_token
 from app.database import get_db
 from app.models.admins import Admin
 from app.models.students import Student
+from app.models.tutor_subjects import TutorSubject
 from app.models.tutors import Tutor
 from app.schemas.auth import TokenPayload
 from app.services.auth_service import TUTOR_REGISTRATION_ROLE
@@ -55,7 +56,14 @@ def get_current_student(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not a student account",
         )
-    student = db.get(Student, payload.sub)
+    student = (
+        db.query(Student)
+        .options(
+            joinedload(Student.address),
+        )
+        .filter(Student.student_id == payload.sub)
+        .first()
+    )
     if not student:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -73,7 +81,17 @@ def get_current_tutor(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not a tutor account",
         )
-    tutor = db.get(Tutor, payload.sub)
+    tutor = (
+        db.query(Tutor)
+        .options(
+            joinedload(Tutor.reviews),
+            joinedload(Tutor.address),
+            joinedload(Tutor.tutor_subjects).joinedload(TutorSubject.subject),
+            joinedload(Tutor.tutor_subjects).joinedload(TutorSubject.level),
+        )
+        .filter(Tutor.tutor_id == payload.sub)
+        .first()
+    )
     if not tutor:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -102,7 +120,17 @@ def get_current_tutor_registration(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not a valid tutor registration token",
         )
-    tutor = db.get(Tutor, payload.sub)
+    tutor = (
+        db.query(Tutor)
+        .options(
+            joinedload(Tutor.reviews),
+            joinedload(Tutor.address),
+            joinedload(Tutor.tutor_subjects).joinedload(TutorSubject.subject),
+            joinedload(Tutor.tutor_subjects).joinedload(TutorSubject.level),
+        )
+        .filter(Tutor.tutor_id == payload.sub)
+        .first()
+    )
     if not tutor:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
