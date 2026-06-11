@@ -61,7 +61,10 @@ export default function HomeTab({ onViewProfile }) {
       offlinePrice: 0,
     }
   ];
+<<<<<<< HEAD
 
+=======
+>>>>>>> 8041f6f5 (new name)
   return (
     <>
       <div className="firstsection fade-in">
@@ -71,8 +74,13 @@ export default function HomeTab({ onViewProfile }) {
             <div><span className="besttutor">أفضل المعلمين</span></div>
             <div className="homepagesubtitle">انضم إلى منصة ألف التعليمية وحقق أهدافك الأكاديمية من خلال دروس خصوصية مع معلمين من اختيارك</div>
             <div className="homepagebuttons">
-              <button className="btn-glow" onClick={() => navigate('/register')}>انضم كطالب</button>
-              <button className="btn-glow" onClick={() => navigate('/teacher/register')}>انضم كمعلم</button>
+<<<<<<< HEAD
+              <button className="btn-glow">انضم كطالب</button>
+              <button className="btn-glow" onClick={()=>{navigate('/create-account/step1')}}>انضم كمعلم</button>
+=======
+              <button className="btn-glow" onClick={()=>{navigate('/register')}}>انضم كطالب</button>
+              <button className="btn-glow" onClick={()=>{navigate('//teacher/register')}}>انضم كمعلم</button>
+>>>>>>> 8041f6f5 (new name)
             </div>
           </div>
         </div>
@@ -82,10 +90,14 @@ export default function HomeTab({ onViewProfile }) {
       </div>
 
       <div className="section2 fade-in">
+<<<<<<< HEAD
+        <div className="howitWork">كيف تعمل منصة ألف</div>
+=======
         <div className="howitWork">
           كيف تعمل منصة ألف
           <div><span>تربطك بأفضل المعلمين من خلال عملية مبسطة مكونة من ثلاث خطوات</span></div>
         </div>
+>>>>>>> 8041f6f5 (new name)
         <div className="stepsCards">
           <HowitWorkSteps title="ابحث" description="تصفح الملفات الشخصية، إقرأ التقييمات، و قم بالتصفية حسب المادة لتجد معلمك المناسب." />
           <HowitWorkSteps title="تواصل" description="راسل المعلمين مباشرة و ناقش معهم أهدافك ثم سارع لحجز جلسة تناسب جدولك الدراسي" />
@@ -99,9 +111,15 @@ export default function HomeTab({ onViewProfile }) {
           <div className="bestTutorssubtitle">اختر المعلم الأنسب لك من بين مجموعة واسعة من الخبراء في جميع المجالات الدراسية</div>
         </div>
         <div className="bestTutorsContainer">
+<<<<<<< HEAD
           {teachers.map((teacher) => (
             <BesTutors key={teacher.id} teacher={teacher} onViewProfile={onViewProfile} />
           ))}
+=======
+            {teachers.map((teacher) => (
+                <BesTutors key={teacher.id} teacher={teacher} />
+              ))}
+>>>>>>> 8041f6f5 (new name)
         </div>
       </div>
 

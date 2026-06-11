@@ -1,0 +1,54 @@
+<<<<<<< HEAD
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+=======
+#virtual environment
+venv\
+#pycache
+__pycache__\
+#log files
+*.log
+#database files
+*.db
+#env files
+.env    
+#DS_Store
+.DS_Store   
+#idea files
+.idea\
+#vscode files
+.vscode\
+#pytest cache
+.pytest_cache\
+# macOS
+.DS_Store
+# Windows
+Thumbs.db
+# Coverage reports
+.coverage
+htmlcov/
+
+# alembic/versions/*
+>>>>>>> 43faf489 (initialization)

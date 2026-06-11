@@ -52,7 +52,11 @@ export default function HowItWorksTab() {
               description="احضر الدرس في الموعد المحدد. سواء كان أولادك أو أطفالك، يمكنك أن تعرفون أكثر من 10 خيارات لتعلم." 
             />
           </div>
-          <button className='btn-teacher-student' onClick={() => navigate('/register')}>سجل كطالب</button>
+<<<<<<< HEAD
+          <button className='btn-teacher-student'>سجل كطالب</button>
+=======
+          <button className='btn-teacher-student' onClick={()=>{navigate('/register')}}>سجل كطالب</button>
+>>>>>>> 8041f6f5 (new name)
         </div>
       )}
 
@@ -78,7 +82,11 @@ export default function HowItWorksTab() {
               description="قدم دروس سودا أولئك عبر فرصة الإفتراضية أو حضوري. واحصل على تقييمات لزيادة موثوقيتك." 
             />
           </div>
-          <button className='btn-teacher-student' onClick={() => navigate('/teacher/register')}>سجل كمعلم</button>
+<<<<<<< HEAD
+          <button className='btn-teacher-student' onClick={()=>{navigate('/create-account/step1')}}>سجل كمعلم</button>
+=======
+          <button className='btn-teacher-student' onClick={()=>{navigate('/teacher/register')}}>سجل كمعلم</button>
+>>>>>>> 8041f6f5 (new name)
         </div>
       )}
       

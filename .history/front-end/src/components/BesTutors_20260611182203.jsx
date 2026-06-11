@@ -18,12 +18,15 @@ export default function BesTutors({ teacher = {}, onViewProfile }) {
     offlinePrice = 0,
   } = teacher;
 
+<<<<<<< HEAD
   const handleClick = () => {
     if (onViewProfile) {
       onViewProfile(teacher);
     }
   };
 
+=======
+>>>>>>> 8041f6f5 (new name)
   return (
     <div className="card">
       <div className="card-header">
@@ -64,9 +67,13 @@ export default function BesTutors({ teacher = {}, onViewProfile }) {
         </div>
       </div>
 
+<<<<<<< HEAD
       <button className="profile-btn" onClick={handleClick}>
         عرض الملف الشخصي
       </button>
+=======
+      <button className="profile-btn">عرض الملف الشخصي</button>
+>>>>>>> 8041f6f5 (new name)
     </div>
   );
 }
