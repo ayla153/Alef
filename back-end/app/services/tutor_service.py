@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.models.tutor_subjects import TutorSubject
 from app.models.tutors import Tutor
+from app.schemas.addresses import AddressOut
 from app.schemas.tutors import CreateTutor, TutorOut, UpdateTutorRequest
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -34,14 +35,33 @@ def get_tutor_by_id(db: Session, tutor_id: int) -> Tutor | None:
             joinedload(Tutor.reviews),
             joinedload(Tutor.address),
             joinedload(Tutor.tutor_subjects).joinedload(TutorSubject.subject),
+            joinedload(Tutor.tutor_subjects).joinedload(TutorSubject.level),
         )
         .filter(Tutor.tutor_id == tutor_id)
         .first()
     )
 
 
+def _address_to_out(address) -> AddressOut | None:
+    if not address:
+        return None
+
+    return AddressOut(
+        address_id=address.address_id,
+        student_id=address.student_id,
+        tutor_id=address.tutor_id,
+        city_id=address.city_id,
+        area_id=address.area_id,
+        city_title=address.city.title if getattr(address, 'city', None) else None,
+        area_title=address.area.title if getattr(address, 'area', None) else None,
+    )
+
+
 def _tutor_to_out(tutor: Tutor) -> TutorOut:
-    return TutorOut.model_validate(tutor)
+    data = {key: value for key, value in tutor.__dict__.items() if not key.startswith('_')}
+    if getattr(tutor, 'address', None) is not None:
+        data['address'] = _address_to_out(tutor.address)
+    return TutorOut.model_validate(data)
 
 
 def get_tutor_by_id_out(db: Session, tutor_id: int) -> Tutor | None:
@@ -101,6 +121,7 @@ def get_all_tutors(
             selectinload(Tutor.reviews),
             selectinload(Tutor.address),
             selectinload(Tutor.tutor_subjects).selectinload(TutorSubject.subject),
+            selectinload(Tutor.tutor_subjects).selectinload(TutorSubject.level),
         )
     )
 

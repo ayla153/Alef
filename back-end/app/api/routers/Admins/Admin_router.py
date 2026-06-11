@@ -25,8 +25,7 @@ def list_admins(
 @router.post("/", response_model=AdminOut, status_code=status.HTTP_201_CREATED)
 def create_admin_endpoint(
     admin: CreateAdmin,
-    db: Session = Depends(get_db),
-    current_admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db)
 ):
     return admin_service.create_admin(db, admin)
 

@@ -8,7 +8,7 @@ from app.models.admins import Admin
 from app.schemas.admins import AdminOut, CreateAdmin, UpdateAdminRequest
 from app.models.tutors import Tutor
 from app.schemas.tutors import TutorOut
-from app.services.tutor_service import hash_password as get_password_hash
+from app.services.tutor_service import _tutor_to_out, get_tutor_by_id, hash_password as get_password_hash
 
 
 def get_admin_by_email(db: Session, email: str) -> Admin | None:
@@ -100,12 +100,12 @@ def delete_admin(db: Session, admin_id: int) -> None:
 
 
 def verify_tutor(db: Session, tutor_id: int, verified: bool) -> TutorOut:
-    tutor = db.get(Tutor, tutor_id)
+    tutor = get_tutor_by_id(db, tutor_id)
     if not tutor:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tutor not found")
-    
+
     tutor.verified = verified
     db.commit()
     db.refresh(tutor)
-    
-    return TutorOut.model_validate(tutor)
+
+    return _tutor_to_out(tutor)

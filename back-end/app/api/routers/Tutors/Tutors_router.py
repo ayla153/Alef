@@ -19,7 +19,7 @@ def create_tutor(tutor: CreateTutor, db: Session = Depends(get_db)):
 
 @router.get("/me", response_model=TutorOut)
 def get_me_tutor(current_tutor: Tutor = Depends(get_current_tutor)):
-    return TutorOut.model_validate(current_tutor)
+    return tutor_service._tutor_to_out(current_tutor)
 
 
 @router.get("/{tutor_id}", response_model=TutorOut)

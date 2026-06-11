@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models.students import Student
+from app.schemas.addresses import AddressOut
 from app.schemas.students import CreateStudent, StudentOut, UpdateStudentRequest
 from app.services.tutor_service import hash_password
 
@@ -18,8 +19,26 @@ def get_student_by_email(db: Session, email: str) -> Student | None:
     return db.scalar(select(Student).where(Student.email == email.lower()))
 
 
+def _address_to_out(address) -> AddressOut | None:
+    if not address:
+        return None
+
+    return AddressOut(
+        address_id=address.address_id,
+        student_id=address.student_id,
+        tutor_id=address.tutor_id,
+        city_id=address.city_id,
+        area_id=address.area_id,
+        city_title=address.city.title if getattr(address, 'city', None) else None,
+        area_title=address.area.title if getattr(address, 'area', None) else None,
+    )
+
+
 def _student_to_out(student: Student) -> StudentOut:
-    return StudentOut.model_validate(student)
+    data = {key: value for key, value in student.__dict__.items() if not key.startswith('_')}
+    if getattr(student, 'address', None) is not None:
+        data['address'] = _address_to_out(student.address)
+    return StudentOut.model_validate(data)
 
 
 def get_all_students_out(db: Session) -> list[StudentOut]:
