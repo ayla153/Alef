@@ -9,7 +9,7 @@ function FiltersBar({
   setSortSelected,
   modeSelected,
   setModeSelected,
-  subjects,
+  subjects = [], // ✅ مهم جدًا
 }) {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
@@ -67,7 +67,7 @@ function FiltersBar({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [openDropdown, highlightedIndex, subjects]);
 
-  const renderFilter = (label, selected, setSelected, options, type) => (
+  const renderFilter = (label, selected, setSelected, options = [], type) => (
     <div
       className="filter-item"
       onClick={() => {
@@ -95,7 +95,7 @@ function FiltersBar({
 
       {openDropdown === type && (
         <ul className="dropdown">
-          {options.map((opt, idx) => (
+          {(options ?? []).map((opt, idx) => (
             <li
               key={idx}
               className={highlightedIndex === idx ? "active" : ""}

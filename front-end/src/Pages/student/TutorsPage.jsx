@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import axios from "axios";
 
 import Header from "../../components/Header";
 import FiltersBar from "../../components/FiltersBar";
@@ -6,61 +7,20 @@ import TeacherCard from "../../components/TeacherCard";
 
 import "../../styles/sstyle/TutorsPage.css";
 import teacherImg from "../../assets/user-avatar.jpg";
+
 import { useLocation, useNavigate } from "react-router-dom";
 
 function TutorsPage() {
-  const teachers = [
-    {
-      name: "خالد عمر",
-      subtitle: "دكتوراه في العلوم",
-      rating: 5.0,
-      reviews: 42,
-      experience: 10,
-      subjects: ["فيزياء", "كيمياء"],
-      stage: "ثانوي",
-      onlinePrice: 180,
-      offlinePrice: 250,
-      modes: ["online", "offline"],
-      image: teacherImg,
-    },
-    {
-      name: "أحمد علي",
-      subtitle: "مدرس رياضيات",
-      rating: 4.8,
-      reviews: 30,
-      experience: 7,
-      subjects: ["رياضيات"],
-      stage: "متوسط",
-      onlinePrice: 120,
-      modes: ["online"],
-      image: teacherImg,
-    },
-    {
-      name: "سارة محمد",
-      subtitle: "مدرسة إنجليزي",
-      rating: 4.9,
-      reviews: 55,
-      experience: 5,
-      subjects: ["إنجليزي"],
-      stage: "ابتدائي",
-      offlinePrice: 150,
-      modes: ["offline"],
-      image: teacherImg,
-    },
-    {
-      name: "محمد خالد",
-      subtitle: "مدرس فيزياء",
-      rating: 4.7,
-      reviews: 20,
-      experience: 8,
-      subjects: ["فيزياء"],
-      stage: "ثانوي",
-      onlinePrice: 140,
-      offlinePrice: 200,
-      modes: ["online", "offline"],
-      image: teacherImg,
-    },
-  ];
+  const subjectTranslation = {
+    Mathematics: "رياضيات",
+    Physics: "فيزياء",
+    Chemistry: "كيمياء",
+    Biology: "أحياء",
+    English: "لغة إنجليزية",
+    Arabic: "لغة عربية",
+  };
+  const [teachers, setTeachers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // ===== FILTER STATES =====
   const [subjectSelected, setSubjectSelected] = useState(null);
@@ -73,19 +33,90 @@ function TutorsPage() {
 
   const mode = location.state?.from === "create-lead" ? "select" : "view";
 
-  // ===== السعر الذكي حسب mode =====
+  useEffect(() => {
+    const fetchTutors = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/tutors");
+
+        const mappedTutors = (res.data || []).map((tutor) => {
+          const tutorSubjects = tutor.tutor_subjects || [];
+
+          const prices = tutorSubjects.map((subject) => subject.price_per_hour);
+
+          const minPrice = prices.length > 0 ? Math.min(...prices) : null;
+
+          const stage = tutorSubjects.some((s) => s.high_stage)
+            ? "ثانوي"
+            : tutorSubjects.some((s) => s.middle_stage)
+              ? "متوسط"
+              : tutorSubjects.some((s) => s.elementory_stage)
+                ? "ابتدائي"
+                : "تأسيسي";
+
+          return {
+            id: tutor.tutor_id,
+
+            name: `${tutor.first_name} ${tutor.last_name}`,
+
+            subtitle: tutor.bio || "",
+
+            rating: 0,
+
+            reviews: tutor.reviews?.length || 0,
+
+            experience: tutor.total_experience_years || 0,
+
+            subjects: tutorSubjects
+              .map((subject) => {
+                const raw = subject?.subject?.subject_title?.trim();
+                return subjectTranslation[raw] || raw;
+              })
+              .filter(Boolean),
+
+            stage: (() => {
+              if (tutorSubjects.some((s) => s.high_stage)) return "ثانوي";
+              if (tutorSubjects.some((s) => s.middle_stage)) return "متوسط";
+              if (tutorSubjects.some((s) => s.elementory_stage))
+                return "ابتدائي";
+              return "تأسيسي";
+            })(),
+
+            onlinePrice: tutor.tution_type === "offline" ? null : minPrice,
+
+            offlinePrice: tutor.tution_type === "online" ? null : minPrice,
+
+            modes:
+              tutor.tution_type === "both"
+                ? ["online", "offline"]
+                : [tutor.tution_type],
+
+            image: tutor.tutor_photo || teacherImg,
+
+            originalData: tutor,
+          };
+        });
+
+        setTeachers(mappedTutors);
+      } catch (error) {
+        console.error("Error fetching tutors:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTutors();
+  }, []);
+
+  // ===== السعر حسب نوع الدرس =====
   const getPrice = (teacher) => {
-    // حضوري فقط
     if (modeSelected === "offline") {
       return teacher.offlinePrice ?? Infinity;
     }
 
-    // أونلاين فقط
     if (modeSelected === "online") {
       return teacher.onlinePrice ?? Infinity;
     }
 
-    // بدون تحديد → أقل سعر متاح
     const prices = [];
 
     if (teacher.onlinePrice) prices.push(teacher.onlinePrice);
@@ -98,22 +129,27 @@ function TutorsPage() {
   const filteredTeachers = useMemo(() => {
     let result = [...teachers];
 
-    // فلترة المادة
     if (subjectSelected) {
-      result = result.filter((t) => t.subjects.includes(subjectSelected));
+      const selected =
+        typeof subjectSelected === "string"
+          ? subjectSelected.trim()
+          : subjectSelected?.label?.trim?.() ||
+            subjectSelected?.value?.trim?.() ||
+            "";
+
+      result = result.filter((teacher) => teacher.subjects?.includes(selected));
     }
 
-    // فلترة المرحلة
     if (stageSelected) {
-      result = result.filter((t) => t.stage === stageSelected);
+      result = result.filter((teacher) => teacher.stage === stageSelected);
     }
 
-    // فلترة mode
     if (modeSelected) {
-      result = result.filter((t) => t.modes.includes(modeSelected));
+      result = result.filter((teacher) =>
+        teacher.modes?.includes(modeSelected),
+      );
     }
 
-    // ترتيب
     if (sortSelected === "الأعلى تقييمًا") {
       result.sort((a, b) => b.rating - a.rating);
     }
@@ -125,11 +161,37 @@ function TutorsPage() {
     return result;
   }, [teachers, subjectSelected, stageSelected, sortSelected, modeSelected]);
 
+  if (loading) {
+    return (
+      <>
+        <Header activeTab="tutors" />
+        <main className="tutors-container">
+          <p>جاري تحميل الأساتذة...</p>
+        </main>
+      </>
+    );
+  }
+
+  console.log("SELECTED:", JSON.stringify(subjectSelected));
+  console.log("FIRST TEACHER SUBJECTS:", teachers[0]?.subjects);
+  console.log("subjectSelected:", subjectSelected);
+  console.log("first teacher subjects:", teachers[0]?.subjects);
+  console.log("stageSelected:", stageSelected);
+  console.log("modeSelected:", modeSelected);
+
+  const subjectsList = [
+    "رياضيات",
+    "فيزياء",
+    "كيمياء",
+    "أحياء",
+    "لغة عربية",
+    "لغة إنجليزية",
+  ];
   return (
     <>
       <Header activeTab="tutors" />
 
-      <main className="tutors-container ">
+      <main className="tutors-container">
         <div className="tutor-page-header">
           <h1>الأساتذة</h1>
           <p>ابحث عن المعلم المناسب لاحتياجاتك التعليمية</p>
@@ -144,19 +206,21 @@ function TutorsPage() {
           setSortSelected={setSortSelected}
           modeSelected={modeSelected}
           setModeSelected={setModeSelected}
+          subjects={subjectsList}
         />
 
         <section className="teachers-grid">
           {filteredTeachers.length > 0 ? (
-            filteredTeachers.map((teacher, index) => (
+            filteredTeachers.map((teacher) => (
               <TeacherCard
+                key={teacher.id}
                 teacher={teacher}
                 mode={mode}
-                onSelect={(t) => {
+                onSelect={(selectedTeacher) => {
                   navigate("/Create/Lead", {
                     state: {
                       from: "create-lead",
-                      selectedTeacher: t,
+                      selectedTeacher,
                     },
                   });
                 }}
