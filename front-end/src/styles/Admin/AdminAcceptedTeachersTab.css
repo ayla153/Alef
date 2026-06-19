@@ -1,0 +1,91 @@
+/* AdminAcceptedTeachersTab.css - متسق مع جداول الأدمن الأخرى */
+.accepted-teachers-tab {
+  background: #f2f5f8;
+  padding: 1rem 0;
+}
+
+.teachers-table {
+  background: white;
+  border-radius: 32px;
+  overflow-x: auto;
+  border: 1px solid #eef2ff;
+}
+/* إضافة أنماط للأزرار في الجدول */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.view-btn, .delete-btn {
+  border: none;
+  padding: 0.3rem 1rem;
+  border-radius: 40px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.view-btn {
+  background: #eef2ff;
+  color: #2563eb;
+}
+
+.view-btn:hover {
+  background: #dbeafe;
+  transform: translateY(-1px);
+}
+
+.delete-btn {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.delete-btn:hover {
+  background: #fecaca;
+  transform: translateY(-1px);
+}
+.teachers-table .table-header,
+.teachers-table .table-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1.5fr 1fr 0.8fr 1.5fr 0.8fr;
+  padding: 0.8rem 1.2rem;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 800px;
+}
+
+.teachers-table .table-header {
+  background: #f8fafc;
+  font-weight: 700;
+  color: #1e293b;
+  border-bottom: 1px solid #eef2ff;
+}
+
+.teachers-table .table-row {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.1s;
+}
+
+.teachers-table .table-row:hover {
+  background: #fafcff;
+}
+
+.view-btn {
+  background: #eef2ff;
+  color: #2563eb;
+  border: none;
+  padding: 0.3rem 1rem;
+  border-radius: 40px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: fit-content;
+  transition: 0.2s;
+}
+
+.view-btn:hover {
+  background: #dbeafe;
+  transform: translateY(-1px);
+}

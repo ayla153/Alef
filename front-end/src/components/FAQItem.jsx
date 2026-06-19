@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { FaQuestionCircle, FaChevronDown } from 'react-icons/fa';
-import '../styles/tstyle/FAQItem.css';
+import '../styles/FAQItem.css';
 
 export default function FAQItem({ question, answer }) {
   const [isOpen, setIsOpen] = useState(false);

@@ -1,4 +1,4 @@
-import '../styles/tstyle/HowitWorkSteps.css';
+import '../styles/HowitWorkSteps.css';
 import { FaSearch, FaComments, FaChalkboardTeacher, FaUserEdit, FaBook, FaEnvelope } from 'react-icons/fa';
 
 export default function HowitWorkSteps({ title, description }) {

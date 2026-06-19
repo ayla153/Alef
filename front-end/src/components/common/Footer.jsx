@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { FaBuilding, FaLaptopCode, FaEnvelope, FaLinkedin, FaTwitter, FaFacebook, FaPaperPlane } from 'react-icons/fa';
-import '../../styles/tstyle/Footer.css';
-import logo from '../../assets/logo_noBG.png';
+import '../../styles/Footer.css';
+import logo from '../../assets/Alef-logo.jpg';
 
 export default function Footer() {
   const [email, setEmail] = useState('');

@@ -1,0 +1,311 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap');
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body{
+    font-family: 'Cairo';
+    direction: rtl;
+}
+.page-container2{
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-width: 100vw;
+    min-height: 100vh;
+    background: #f2f5f8;
+    gap: 2rem;
+    padding-bottom: 8rem;
+    bottom: 0;
+}
+.steponeheader{
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    height: 4.5rem;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    width: 100%;
+    padding-right: 2rem;
+    z-index: 9;
+    font-size: 1.18rem;
+}
+.Alef-logo{
+    width: 5rem;
+    height: 5rem;
+}
+.content{
+    width: 80%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+}
+.titleforstep1{
+    width: 75%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.personalinfo {
+  font-size: 1rem;
+  color: #2563eb;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+.titleforstep1 h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.55rem;
+}
+.error-input {
+  border-color: #ef4444 !important;
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 0.7rem;
+  margin-top: 0.25rem;
+  display: block;
+  text-align: right;
+}
+.steponeheader{
+  color: #183275;
+  font-weight: 800;
+}
+.welcom{
+    font-weight: 400;
+    font-size: 1rem;
+    color: #475569;
+    line-height: 1.6;
+}
+.tutorform {
+    border: none;
+    width: 75%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items:center ;
+    border-radius: 0.5rem;
+    padding: 1.5rem ;
+    background: #ffffff;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+    z-index: 9;
+}
+.toturlabels{
+    display: block;
+    font-size: 0.8rem;
+    margin-top: 0.8rem;
+}
+.tutorinputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;  
+  gap: 1rem;                       
+  width: 100%;
+  margin-bottom: 1rem;
+}
+.tutorinputs > div {
+    width: 100%;
+}
+.progress-container {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 0.2rem;
+  margin-top: 0.6rem;
+}
+.progress-step {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #64748b;
+  border: none;
+  cursor: pointer;
+}
+.progress-step.active {
+  background: #2563eb;
+  color: white;
+}
+.progress-step:hover {
+  transform: scale(1.1);               
+  background: #93c3ed;                  
+  color: white;
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.25); 
+}
+.tutorinput{
+    width: 95%;
+    margin-bottom: 0.2rem;
+    padding: 14px 18px 14px 45px;
+    border: 1.5px solid #d8dfe7;
+    border-radius: 10px;
+    transition: all 0.25s;
+    background: #f6fbff;
+    font-size: 1.1rem;
+}
+.tutorinput:hover {
+  border-color: #3b82f6;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  transform: scale(1.009);
+}
+.tutorinput:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+  border-color: #3b82f6;
+  background: #ffffff;
+}
+.tutorbuttons {
+  position: relative;
+  width: 80%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 1.5rem 0;
+  min-height: 60px;
+}
+.movetostep2 {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  box-shadow: 0 8px 16px -4px rgba(37, 99, 235, 0.4);
+  padding: 12px 24px;
+  min-width: 320px;
+  max-width: 500px;
+  width: 100%;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  text-align: center;
+  white-space: nowrap;
+}
+.movetostep2:hover {
+  background: linear-gradient(135deg, #2563eb, #1e4fd0);
+  box-shadow: 0 12px 20px -6px rgba(37, 99, 235, 0.5);
+  transform: scale(1.02);
+}
+.cancele {
+  position: absolute;
+  left: 0;
+  background: #f1f5f9;
+  color: #1e293b;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  padding: 6px 12px;
+  font-size: 14px;
+  min-width: 100px;
+  max-width: 140px;
+  border-radius: 10px;
+  font-weight: 550;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  text-align: center;
+  white-space: nowrap;
+}
+.cancele:hover {
+  background: #cbd5e1;
+  color: #1e293b;
+  transform: scale(1.02);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+.haveaccount {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #475569;
+  margin-top: 1rem;
+}
+.haveaccount>a {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+  margin-right: 0.5rem;
+}
+.haveaccount>a:hover {
+  text-decoration: underline;
+}
+
+@media screen and (max-width: 800px) {
+  .tutorinputs {
+    grid-template-columns: 1fr 1fr;  
+    gap: 1rem;
+  }
+  .tutorform {
+    width: 85%;
+    padding: 1.5rem;
+  }
+  .tutorbuttons {
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    position: static;
+    margin: 1rem 0;
+  }
+  .cancele {
+    position: static;
+    width: 100%;
+    max-width: 200px;
+  }
+  .movetostep2 {
+    width: 100%;
+    max-width: 300px;
+    white-space: normal;
+  }
+  .content {
+    width: 95%;
+  }
+  .titleforstep1 {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .steponeheader {
+    padding-right: 1rem;
+    font-size: 0.9rem;
+  }
+  .Alef-logo {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+  .tutorinputs {
+    grid-template-columns: 1fr ;  
+    gap: 0.75rem;
+  }
+  .tutorinput {
+    padding: 8px 12px;
+    font-size: 14px;
+    width: 100%;
+  }
+  .movetostep2,
+  .cancele {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+  .cancele {
+    padding: 6px 12px;
+    font-size: 12px;
+    max-width: none;
+  }
+  .tutorform {
+    width: 95%;
+    padding: 1rem;
+  }
+  .toturlabels {
+    font-size: 0.75rem;
+  }
+}

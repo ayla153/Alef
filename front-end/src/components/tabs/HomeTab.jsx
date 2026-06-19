@@ -2,10 +2,10 @@ import { useNavigate } from 'react-router-dom';
 import HowitWorkSteps from '../HowitWorkSteps';
 import BesTutors from '../BesTutors';
 import FAQItem from '../FAQItem';
-import '../../styles/tstyle/HomeTab.css';
+import '../../styles/HomeTab.css';
 import studentImage from '../../assets/homePageImage.png';
 
-export default function HomeTab() {
+export default function HomeTab({ onViewProfile }) {
   const navigate = useNavigate();
   const teachers = [
     {
@@ -61,6 +61,7 @@ export default function HomeTab() {
       offlinePrice: 0,
     }
   ];
+
   return (
     <>
       <div className="firstsection fade-in">
@@ -70,8 +71,8 @@ export default function HomeTab() {
             <div><span className="besttutor">أفضل المعلمين</span></div>
             <div className="homepagesubtitle">انضم إلى منصة ألف التعليمية وحقق أهدافك الأكاديمية من خلال دروس خصوصية مع معلمين من اختيارك</div>
             <div className="homepagebuttons">
-              <button className="btn-glow" onClick={()=>{navigate('/register')}}>انضم كطالب</button>
-              <button className="btn-glow" onClick={()=>{navigate('//teacher/register')}}>انضم كمعلم</button>
+              <button className="btn-glow" onClick={() => navigate('/register')}>انضم كطالب</button>
+              <button className="btn-glow" onClick={() => navigate('/teacher/register')}>انضم كمعلم</button>
             </div>
           </div>
         </div>
@@ -98,9 +99,9 @@ export default function HomeTab() {
           <div className="bestTutorssubtitle">اختر المعلم الأنسب لك من بين مجموعة واسعة من الخبراء في جميع المجالات الدراسية</div>
         </div>
         <div className="bestTutorsContainer">
-            {teachers.map((teacher) => (
-                <BesTutors key={teacher.id} teacher={teacher} />
-              ))}
+          {teachers.map((teacher) => (
+            <BesTutors key={teacher.id} teacher={teacher} onViewProfile={onViewProfile} />
+          ))}
         </div>
       </div>
 

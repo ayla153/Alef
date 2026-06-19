@@ -1,0 +1,547 @@
+/* ========== TUTOR PROFILE – ULTRA COMFORTABLE & PROFESSIONAL ========== */
+
+/* الحاوية الرئيسية تأخذ عرض الصفحة بالكامل عبر page-container2 */
+.profile-full-wrapper {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  direction: rtl;
+  box-sizing: border-box;
+}
+.error-text {
+  color: #dc2626;
+  font-size: 0.7rem;
+  margin-top: 0.2rem;
+  display: block;
+}
+
+.subject-name-display {
+  flex: 2;
+  padding: 0.5rem 0;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.new-subject-select {
+  flex: 2;
+  padding: 0.6rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  font-family: 'Cairo', sans-serif;
+  background: white;
+}
+
+.delete-subject-btn, .delete-cert-btn {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-right: 0.5rem;
+}
+.delete-subject-btn:hover, .delete-cert-btn:hover {
+  color: #dc2626;
+  transform: scale(1.05);
+}
+.add-subject-row {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+.add-subject-btn, .add-cert-btn {
+  background: #eef2ff;
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+}
+.add-certificate {
+  margin-top: 1rem;
+}
+.certificates-list li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.3rem;
+}
+.error-text {
+  color: #dc2626;
+  font-size: 0.7rem;
+  margin-top: 0.2rem;
+  display: block;
+}
+
+.subject-name-display {
+  flex: 2;
+  padding: 0.5rem 0;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.new-subject-select {
+  flex: 2;
+  padding: 0.6rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  font-family: 'Cairo', sans-serif;
+  background: white;
+}
+
+.delete-subject-btn, .delete-cert-btn {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-right: 0.5rem;
+}
+.delete-subject-btn:hover, .delete-cert-btn:hover {
+  color: #dc2626;
+  transform: scale(1.05);
+}
+.add-subject-row {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+.add-subject-btn, .add-cert-btn {
+  background: #eef2ff;
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+}
+.add-certificate {
+  margin-top: 1rem;
+}
+.certificates-list li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.3rem;
+}
+
+/* الهيدر */
+.profile-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+.profile-header h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+.profile-header p {
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+/* أزرار الحفظ والإلغاء في الأعلى */
+.action-buttons.top-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.save-btn, .cancel-btn {
+  padding: 0.6rem 1.5rem;
+  border-radius: 40px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+.save-btn {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2);
+}
+.save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.cancel-btn {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+.save-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+}
+.cancel-btn:hover {
+  background: #e2e8f0;
+  transform: translateY(-1px);
+}
+
+/* الشبكة – الشريط الجانبي والمحتوى الرئيسي */
+.profile-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 2rem;
+}
+
+/* ===== الشريط الجانبي (الصورة وإحصائيات بسيطة) ===== */
+.profile-sidebar {
+  position: sticky;
+  top: 1rem;
+  align-self: start;
+}
+.profile-avatar-container {
+  background: white;
+  border-radius: 32px;
+  padding: 1.2rem;
+  text-align: center;
+  border: 1px solid #eef2ff;
+  margin-bottom: 1.2rem;
+}
+.profile-avatar {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 0.8rem;
+}
+.upload-photo-btn {
+  background: #eff6ff;
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 40px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #3b82f6;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.quick-stats {
+  background: white;
+  border-radius: 32px;
+  padding: 1rem;
+  border: 1px solid #eef2ff;
+}
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.9rem;
+  color: #1e293b;
+}
+.stat:last-child {
+  border-bottom: none;
+}
+
+/* ===== العمود الرئيسي (الكروت) ===== */
+.profile-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.profile-card {
+  background: white;
+  border-radius: 32px;
+  padding: 1.8rem;
+  border: 1px solid #eef2ff;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.02);
+}
+.card-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  border-right: 4px solid #3b82f6;
+  padding-right: 0.8rem;
+}
+
+/* حقول الإدخال – مريحة وواسعة */
+.two-columns {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.2rem;
+}
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.input-group.full-width {
+  grid-column: span 2;
+}
+.input-group label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.input-group input {
+  padding: 0.7rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  font-size: 0.9rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+.checkbox-group {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.checkbox-options {
+  display: flex;
+  gap: 1.2rem;
+}
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+/* المواد */
+.subject-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.subject-name {
+  flex: 2;
+  min-width: 180px;
+  padding: 0.6rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+}
+.subject-years {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f8fafc;
+  padding: 0.3rem 1rem;
+  border-radius: 60px;
+}
+.subject-years input {
+  width: 70px;
+  border: none;
+  background: transparent;
+  text-align: center;
+}
+
+/* الأسعار */
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+.stage-name {
+  font-weight: 600;
+  flex: 1;
+  min-width: 160px;
+}
+.price-input {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #f8fafc;
+  padding: 0.3rem 1rem;
+  border-radius: 60px;
+  flex: 2;
+  min-width: 200px;
+  justify-content: space-between;
+}
+.price-input input {
+  width: 130px;
+  border: none;
+  background: transparent;
+  text-align: left;
+}
+.currency {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+/* النبذة */
+.bio-textarea {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  font-family: 'Cairo', sans-serif;
+  resize: vertical;
+}
+
+/* الشهادات */
+.certificates-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0;
+}
+.certificates-list li {
+  background: #f8fafc;
+  padding: 0.3rem 1rem;
+  border-radius: 40px;
+  display: inline-block;
+  margin: 0.3rem 0.3rem;
+  font-size: 0.85rem;
+}
+.hint {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  margin-top: 0.5rem;
+}
+
+/* مودال التحذير */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.warning-modal {
+  background: white;
+  border-radius: 32px;
+  padding: 2rem;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+}
+.warning-icon {
+  font-size: 3rem;
+  color: #f59e0b;
+  margin-bottom: 1rem;
+}
+.modal-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+.modal-btn {
+  padding: 0.5rem 1.2rem;
+  border-radius: 40px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+.modal-btn.confirm {
+  background: #dc2626;
+  color: white;
+}
+.modal-btn.cancel {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+/* إضافة أنماط للأزرار الجديدة */
+.delete-subject-btn, .delete-cert-btn {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-right: 0.5rem;
+}
+.delete-subject-btn:hover, .delete-cert-btn:hover {
+  color: #dc2626;
+  transform: scale(1.05);
+}
+.add-subject-row {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+.new-subject-name {
+  flex: 2;
+  padding: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+}
+.add-subject-btn, .add-cert-btn {
+  background: #eef2ff;
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+}
+.add-certificate {
+  margin-top: 1rem;
+}
+.certificates-list li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ===== ريسبونسيف ===== */
+@media (max-width: 1000px) {
+  .profile-full-wrapper {
+    padding: 1rem;
+  }
+  .profile-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .profile-sidebar {
+    position: static;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+}
+@media (max-width: 640px) {
+  .two-columns {
+    grid-template-columns: 1fr;
+  }
+  .input-group.full-width {
+    grid-column: span 1;
+  }
+  .price-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .price-input {
+    width: 100%;
+  }
+  .action-buttons.top-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  .save-btn, .cancel-btn {
+    width: 80%;
+  }
+}

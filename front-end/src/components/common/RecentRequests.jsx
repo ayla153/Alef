@@ -1,4 +1,4 @@
-import '../../styles/tstyle/RecentRequeste.css'
+import '../../styles/RecentRequeste.css'
 import { FaCheckCircle, FaTrashAlt } from 'react-icons/fa';
 
 export default function RecentRequeste({ request, onConfirm, onDelete }){

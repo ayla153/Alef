@@ -1,5 +1,5 @@
-import '../../styles/tstyle/MainPage.css';
-import RequestsCard from '../common/RequestsCard';
+import '../../styles/MainPage.css';
+import RequestsCard from '../common/StatisticsCard';
 import RecentRequests from '../common/RecentRequests'
 import { FaPlusCircle, FaClipboardList, FaUserEdit, FaEnvelope, FaClock, FaStar, FaCheckCircle, FaHandHoldingHeart, FaRegClock, FaBolt, FaChartLine, FaBook, FaFlask, FaAtom, FaGlobe, FaLandmark, FaLeaf, FaLaptop, FaChalkboardTeacher, FaLanguage, FaBookOpen, FaFlagCheckered, FaTimesCircle, FaBell } from 'react-icons/fa';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
