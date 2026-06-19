@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_admin
+from app.api.deps import get_current_admin, get_current_tutor
 from app.database import get_db
 from app.models.admins import Admin
+from app.models.tutors import Tutor
 from app.schemas.levels import LevelOut, CreateLevel, UpdateLevelRequest
 from app.services import level_service
 
@@ -14,7 +15,7 @@ router = APIRouter(
 
 @router.get("/", response_model=list[LevelOut])
 def list_levels(
-    current_admin: Admin = Depends(get_current_admin),
+ 
     db: Session = Depends(get_db),
 ):
     return level_service.get_all_levels_out(db)

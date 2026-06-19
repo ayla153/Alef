@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_admin
+from app.api.deps import get_current_admin, get_current_tutor
 from app.database import get_db
 from app.models.admins import Admin
+from app.models.tutors import Tutor
 from app.schemas.subjects import SubjectOut, CreateSubject, UpdateSubjectRequest
 from app.services import subject_service
 
@@ -14,7 +15,7 @@ router = APIRouter(
 
 @router.get("/", response_model=list[SubjectOut])
 def list_subjects(
-    current_admin: Admin = Depends(get_current_admin),
+
     db: Session = Depends(get_db),
 ):
     return subject_service.get_all_subjects_out(db)
