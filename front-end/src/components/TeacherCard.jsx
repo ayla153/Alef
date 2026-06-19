@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import "../styles/sstyle/TeacherCard.css";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const TeacherCard = ({ teacher, mode = "view", onSelect }) => {
   const [saved, setSaved] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <div className="tc-card">

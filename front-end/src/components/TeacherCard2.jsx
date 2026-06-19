@@ -61,9 +61,11 @@ const TeacherCard2 = ({
           {/* Bookmark Button */}
           <button className="favBtn" onClick={handleFavClick}>
             {saved ? (
-              <FaBookmark color="#2563eb" />
+              <FaBookmark color="
+#2563eb" />
             ) : (
-              <FaRegBookmark color="#6b7280" />
+              <FaRegBookmark color="
+#6b7280" />
             )}
           </button>
 

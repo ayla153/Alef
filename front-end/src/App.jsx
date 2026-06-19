@@ -26,6 +26,8 @@ import LeadDetailsPage from "./Pages/student/LeadDetailsContainer";
 
 
 
+
+
 function App() {
   return (
     <Routes>
@@ -41,10 +43,11 @@ function App() {
 
       <Route path="/home" element={<HomePage />} />
       <Route path="/tutors" element={<TutorsPage />} />
+      <Route path="/tutor/:tutor_id" element={<TeacherProfile />} />
       <Route path="/favorites" element={<FavPage />} />
       <Route path="/notifications" element={<Notifications />} />
       <Route path="/profile" element={<Profile />} />
-      <Route path="/teacher/profile" element={<TeacherProfile />} />
+      
 
       <Route path="/Dashboard" element={<Dashboard />} />
 

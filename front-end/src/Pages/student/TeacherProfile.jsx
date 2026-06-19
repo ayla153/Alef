@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../../styles/sstyle/TeacherProfile.css";
 import Header from "../../components/Header";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const subjectColors = {
   الرياضيات: "blue",
@@ -28,72 +28,78 @@ const subjectIcons = {
 };
 
 export default function TeacherProfile() {
-  const [isSaved, setIsSaved] = useState(false);
+  const { tutor_id } = useParams();
   const navigate = useNavigate();
+  const [isSaved, setIsSaved] = useState(false);
+  const [teacher, setTeacher] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [teacher] = useState({
-    name: "أحمد علي",
-    age: 28,
-    rating: 4.9,
-    reviewsCount: 120,
+  useEffect(() => {
+    const fetchTutor = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-    avatar:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuAmmU_OyTV48O1KbfvaN7CwiJk447YboVeuOUQId0j9nxELNdKB12OtjR5g2ssx5ses_4yrHrQ8iaRdswBTwlnt_JyF6xM8ykoNdD5FL5GRsu0xicyNo-I87PKwPSOBpoLEGNBKdOqPaV2VqhyM7G9tDBh8J0vIUaGqYpzdywrAwPr7YNYRznlJedUH-egyFUOJFoKaN98Y-XnaJfec4sHoqYIvMvVAOH7-XHt1Lg_A_006aq0bKLjXpCotCQIvtgGxT7QxB7huU5U",
+        const res = await fetch(`http://localhost:8000/tutors/${tutor_id}`);
 
-    bio: "مدرس متخصص في المواد العلمية للمرحلة الثانوية والجامعية. أسلوب شرح مبسط وتفاعلي مع التركيز على حل المشكلات وفهم الأساسيات.",
+        if (!res.ok) {
+          throw new Error("لم يتم العثور على المعلم");
+        }
 
-    subjects: [{ name: "الرياضيات" }, { name: "الفيزياء" }],
+        const data = await res.json();
 
-    lessonTypes: [
-      { type: "أونلاين", icon: "wifi", variant: "online" },
-      { type: "حضوري", icon: "person_pin", variant: "offline" },
-    ],
+        setTeacher(data);
+      } catch (err) {
+        setError(err.message || "حدث خطأ غير متوقع");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    pricing: [
-      { subject: "الرياضيات", stage: "الثانوية", online: 50, offline: 80 },
-      { subject: "الرياضيات", stage: "الجامعية", online: 70, offline: 120 },
-      { subject: "الفيزياء", stage: "الثانوية", online: 55, offline: 90 },
-    ],
+    if (tutor_id) fetchTutor();
+  }, [tutor_id]);
+  const toggleSave = () => setIsSaved((prev) => !prev);
 
-    experience: [
-      {
-        subject: "الرياضيات",
-        text: "خبرة 5 سنوات في تدريس مناهج الرياضيات للمرحلة الثانوية بما فيها التفاضل والتكامل.",
-      },
-      {
-        subject: "الفيزياء",
-        text: "خبرة 3 سنوات في الميكانيكا والكهرباء مع استخدام التجارب العملية.",
-      },
-    ],
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <main className="tp-main-content">
+          <div style={{ textAlign: "center", padding: "4rem" }}>
+            جاري التحميل...
+          </div>
+        </main>
+      </>
+    );
+  }
 
-    reviews: [
-      {
-        name: "عمر الحربي",
-        initials: "ع",
-        rating: 5,
-        date: "منذ 3 أيام",
-        text: "شرح رائع ومبسط ساعدني كثير في فهم التكامل.",
-      },
-      {
-        name: "نورة سعد",
-        initials: "ن",
-        rating: 4,
-        date: "منذ أسبوع",
-        text: "شرح جيد لكن أحياناً سريع.",
-      },
-      {
-        name: "خالد العتيبي",
-        initials: "خ",
-        rating: 5,
-        date: "منذ شهر",
-        text: "أفضل مدرس خصوصي تعاملت معه.",
-      },
-    ],
-  });
-  const toggleSave = () => {
-    setIsSaved((prev) => !prev);
-  };
+  if (error || !teacher) {
+    return (
+      <>
+        <Header />
+        <main className="tp-main-content">
+          <div style={{ textAlign: "center", padding: "4rem", color: "red" }}>
+            {error || "حدث خطأ ما"}
+          </div>
+        </main>
+      </>
+    );
+  }
 
+  const fullName = `${teacher.first_name} ${teacher.last_name}`;
+  const subjects = teacher?.tutor_subjects ?? [];
+  const reviews = teacher?.reviews ?? [];
+  if (!teacher && !loading) {
+    return (
+      <>
+        <Header />
+        <div style={{ textAlign: "center", padding: "4rem", color: "red" }}>
+          لا توجد بيانات للمعلم
+        </div>
+      </>
+    );
+  }
   return (
     <>
       <Header />
@@ -110,7 +116,6 @@ export default function TeacherProfile() {
           >
             chevron_left
           </span>
-
           <span className="breadcrumb-current">ملف المعلم</span>
         </nav>
 
@@ -120,28 +125,41 @@ export default function TeacherProfile() {
             <div className="teacher-avatar-large">
               <div
                 className="avatar-large-img"
-                style={{ backgroundImage: `url(${teacher.avatar})` }}
+                style={{
+                  backgroundImage: `url(${
+                    teacher.tutor_photo || "https://via.placeholder.com/120"
+                  })`,
+                }}
               />
-
               <div className="status-dot" />
             </div>
 
             <div className="hero-info-wrapper">
               <div className="hero-header-row">
                 <div>
-                  <h2 className="teacher-name">{teacher.name}</h2>
-
+                  <h2 className="teacher-name">{fullName}</h2>
                   <div className="meta-badges">
                     <div className="badge-item">
-                      <span className="material-symbols-outlined">cake</span>
-                      <span>{teacher.age} سنة</span>
+                      <span className="material-symbols-outlined">
+                        history_edu
+                      </span>
+                      <span>
+                        {teacher.total_experience_years ?? "—"} سنوات خبرة
+                      </span>
                     </div>
                   </div>
                 </div>
 
                 <div className="rating">
                   <span className="material-symbols-outlined filled">star</span>
-                  <span>{teacher.rating}</span>
+                  <span>
+                    {reviews.length > 0
+                      ? (
+                          reviews.reduce((s, r) => s + r.number_of_stars, 0) /
+                          reviews.length
+                        ).toFixed(1)
+                      : "—"}
+                  </span>
                 </div>
               </div>
 
@@ -152,7 +170,7 @@ export default function TeacherProfile() {
                   className="btn-primary"
                   onClick={() =>
                     navigate("/Create/Lead", {
-                      state: { origin: "teacher" },
+                      state: { origin: "teacher", tutor_id: teacher.tutor_id },
                     })
                   }
                 >
@@ -171,7 +189,6 @@ export default function TeacherProfile() {
                   >
                     bookmark
                   </span>
-
                   <span className="bookmark-text">
                     {isSaved ? "تم الحفظ" : "حفظ المعلم"}
                   </span>
@@ -190,7 +207,9 @@ export default function TeacherProfile() {
                 <span className="material-symbols-outlined">person</span>
                 نبذة عن المعلم
               </h3>
-              <p className="paragraph-text">{teacher.bio}</p>
+              <p className="paragraph-text">
+                {teacher.bio || "لا توجد نبذة متاحة"}
+              </p>
             </div>
 
             {/* lesson types */}
@@ -203,21 +222,37 @@ export default function TeacherProfile() {
               </h3>
 
               <div className="lesson-types-list">
-                {teacher.lessonTypes.map((item, i) => (
-                  <div key={i} className={`lesson-type-item ${item.variant}`}>
+                {(teacher.tution_type === "online" ||
+                  teacher.tution_type === "both") && (
+                  <div className="lesson-type-item online">
                     <div className="type-meta">
                       <span className="icon-box">
-                        <span className="material-symbols-outlined">
-                          {item.icon}
-                        </span>
+                        <span className="material-symbols-outlined">wifi</span>
                       </span>
-                      <span className="type-label">{item.type}</span>
+                      <span className="type-label">أونلاين</span>
                     </div>
                     <span className="material-symbols-outlined check-icon">
                       check_circle
                     </span>
                   </div>
-                ))}
+                )}
+
+                {(teacher.tution_type === "offline" ||
+                  teacher.tution_type === "both") && (
+                  <div className="lesson-type-item offline">
+                    <div className="type-meta">
+                      <span className="icon-box">
+                        <span className="material-symbols-outlined">
+                          person_pin
+                        </span>
+                      </span>
+                      <span className="type-label">حضوري</span>
+                    </div>
+                    <span className="material-symbols-outlined check-icon">
+                      check_circle
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -229,10 +264,11 @@ export default function TeacherProfile() {
               </h3>
 
               <div className="tags-wrapper">
-                {teacher.subjects.map((subj, i) => {
+                {subjects.map((subj, i) => {
+                  const name = subj?.subject?.subject_title ?? "—";
                   const meta = {
-                    color: subjectColors[subj.name] || "blue",
-                    icon: subjectIcons[subj.name] || "menu_book",
+                    color: subjectColors[name] || "blue",
+                    icon: subjectIcons[name] || "menu_book",
                   };
 
                   return (
@@ -240,7 +276,7 @@ export default function TeacherProfile() {
                       <span className="material-symbols-outlined subject-tag-icon">
                         {meta.icon}
                       </span>
-                      {subj.name}
+                      {name}
                     </span>
                   );
                 })}
@@ -263,21 +299,19 @@ export default function TeacherProfile() {
                     <tr>
                       <th>المادة</th>
                       <th>المرحلة</th>
-                      <th className="text-center">أونلاين</th>
-                      <th className="text-center">حضوري</th>
+                      <th className="text-center">السعر/ساعة</th>
                     </tr>
                   </thead>
 
                   <tbody>
-                    {teacher.pricing.map((p, i) => (
+                    {subjects.map((subj, i) => (
                       <tr key={i}>
-                        <td className="font-bold">{p.subject}</td>
-                        <td>{p.stage}</td>
-                        <td className="text-center text-primary-color">
-                          {p.online} ر.س
+                        <td className="font-bold">
+                          {subj.subject?.subject_title || "—"}
                         </td>
-                        <td className="text-center font-bold">
-                          {p.offline} ر.س
+                        <td>{subj.level?.level_title || "—"}</td>
+                        <td className="text-center text-primary-color">
+                          {subj.price_per_hour ?? "—"} ل.س
                         </td>
                       </tr>
                     ))}
@@ -286,7 +320,7 @@ export default function TeacherProfile() {
               </div>
             </div>
 
-            {/* EXPERIENCE (FIXED) */}
+            {/* EXPERIENCE */}
             <div className="section-card">
               <h3 className="section-title">
                 <span className="material-symbols-outlined">history_edu</span>
@@ -294,10 +328,11 @@ export default function TeacherProfile() {
               </h3>
 
               <div className="experience-list">
-                {teacher.experience.map((exp, i) => {
+                {subjects.map((subj, i) => {
+                  const name = subj.subject?.subject_title || "—";
                   const meta = {
-                    color: subjectColors[exp.subject] || "blue",
-                    icon: subjectIcons[exp.subject] || "menu_book",
+                    color: subjectColors[name] || "blue",
+                    icon: subjectIcons[name] || "menu_book",
                   };
 
                   return (
@@ -314,10 +349,10 @@ export default function TeacherProfile() {
                       </div>
 
                       <div className="exp-content">
-                        <h4 className={`exp-title ${meta.color}`}>
-                          {exp.subject}
-                        </h4>
-                        <p className="paragraph-text">{exp.text}</p>
+                        <h4 className={`exp-title ${meta.color}`}>{name}</h4>
+                        <p className="paragraph-text">
+                          خبرة {subj.experience_years ?? "—"} سنوات
+                        </p>
                       </div>
                     </div>
                   );
@@ -334,56 +369,69 @@ export default function TeacherProfile() {
               <span className="material-symbols-outlined">reviews</span>
               آراء الطلاب
             </h3>
-
             <div className="reviews-summary-box">
-              <div className="score-details">
-                <span>({teacher.reviewsCount} تقييم)</span>
-              </div>
+              <span>({reviews.length} تقييم)</span>
             </div>
           </div>
 
           <div className="reviews-grid">
-            {teacher.reviews.map((rev, i) => (
-              <div
-                key={i}
-                className={`review-card ${i === 2 ? "full-width-review" : ""}`}
-              >
-                <div className="user-placeholder-avatar">{rev.initials}</div>
-
-                <div className="review-main">
-                  <div className="review-meta-top">
-                    <h4 className="reviewer-name">{rev.name}</h4>
-                    <span className="review-date">{rev.date}</span>
+            {reviews.length === 0 ? (
+              <p className="paragraph-text">لا توجد تقييمات بعد</p>
+            ) : (
+              reviews.map((rev, i) => (
+                <div
+                  key={i}
+                  className={`review-card ${
+                    i === reviews.length - 1 && reviews.length % 2 !== 0
+                      ? "full-width-review"
+                      : ""
+                  }`}
+                >
+                  <div className="user-placeholder-avatar">
+                    {rev.student_id}
                   </div>
 
-                  <div className="review-stars">
-                    {[...Array(rev.rating)].map((_, i) => (
-                      <span
-                        key={i}
-                        className="material-symbols-outlined filled"
-                      >
-                        star
+                  <div className="review-main">
+                    <div className="review-meta-top">
+                      <h4 className="reviewer-name">طالب #{rev.student_id}</h4>
+                      <span className="review-date">
+                        {rev.created_at
+                          ? new Date(rev.created_at).toLocaleDateString("ar-SA")
+                          : "—"}
                       </span>
-                    ))}
-                  </div>
+                    </div>
 
-                  <p
-                    className="paragraph-text"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    {rev.text}
-                  </p>
+                    <div className="review-stars">
+                      {[...Array(rev.number_of_stars)].map((_, j) => (
+                        <span
+                          key={j}
+                          className="material-symbols-outlined filled"
+                        >
+                          star
+                        </span>
+                      ))}
+                    </div>
+
+                    <p
+                      className="paragraph-text"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
+                      {rev.comment || "—"}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
-          <button className="btn-block-outline">
-            <span>عرض جميع الآراء</span>
-            <span className="material-symbols-outlined arrow-icon">
-              arrow_back
-            </span>
-          </button>
+          {reviews.length > 3 && (
+            <button className="btn-block-outline">
+              <span>عرض جميع الآراء</span>
+              <span className="material-symbols-outlined arrow-icon">
+                arrow_back
+              </span>
+            </button>
+          )}
         </div>
       </main>
     </>

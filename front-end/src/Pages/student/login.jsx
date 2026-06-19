@@ -49,7 +49,7 @@ export default function Login() {
 
   return (
     <div className="login-page-container">
-      <form className="login-form" onSubmit={handleSubmit}>
+      <form className="login-form" onSubmit={handleSubmit} autoComplete="off">
         <div className="login-image-side">
           <img src={loginImage} className="login-image" alt="تسجيل دخول" />
         </div>
@@ -72,6 +72,7 @@ export default function Login() {
               id="email"
               placeholder="user@gmail.com"
               value={email}
+              autoComplete="off"
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
@@ -95,6 +96,7 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               type="password"
+              autoComplete="new-password"
             />
           </div>
 

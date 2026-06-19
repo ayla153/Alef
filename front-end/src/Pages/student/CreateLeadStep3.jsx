@@ -2,58 +2,69 @@ import React, { useState } from "react";
 import "../../styles/sstyle/CreateLeadStep3.css";
 import Header from "../../components/Header";
 
-const CreateLeadStep3 = ({ formData, updateForm, onBack, onSubmit, origin }) => {
+const CreateLeadStep3 = ({ formData, updateForm, onBack, onSubmit, origin, loading }) => {
+
+  const isFromTeacher = origin === "teacher";
 
   const [privacyType, setPrivacyType] = useState(
-  origin === "teacher" ? "private" : "public"
-);
+    isFromTeacher ? "private" : "public"
+  );
   const [errors, setErrors] = useState({});
+
+  // ─── request_description → description ──────────────────────
+  // الـ textarea بالواجهة بيحفظ بـ "request_description"
+  // الـ Wizard بيقرأها ويحطها في "description" عند البناء
+  // هون بنحدّث الاتنين مع بعض عشان ما نكسر أي حاجة
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     updateForm({
       [name]: value,
+      // لما يتغير request_description نحدّث description كمان
+      ...(name === "request_description" ? { description: value } : {}),
     });
-
-    setErrors({
-      ...errors,
-      [name]: "",
-    });
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
+  // ─── Validation ─────────────────────────────────────────────
+
   const validateForm = () => {
-    let newErrors = {};
+    const newErrors = {};
 
-    const desc = formData.request_description || "";
+    const desc = formData.request_description || formData.description || "";
 
+    // الباك بيطلب description بين 1-500 حرف
+    // الواجهة بتطلب 20 حرف كحد أدنى
     if (!desc || desc.trim().length < 20) {
-      newErrors.request_description =
-        "يجب أن يكون الوصف على الأقل 20 حرف";
+      newErrors.request_description = "يجب أن يكون الوصف على الأقل 20 حرف";
+    }
+
+    if (desc.trim().length > 500) {
+      newErrors.request_description = "الوصف لا يتجاوز 500 حرف";
     }
 
     if (!privacyType) {
       newErrors.privacy_type = "الرجاء اختيار نوع الخصوصية";
     }
 
-    if (privacyType === "private" && !selectedTeacher) {
-  newErrors.selectedTeacher = "يجب اختيار معلم للطلب الخاص";
-}
-
     setErrors(newErrors);
-
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = () => {
     if (validateForm()) {
+      // نحدّث privacy_type و description قبل الإرسال
       updateForm({
         privacy_type: privacyType,
+        description: (formData.request_description || "").trim(),
       });
-
       onSubmit && onSubmit();
     }
   };
+
+  // ─────────────────────────────────────────────────────────────
+  // الـ JSX — نفس الواجهة بالكامل بدون أي تغيير بصري
+  // ─────────────────────────────────────────────────────────────
 
   return (
     <div className="cl3-app-container" dir="rtl">
@@ -104,12 +115,13 @@ const CreateLeadStep3 = ({ formData, updateForm, onBack, onSubmit, origin }) => 
                   className="cl3-textarea-control"
                   id="request_description"
                   name="request_description"
-                  value={formData.request_description}
+                  value={formData.request_description || ""}
                   onChange={handleChange}
                   placeholder="اشرح بالتفصيل المواضيع التي تحتاج لمساعدة فيها، الأهداف التعليمية، وأي تفضيلات أخرى..."
+                  maxLength={500}
                 ></textarea>
 
-                <p className="cl3-textarea-hint">الحد الأدنى 20 حرفاً</p>
+                <p className="cl3-textarea-hint">الحد الأدنى 20 حرفاً — الحد الأقصى 500 حرف</p>
 
                 {errors.request_description && (
                   <span className="cl3-error-text">
@@ -165,14 +177,15 @@ const CreateLeadStep3 = ({ formData, updateForm, onBack, onSubmit, origin }) => 
                 </label>
 
                 {/* Private */}
-                <label className="cl3-privacy-card-label">
+                <label className={`cl3-privacy-card-label ${!isFromTeacher ? "cl3-privacy-card-disabled" : ""}`}>
                   <input
                     type="radio"
                     name="privacy_type"
                     value="private"
                     className="cl3-privacy-card-radio"
                     checked={privacyType === "private"}
-                    onChange={(e) => setPrivacyType(e.target.value)}
+                    onChange={(e) => isFromTeacher && setPrivacyType(e.target.value)}
+                    disabled={!isFromTeacher}
                   />
 
                   <div className="cl3-privacy-card-ui">
@@ -192,6 +205,13 @@ const CreateLeadStep3 = ({ formData, updateForm, onBack, onSubmit, origin }) => 
                       <p className="cl3-privacy-card-desc">
                         سيكون طلبك مخفياً ولن يراه إلا المعلمون الذين تختار التواصل معهم مباشرة.
                       </p>
+
+                      {!isFromTeacher && (
+                        <p className="cl3-privacy-locked-hint">
+                          <span className="material-symbols-outlined">info</span>
+                       لإرسال طلب خاص ، يرجى اختيار معلم أولاً
+                        </p>
+                      )}
                     </div>
                   </div>
                 </label>
@@ -208,14 +228,19 @@ const CreateLeadStep3 = ({ formData, updateForm, onBack, onSubmit, origin }) => 
             {/* Actions */}
             <div className="cl3-form-actions">
 
-              <button className="cl3-btn-cancel" onClick={onBack}>
+              <button className="cl3-btn-cancel" onClick={onBack} disabled={loading}>
                 السابق
               </button>
 
-              <button className="cl3-btn-primary" onClick={handleSubmit}>
-                <span>تأكيد الطلب</span>
+              {/* زر الإرسال — يعرض loading state لو ما اتحطت loading prop */}
+              <button
+                className="cl3-btn-primary"
+                onClick={handleSubmit}
+                disabled={loading}
+              >
+                <span>{loading ? "جاري الإرسال..." : "تأكيد الطلب"}</span>
                 <span className="material-symbols-outlined rtl-icon-none">
-                  check_circle
+                  {loading ? "hourglass_empty" : "check_circle"}
                 </span>
               </button>
 
