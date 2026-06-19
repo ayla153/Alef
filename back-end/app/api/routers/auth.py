@@ -8,6 +8,7 @@ from app.api.deps import (
     require_tutor_registration_step,
 )
 from app.api.routers.auth_student_me import router as auth_student_me_router
+from app.api.routers.auth_otp import router as auth_otp_router
 from app.models.tutors import Tutor
 from app.schemas.auth import (
     LoginRequest,
@@ -32,6 +33,7 @@ def _http_for_auth_error(e: AuthError) -> HTTPException:
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 router.include_router(auth_student_me_router)
+router.include_router(auth_otp_router)
 
 
 class TutorMe(BaseModel):

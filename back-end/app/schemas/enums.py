@@ -37,6 +37,16 @@ class LeadApplicationStatusEnum(str, Enum):
     REJECTED = "rejected"
     WITHDRAWN = "withdrawn"
 
+class AuthUserRoleEnum(str, Enum):
+    STUDENT = "student"
+    TUTOR = "tutor"
+
+
+class OtpPurposeEnum(str, Enum):
+    REGISTRATION = "registration"
+    PASSWORD_RESET = "password_reset"
+
+
 class student_grade_enum(str, Enum):
     PRIMARY_1 = "primary_1"
     PRIMARY_2 = "primary_2"
