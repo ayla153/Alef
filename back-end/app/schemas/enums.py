@@ -56,6 +56,14 @@ class NotificationType(str, Enum):
     NEW_TUTOR_PENDING = "new_tutor_pending"
     TUTOR_VERIFIED = "tutor_verified"
     TUTOR_VERIFICATION_REJECTED = "tutor_verification_rejected"
+class AuthUserRoleEnum(str, Enum):
+    STUDENT = "student"
+    TUTOR = "tutor"
+
+
+class OtpPurposeEnum(str, Enum):
+    REGISTRATION = "registration"
+    PASSWORD_RESET = "password_reset"
 
 
 class student_grade_enum(str, Enum):

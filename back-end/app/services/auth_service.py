@@ -60,6 +60,26 @@ def is_tutor_email_available(db: Session, email: str) -> bool:
     return db.scalar(select(Tutor.tutor_id).where(Tutor.email == email)) is None
 
 
+def is_student_email_available(db: Session, email: str) -> bool:
+    return db.scalar(select(Student.student_id).where(Student.email == email.lower())) is None
+
+
+def reset_student_password(db: Session, email: str, new_password: str) -> None:
+    student = db.scalar(select(Student).where(Student.email == email.lower()))
+    if not student:
+        raise AuthError("Student account not found", "email_not_found")
+    student.password = get_password_hash(new_password)
+    db.commit()
+
+
+def reset_tutor_password(db: Session, email: str, new_password: str) -> None:
+    tutor = db.scalar(select(Tutor).where(Tutor.email == email.lower()))
+    if not tutor:
+        raise AuthError("Tutor account not found", "email_not_found")
+    tutor.password = get_password_hash(new_password)
+    db.commit()
+
+
 def authenticate_admin(db: Session, email: str, password: str) -> Admin | None:
     admin = db.scalar(select(Admin).where(Admin.email == email))
     if not admin or not verify_password(password, admin.password):
@@ -209,3 +229,23 @@ def apply_tutor_registration_step4(db: Session, tutor: Tutor, data: TutorRegiste
     tutor.bio = data.bio
     db.commit()
     db.refresh(tutor)
+
+
+def reset_student_password(db: Session, email: str, new_password: str) -> Student:
+    student = db.scalar(select(Student).where(Student.email == email.lower()))
+    if not student:
+        raise AuthError("Account not found", "account_not_found")
+    student.password = get_password_hash(new_password)
+    db.commit()
+    db.refresh(student)
+    return student
+
+
+def reset_tutor_password(db: Session, email: str, new_password: str) -> Tutor:
+    tutor = db.scalar(select(Tutor).where(Tutor.email == email.lower()))
+    if not tutor:
+        raise AuthError("Account not found", "account_not_found")
+    tutor.password = get_password_hash(new_password)
+    db.commit()
+    db.refresh(tutor)
+    return tutor
