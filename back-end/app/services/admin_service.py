@@ -1,3 +1,4 @@
+import asyncio
 from typing import List
 
 from fastapi import HTTPException, status
@@ -7,7 +8,10 @@ from sqlalchemy.orm import Session
 from app.models.admins import Admin
 from app.schemas.admins import AdminOut, CreateAdmin, UpdateAdminRequest
 from app.models.tutors import Tutor
+from app.schemas.enums import NotificationType
+from app.schemas.notifications import CreateNotification
 from app.schemas.tutors import TutorOut
+from app.services import notification_service
 from app.services.tutor_service import _tutor_to_out, get_tutor_by_id, hash_password as get_password_hash
 
 
@@ -99,6 +103,14 @@ def delete_admin(db: Session, admin_id: int) -> None:
     db.commit()
 
 
+def _queue_notification(db: Session, data: CreateNotification) -> None:
+    try:
+        loop = asyncio.get_running_loop()
+        loop.create_task(notification_service.notify_user(db, data))
+    except RuntimeError:
+        asyncio.run(notification_service.notify_user(db, data))
+
+
 def verify_tutor(db: Session, tutor_id: int, verified: bool) -> TutorOut:
     tutor = get_tutor_by_id(db, tutor_id)
     if not tutor:
@@ -107,5 +119,20 @@ def verify_tutor(db: Session, tutor_id: int, verified: bool) -> TutorOut:
     tutor.verified = verified
     db.commit()
     db.refresh(tutor)
+
+    if verified:
+        _queue_notification(
+            db,
+            CreateNotification(
+                recipient_role="tutor",
+                recipient_id=tutor.tutor_id,
+                notification_type=NotificationType.TUTOR_VERIFIED,
+                title="Your account has been verified",
+                message="Your account has been verified — you can now browse leads and receive offers.",
+                actor_role="admin",
+                related_type="tutor",
+                related_id=tutor.tutor_id,
+            ),
+        )
 
     return _tutor_to_out(tutor)

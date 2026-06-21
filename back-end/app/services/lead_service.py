@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timedelta
 
 from fastapi import HTTPException, status
@@ -12,7 +13,9 @@ from app.models.students import Student
 from app.models.subjects import Subject
 from app.models.tutor_subjects import TutorSubject
 from app.models.tutors import Tutor
-from app.schemas.enums import LeadApplicationStatusEnum, LeadStatusEnum
+from app.services import notification_service
+from app.schemas.enums import LeadApplicationStatusEnum, LeadStatusEnum, NotificationType
+from app.schemas.notifications import CreateNotification
 from app.schemas.leads import (
     AcceptContactIn,
     ClosePrivateLeadIn,
@@ -74,6 +77,14 @@ def sync_accepting_applications(db: Session, lead: PostRequirement) -> None:
         return
     pending = count_pending_applications(db, lead.post_requirements_id)
     lead.accepting_applications = pending < lead.max_applications
+
+
+def _queue_notification(db: Session, data: CreateNotification) -> None:
+    try:
+        loop = asyncio.get_running_loop()
+        loop.create_task(notification_service.notify_user(db, data))
+    except RuntimeError:
+        asyncio.run(notification_service.notify_user(db, data))
 
 
 def assert_lead_is_open(lead: PostRequirement) -> None:
@@ -390,6 +401,40 @@ def submit_offer(
     db.commit()
     db.refresh(application)
     application.tutor = tutor
+
+    if lead.student_id:
+        _queue_notification(
+            db,
+            CreateNotification(
+                recipient_role="student",
+                recipient_id=lead.student_id,
+                notification_type=NotificationType.NEW_OFFER_RECEIVED,
+                title="New offer received",
+                message=f"A tutor sent you an offer on your lead '{lead.title}'.",
+                actor_role="tutor",
+                actor_id=tutor.tutor_id,
+                related_type="lead",
+                related_id=lead_id,
+            ),
+        )
+
+    pending_count = count_pending_applications(db, lead_id)
+    if pending_count >= lead.max_applications:
+        _queue_notification(
+            db,
+            CreateNotification(
+                recipient_role="student",
+                recipient_id=lead.student_id,
+                notification_type=NotificationType.PUBLIC_LEAD_SLOTS_FULL,
+                title="Lead slots are full",
+                message="Your lead has 5 offers waiting, time to review them.",
+                actor_role="tutor",
+                actor_id=tutor.tutor_id,
+                related_type="lead",
+                related_id=lead_id,
+            ),
+        )
+
     return _application_to_out(application, lead)
 
 
@@ -727,6 +772,25 @@ def close_lead_public(db: Session, lead: PostRequirement) -> LeadOut:
     db.commit()
     refreshed = get_lead_by_id(db, lead.post_requirements_id)
     assert refreshed is not None
+
+    if refreshed.lead_status == LeadStatusEnum.CLOSED_SHORTLIST:
+        for app in refreshed.lead_applications:
+            if app.application_status == LeadApplicationStatusEnum.PENDING and app.tutor_id is not None:
+                _queue_notification(
+                    db,
+                    CreateNotification(
+                        recipient_role="tutor",
+                        recipient_id=app.tutor_id,
+                        notification_type=NotificationType.OFFER_ACCEPTED,
+                        title="Your offer was accepted",
+                        message=f"Your offer on '{refreshed.title}' was accepted — the student's contact is now visible.",
+                        actor_role="student",
+                        actor_id=refreshed.student_id,
+                        related_type="lead",
+                        related_id=refreshed.post_requirements_id,
+                    ),
+                )
+
     return lead_to_out(refreshed)
 
 
