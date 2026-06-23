@@ -121,18 +121,11 @@ def verify_tutor(db: Session, tutor_id: int, verified: bool) -> TutorOut:
     db.refresh(tutor)
 
     if verified:
-        _queue_notification(
-            db,
-            CreateNotification(
-                recipient_role="tutor",
-                recipient_id=tutor.tutor_id,
-                notification_type=NotificationType.TUTOR_VERIFIED,
-                title="Your account has been verified",
-                message="Your account has been verified — you can now browse leads and receive offers.",
-                actor_role="admin",
-                related_type="tutor",
-                related_id=tutor.tutor_id,
-            ),
-        )
+        notification_service.notify_tutor_verified(db, tutor.tutor_id)
+    else:
+        notification_service.notify_tutor_verification_rejected(db, tutor.tutor_id)
+    result = _tutor_to_out(tutor)
 
+    print("RESULT:", result)
+    print("RESULT TYPE:", type(result))
     return _tutor_to_out(tutor)

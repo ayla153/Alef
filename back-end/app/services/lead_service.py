@@ -403,37 +403,13 @@ def submit_offer(
     application.tutor = tutor
 
     if lead.student_id:
-        _queue_notification(
-            db,
-            CreateNotification(
-                recipient_role="student",
-                recipient_id=lead.student_id,
-                notification_type=NotificationType.NEW_OFFER_RECEIVED,
-                title="New offer received",
-                message=f"A tutor sent you an offer on your lead '{lead.title}'.",
-                actor_role="tutor",
-                actor_id=tutor.tutor_id,
-                related_type="lead",
-                related_id=lead_id,
-            ),
+        notification_service.notify_new_offer_received(
+            db, lead.student_id, tutor.tutor_id, lead_id, lead.title
         )
 
     pending_count = count_pending_applications(db, lead_id)
     if pending_count >= lead.max_applications:
-        _queue_notification(
-            db,
-            CreateNotification(
-                recipient_role="student",
-                recipient_id=lead.student_id,
-                notification_type=NotificationType.PUBLIC_LEAD_SLOTS_FULL,
-                title="Lead slots are full",
-                message="Your lead has 5 offers waiting, time to review them.",
-                actor_role="tutor",
-                actor_id=tutor.tutor_id,
-                related_type="lead",
-                related_id=lead_id,
-            ),
-        )
+        notification_service.notify_public_lead_slots_full(db, lead.student_id, lead_id)
 
     return _application_to_out(application, lead)
 
@@ -521,6 +497,14 @@ def create_public_lead(db: Session, student: Student, data: CreatePublicLeadIn) 
     db.refresh(lead)
     refreshed = get_lead_by_id(db, lead.post_requirements_id)
     assert refreshed is not None
+
+    notification_service.notify_public_lead_created(
+        db,
+        refreshed.post_requirements_id,
+        refreshed.subject_id,
+        refreshed.level_id,
+    )
+
     return lead_to_out(refreshed)
 
 
@@ -550,11 +534,40 @@ def reject_offer(
             detail="Only pending offers can be rejected.",
         )
 
+    was_slots_full = not lead.accepting_applications
+    rejected_tutor_id = application.tutor_id
+
     application.application_status = LeadApplicationStatusEnum.REJECTED
     sync_accepting_applications(db, lead)
     db.commit()
     refreshed = get_lead_by_id(db, lead.post_requirements_id)
     assert refreshed is not None
+
+    if rejected_tutor_id is not None:
+        notification_service.notify_offer_rejected(
+            db, rejected_tutor_id, offer_id, lead.post_requirements_id
+        )
+    
+    if was_slots_full and refreshed.accepting_applications:
+        already_applied_tutor_ids = {
+            app.tutor_id for app in refreshed.lead_applications if app.tutor_id is not None
+        }
+        next_tutor = (
+            db.query(TutorSubject.tutor_id)
+            .join(Tutor, Tutor.tutor_id == TutorSubject.tutor_id)
+            .filter(
+                TutorSubject.subject_id == refreshed.subject_id,
+                TutorSubject.level_id == refreshed.level_id,
+                Tutor.verified.is_(True),
+                ~TutorSubject.tutor_id.in_(already_applied_tutor_ids) if already_applied_tutor_ids else True,
+            )
+            .first()
+        )
+        if next_tutor is not None:
+            notification_service.notify_offer_slot_opened(
+                db, next_tutor.tutor_id, refreshed.post_requirements_id
+            )
+
     return lead_to_out(refreshed)
 
 
@@ -600,6 +613,11 @@ def create_private_lead(db: Session, student: Student, data: CreatePrivateLeadIn
     db.commit()
     refreshed = get_lead_by_id(db, lead.post_requirements_id)
     assert refreshed is not None
+
+    notification_service.notify_private_lead_received(
+        db, data.target_tutor_id, lead.post_requirements_id
+    )
+
     return lead_to_out(refreshed)
 
 
@@ -685,7 +703,13 @@ def accept_private_contact(
 
     db.commit()
     refreshed = get_lead_by_id(db, lead_id)
+    
     assert refreshed is not None
+
+    notification_service.notify_private_lead_accepted(
+        db, refreshed.student_id, lead_id
+    )
+
     return lead_to_out(refreshed)
 
 
@@ -716,6 +740,12 @@ def close_lead_private(
     db.commit()
     refreshed = get_lead_by_id(db, lead.post_requirements_id)
     assert refreshed is not None
+
+    if not body.matched and lead.lead_target is not None:
+        notification_service.notify_private_lead_rejected(
+            db, lead.lead_target.tutor_id, lead.post_requirements_id
+        )
+
     return lead_to_out(refreshed)
 
 
@@ -828,4 +858,7 @@ def expire_due_leads(db: Session) -> int:
         expired_count += 1
     if expired_count:
         db.commit()
+        for lead in open_leads:
+            if lead.is_public:
+                notification_service.notify_public_lead_expired(db, lead.post_requirements_id)
     return expired_count

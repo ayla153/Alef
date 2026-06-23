@@ -1,15 +1,14 @@
+from typing import Tuple
+
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect, status
 from jose import JWTError
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_admin, get_current_student, get_current_tutor
+from app.api.deps import DbSession, get_current_user_role_id
 from app.core.security import decode_access_token
 from app.core.websocket import manager
 from app.database import get_db
-from app.models.admins import Admin
-from app.models.students import Student
-from app.models.tutors import Tutor
-from app.schemas.notifications import NotificationOut
+from app.schemas.notifications import NotificationOut, NotificationUnreadCountOut
 from app.services import notification_service
 
 router = APIRouter(
@@ -51,139 +50,38 @@ async def notifications_websocket(websocket: WebSocket):
         manager.disconnect(websocket, role, user_id)
 
 
-@router.get("/student/me", response_model=list[NotificationOut])
-def list_student_notifications(
+@router.get("/", response_model=list[NotificationOut])
+def list_notifications(
     db: Session = Depends(get_db),
-    current_student: Student = Depends(get_current_student),
+    current_user: Tuple[str, int] = Depends(get_current_user_role_id),
 ):
-    return notification_service.list_notifications_for_user(
-        db,
-        recipient_role="student",
-        recipient_id=current_student.student_id,
-    )
+    role, user_id = current_user
+    return notification_service.list_notifications_for_user(db, role, user_id)
 
 
-@router.get("/student/unread-count")
-def student_unread_count(
+@router.get("/unread-count", response_model=NotificationUnreadCountOut)
+def unread_count(
     db: Session = Depends(get_db),
-    current_student: Student = Depends(get_current_student),
+    current_user: Tuple[str, int] = Depends(get_current_user_role_id),
 ):
-    return notification_service.unread_count_for_user(
-        db,
-        recipient_role="student",
-        recipient_id=current_student.student_id,
-    )
-
-
-@router.get("/tutor/me", response_model=list[NotificationOut])
-def list_tutor_notifications(
-    db: Session = Depends(get_db),
-    current_tutor: Tutor = Depends(get_current_tutor),
-):
-    return notification_service.list_notifications_for_user(
-        db,
-        recipient_role="tutor",
-        recipient_id=current_tutor.tutor_id,
-    )
-
-
-@router.get("/tutor/unread-count")
-def tutor_unread_count(
-    db: Session = Depends(get_db),
-    current_tutor: Tutor = Depends(get_current_tutor),
-):
-    return notification_service.unread_count_for_user(
-        db,
-        recipient_role="tutor",
-        recipient_id=current_tutor.tutor_id,
-    )
-
-
-@router.get("/admin/me", response_model=list[NotificationOut])
-def list_admin_notifications(
-    db: Session = Depends(get_db),
-    current_admin: Admin = Depends(get_current_admin),
-):
-    return notification_service.list_notifications_for_user(
-        db,
-        recipient_role="admin",
-        recipient_id=current_admin.admin_id,
-    )
-
-
-@router.get("/admin/unread-count")
-def admin_unread_count(
-    db: Session = Depends(get_db),
-    current_admin: Admin = Depends(get_current_admin),
-):
-    return notification_service.unread_count_for_user(
-        db,
-        recipient_role="admin",
-        recipient_id=current_admin.admin_id,
-    )
+    role, user_id = current_user
+    return notification_service.unread_count_for_user(db, role, user_id)
 
 
 @router.patch("/{notification_id}/read", response_model=NotificationOut)
 def mark_notification_read(
     notification_id: int,
     db: Session = Depends(get_db),
-    current_student: Student = Depends(get_current_student),
+    current_user: Tuple[str, int] = Depends(get_current_user_role_id),
 ):
-    return notification_service.mark_notification_read(
-        db,
-        notification_id,
-        recipient_role="student",
-        recipient_id=current_student.student_id,
-    )
+    role, user_id = current_user
+    return notification_service.mark_notification_read(db, notification_id, role, user_id)
 
 
-@router.patch("/{notification_id}/read/tutor", response_model=NotificationOut)
-def mark_tutor_notification_read(
-    notification_id: int,
+@router.post("/read-all", status_code=status.HTTP_200_OK)
+def mark_all_notifications_read(
     db: Session = Depends(get_db),
-    current_tutor: Tutor = Depends(get_current_tutor),
+    current_user: Tuple[str, int] = Depends(get_current_user_role_id),
 ):
-    return notification_service.mark_notification_read(
-        db,
-        notification_id,
-        recipient_role="tutor",
-        recipient_id=current_tutor.tutor_id,
-    )
-
-
-@router.patch("/{notification_id}/read/admin", response_model=NotificationOut)
-def mark_admin_notification_read(
-    notification_id: int,
-    db: Session = Depends(get_db),
-    current_admin: Admin = Depends(get_current_admin),
-):
-    return notification_service.mark_notification_read(
-        db,
-        notification_id,
-        recipient_role="admin",
-        recipient_id=current_admin.admin_id,
-    )
-
-
-@router.post("/mark-all-read/student", status_code=status.HTTP_200_OK)
-def mark_student_notifications_read(
-    db: Session = Depends(get_db),
-    current_student: Student = Depends(get_current_student),
-):
-    return {"updated": notification_service.mark_all_notifications_read(db, "student", current_student.student_id)}
-
-
-@router.post("/mark-all-read/tutor", status_code=status.HTTP_200_OK)
-def mark_tutor_notifications_read(
-    db: Session = Depends(get_db),
-    current_tutor: Tutor = Depends(get_current_tutor),
-):
-    return {"updated": notification_service.mark_all_notifications_read(db, "tutor", current_tutor.tutor_id)}
-
-
-@router.post("/mark-all-read/admin", status_code=status.HTTP_200_OK)
-def mark_admin_notifications_read(
-    db: Session = Depends(get_db),
-    current_admin: Admin = Depends(get_current_admin),
-):
-    return {"updated": notification_service.mark_all_notifications_read(db, "admin", current_admin.admin_id)}
+    role, user_id = current_user
+    return {"updated": notification_service.mark_all_notifications_read(db, role, user_id)}
