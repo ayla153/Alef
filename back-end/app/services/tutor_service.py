@@ -58,10 +58,7 @@ def _address_to_out(address) -> AddressOut | None:
 
 
 def _tutor_to_out(tutor: Tutor) -> TutorOut:
-    data = {key: value for key, value in tutor.__dict__.items() if not key.startswith('_')}
-    if getattr(tutor, 'address', None) is not None:
-        data['address'] = _address_to_out(tutor.address)
-    return TutorOut.model_validate(data)
+    return TutorOut.model_validate(tutor, from_attributes=True)
 
 
 def get_tutor_by_id_out(db: Session, tutor_id: int) -> Tutor | None:
@@ -96,6 +93,7 @@ def create_tutor(db: Session, tutor_data: CreateTutor) -> TutorOut:
     db.add(tutor_obj)
     db.commit()
     db.refresh(tutor_obj)
+
     return _tutor_to_out(tutor_obj)
 
 

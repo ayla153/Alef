@@ -15,6 +15,8 @@ from app.api.routers.Addresses import router as addresses_router
 from app.api.routers.Reviews.Reviews_router import router as reviews_router
 from app.api.routers.Favorites.Favorites_router import router as favorites_router
 from app.api.routers.Leads import router as leads_router
+from app.api.routers.Notifications.Notifications_router import router as notifications_router
+from app.api.routers.Notifications.Notifications_router import ws_router
 from app.core.config import settings
 from app.database import Base, engine
 from app.models import cities, email_otps
@@ -53,5 +55,7 @@ app.include_router(addresses_router)
 app.include_router(reviews_router)
 app.include_router(favorites_router)
 app.include_router(leads_router)
+app.include_router(notifications_router)
+app.include_router(ws_router)
 app.include_router(auth_router)
 app.include_router(email_otps_router)

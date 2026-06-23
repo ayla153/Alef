@@ -12,6 +12,7 @@ from app.models.students import Student
 from app.models.subjects import Subject
 from app.models.tutor_subjects import TutorSubject
 from app.models.tutors import Tutor
+from app.services import notification_service
 from app.schemas.auth import (
     StudentRegister,
     TutorRegister,
@@ -140,6 +141,7 @@ def register_tutor(db: Session, data: TutorRegister) -> Tutor:
             raise AuthError("Email already registered", "email_taken") from None
         raise
     db.refresh(tutor)
+
     return tutor
 
 
@@ -229,6 +231,7 @@ def apply_tutor_registration_step4(db: Session, tutor: Tutor, data: TutorRegiste
     tutor.bio = data.bio
     db.commit()
     db.refresh(tutor)
+    notification_service.notify_new_tutor_pending(db, tutor.tutor_id)
 
 
 def reset_student_password(db: Session, email: str, new_password: str) -> Student:
