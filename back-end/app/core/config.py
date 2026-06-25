@@ -26,5 +26,21 @@ class Settings:
     )  # default 7 days
     CORS_ORIGINS: list[str] = _cors_origins_from_env()
 
+    OTP_EXPIRE_MINUTES: int = int(os.getenv("OTP_EXPIRE_MINUTES", "10"))
+    OTP_LENGTH: int = int(os.getenv("OTP_LENGTH", "6"))
+    OTP_MAX_ATTEMPTS: int = int(os.getenv("OTP_MAX_ATTEMPTS", "5"))
+
+    SMTP_HOST: str = os.getenv("SMTP_HOST", "")
+    SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
+    SMTP_USERNAME: str = os.getenv("SMTP_USERNAME", "")
+    SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
+    SMTP_FROM_EMAIL: str = os.getenv("SMTP_FROM_EMAIL", "")
+    SMTP_USE_TLS: bool = os.getenv("SMTP_USE_TLS", "true").lower() in ("1", "true", "yes")
+    EMAIL_DEV_LOG_OTP: bool = os.getenv("EMAIL_DEV_LOG_OTP", "false").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
+
 
 settings = Settings()
