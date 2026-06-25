@@ -53,6 +53,17 @@ const STATUS_CONFIG = {
     buttonClass: "btn-outline-gray",
     canAction: true,
   },
+  // طلب خاص (target_tutor_id موجود) لسا open، يعني المعلم لسا ما وافق على التواصل.
+  // هاي حالة مختلفة تماماً عن "العروض ممتلئة" لأن الطلب الخاص ما فيه عروض من أساسه.
+  waiting_tutor_response: {
+    statusText: "بانتظار رد المعلم",
+    statusColor: "amber",
+    badgeText: "لم يستجب المعلم بعد",
+    badgeType: "warning",
+    buttonText: "عرض التفاصيل",
+    buttonClass: "btn-outline-gray",
+    canAction: true,
+  },
   closed_shortlist: {
     statusText: "مغلق — قائمة العروض",
     statusColor: "blue",
@@ -117,10 +128,19 @@ export default function MyLeads() {
   }, []);
 
   const safeConfig = (lead) => {
-    const statusKey =
-      lead.lead_status === "open" && !lead.accepting_applications
-        ? "slots_full"
-        : lead.lead_status;
+    const isPrivate = lead.target_tutor_id != null;
+
+    let statusKey = lead.lead_status;
+
+    if (lead.lead_status === "open") {
+      if (isPrivate) {
+        // الطلب الخاص لسا open = بانتظار رد المعلم المستهدف، لا علاقة له بامتلاء العروض
+        statusKey = "waiting_tutor_response";
+      } else if (!lead.accepting_applications) {
+        // الطلب العام فقط هو اللي ممكن توصل عروضه للحد الأقصى
+        statusKey = "slots_full";
+      }
+    }
 
     return (
       STATUS_CONFIG[statusKey] || {
@@ -257,6 +277,7 @@ export default function MyLeads() {
               const config = safeConfig(lead);
               const subjectColor = getSubjectColor(lead.title);
               const dimmed = isDimmed(lead);
+              const isPrivate = lead.target_tutor_id != null;
 
               return (
                 <div
@@ -319,10 +340,13 @@ export default function MyLeads() {
                         </div>
                       )}
 
-                      <div className="info-badge badge-primary-light">
-                        <span className="material-symbols-outlined">groups</span>
-                        <span>{lead.pending_offer_count} عروض مستلمة</span>
-                      </div>
+                      {/* عداد العروض المستلمة منطقي فقط للطلب العام؛ الطلب الخاص ما فيه "عروض" */}
+                      {!isPrivate && (
+                        <div className="info-badge badge-primary-light">
+                          <span className="material-symbols-outlined">groups</span>
+                          <span>{lead.pending_offer_count} عروض مستلمة</span>
+                        </div>
+                      )}
                     </div>
 
                     <button

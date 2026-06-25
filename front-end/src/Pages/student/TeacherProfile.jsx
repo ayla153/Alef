@@ -3,29 +3,64 @@ import "../../styles/sstyle/TeacherProfile.css";
 import Header from "../../components/Header";
 import { useNavigate, useParams } from "react-router-dom";
 
+// مفاتيح الألوان والأيقونات بالإنجليزي لأن subject_title بالباك إنجليزي
+// (محكوم بـ pattern: ^[A-Za-z]+$ في الـ schema)
 const subjectColors = {
-  الرياضيات: "blue",
-  الفيزياء: "purple",
-  الكيمياء: "green",
-  الأحياء: "emerald",
-  الإنجليزي: "orange",
-  العربي: "red",
-  التاريخ: "yellow",
-  الجغرافيا: "teal",
-  معلوماتية: "indigo",
+  Mathematics: "blue",
+  Physics: "purple",
+  Chemistry: "green",
+  Biology: "emerald",
+  English: "orange",
+  Arabic: "red",
+  History: "yellow",
+  Geography: "teal",
+  ComputerScience: "indigo",
 };
 
 const subjectIcons = {
-  الرياضيات: "calculate",
-  الفيزياء: "biotech",
-  الكيمياء: "science",
-  الأحياء: "eco",
-  الإنجليزي: "translate",
-  العربي: "menu_book",
-  التاريخ: "history_edu",
-  الجغرافيا: "public",
-  معلوماتية: "computer",
+  Mathematics: "calculate",
+  Physics: "biotech",
+  Chemistry: "science",
+  Biology: "eco",
+  English: "translate",
+  Arabic: "menu_book",
+  History: "history_edu",
+  Geography: "public",
+  ComputerScience: "computer",
 };
+
+// ترجمة اسم المادة من الإنجليزي (القادم من الباك) إلى العربي (للعرض فقط)
+const subjectArabicNames = {
+  Mathematics: "رياضيات",
+  Physics: "فيزياء",
+  Chemistry: "كيمياء",
+  Biology: "أحياء",
+  English: "لغة إنجليزية",
+  Arabic: "لغة عربية",
+  History: "تاريخ",
+  Geography: "جغرافيا",
+  ComputerScience: "معلوماتية",
+};
+
+// دالة مساعدة لتحويل اسم المادة الإنجليزي إلى العربي مع fallback آمن
+const getSubjectArabicName = (englishName) => {
+  if (!englishName) return "—";
+  return subjectArabicNames[englishName] || englishName;
+};
+
+const API_BASE_URL = "http://localhost:8000";
+
+// صورة افتراضية محلية (SVG كـ data URI) بدل خدمة خارجية مثل via.placeholder.com
+// تعمل بدون اتصال بالإنترنت ولا تعتمد على أي خدمة خارجية
+const DEFAULT_AVATAR =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+      <rect width="120" height="120" fill="#e5e7eb"/>
+      <circle cx="60" cy="45" r="22" fill="#9ca3af"/>
+      <path d="M20 110 C20 80 100 80 100 110" fill="#9ca3af"/>
+    </svg>
+  `);
 
 export default function TeacherProfile() {
   const { tutor_id } = useParams();
@@ -41,7 +76,7 @@ export default function TeacherProfile() {
         setLoading(true);
         setError(null);
 
-        const res = await fetch(`http://localhost:8000/tutors/${tutor_id}`);
+        const res = await fetch(`${API_BASE_URL}/tutors/${tutor_id}`);
 
         if (!res.ok) {
           throw new Error("لم يتم العثور على المعلم");
@@ -127,7 +162,7 @@ export default function TeacherProfile() {
                 className="avatar-large-img"
                 style={{
                   backgroundImage: `url(${
-                    teacher.tutor_photo || "https://via.placeholder.com/120"
+                    teacher.tutor_photo || DEFAULT_AVATAR
                   })`,
                 }}
               />
@@ -265,10 +300,11 @@ export default function TeacherProfile() {
 
               <div className="tags-wrapper">
                 {subjects.map((subj, i) => {
-                  const name = subj?.subject?.subject_title ?? "—";
+                  const englishName = subj?.subject?.subject_title ?? null;
+                  const displayName = getSubjectArabicName(englishName);
                   const meta = {
-                    color: subjectColors[name] || "blue",
-                    icon: subjectIcons[name] || "menu_book",
+                    color: subjectColors[englishName] || "blue",
+                    icon: subjectIcons[englishName] || "menu_book",
                   };
 
                   return (
@@ -276,7 +312,7 @@ export default function TeacherProfile() {
                       <span className="material-symbols-outlined subject-tag-icon">
                         {meta.icon}
                       </span>
-                      {name}
+                      {displayName}
                     </span>
                   );
                 })}
@@ -307,7 +343,7 @@ export default function TeacherProfile() {
                     {subjects.map((subj, i) => (
                       <tr key={i}>
                         <td className="font-bold">
-                          {subj.subject?.subject_title || "—"}
+                          {getSubjectArabicName(subj.subject?.subject_title)}
                         </td>
                         <td>{subj.level?.level_title || "—"}</td>
                         <td className="text-center text-primary-color">
@@ -329,10 +365,11 @@ export default function TeacherProfile() {
 
               <div className="experience-list">
                 {subjects.map((subj, i) => {
-                  const name = subj.subject?.subject_title || "—";
+                  const englishName = subj.subject?.subject_title ?? null;
+                  const displayName = getSubjectArabicName(englishName);
                   const meta = {
-                    color: subjectColors[name] || "blue",
-                    icon: subjectIcons[name] || "menu_book",
+                    color: subjectColors[englishName] || "blue",
+                    icon: subjectIcons[englishName] || "menu_book",
                   };
 
                   return (
@@ -349,7 +386,7 @@ export default function TeacherProfile() {
                       </div>
 
                       <div className="exp-content">
-                        <h4 className={`exp-title ${meta.color}`}>{name}</h4>
+                        <h4 className={`exp-title ${meta.color}`}>{displayName}</h4>
                         <p className="paragraph-text">
                           خبرة {subj.experience_years ?? "—"} سنوات
                         </p>

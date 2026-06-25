@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import api from "../api/api.js";
 
 const TeacherCard2 = ({
+  id,
   name,
   rating,
   subject,
@@ -9,14 +12,44 @@ const TeacherCard2 = ({
   modes,
   price,
   image,
-  onToggleFav,
+  isFavorite = false,
+  favoriteId = null,
+  onFavoriteChange,
 }) => {
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved] = useState(isFavorite);
+  const [savedFavoriteId, setSavedFavoriteId] = useState(favoriteId);
+  const [busy, setBusy] = useState(false);
+  const navigate = useNavigate();
 
-  const handleFavClick = () => {
-    const newState = !saved;
-    setSaved(newState);
-    if (onToggleFav) onToggleFav(newState); 
+  const handleFavClick = async () => {
+    if (busy) return; // تجنّب الضغط المزدوج أثناء انتظار الرد
+    setBusy(true);
+
+    try {
+      if (!saved) {
+        // إضافة للمفضلة
+        const { data } = await api.post("/favorites/", { tutor_id: id });
+        setSaved(true);
+        setSavedFavoriteId(data.favorite_id);
+        if (onFavoriteChange) onFavoriteChange(true, data.favorite_id);
+      } else {
+        // حذف من المفضلة (يحتاج favorite_id لا tutor_id)
+        if (savedFavoriteId != null) {
+          await api.delete(`/favorites/${savedFavoriteId}`);
+        }
+        setSaved(false);
+        setSavedFavoriteId(null);
+        if (onFavoriteChange) onFavoriteChange(false, savedFavoriteId);
+      }
+    } catch (err) {
+      console.error("فشل تحديث المفضلة:", err);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleViewProfile = () => {
+    navigate(`/tutor/${id}`);
   };
 
   return (
@@ -59,7 +92,7 @@ const TeacherCard2 = ({
 
         <div className="actions">
           {/* Bookmark Button */}
-          <button className="favBtn" onClick={handleFavClick}>
+          <button className="favBtn" onClick={handleFavClick} disabled={busy}>
             {saved ? (
               <FaBookmark color="
 #2563eb" />
@@ -70,7 +103,9 @@ const TeacherCard2 = ({
           </button>
 
           {/* Profile Button */}
-          <button className="profileBtn">عرض الملف</button>
+          <button className="profileBtn" onClick={handleViewProfile}>
+            عرض الملف
+          </button>
         </div>
       </div>
     </div>

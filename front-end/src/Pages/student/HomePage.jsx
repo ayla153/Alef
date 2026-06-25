@@ -7,6 +7,37 @@ import api from "../../api/api";
 
 import "../../styles/sstyle/HomePage.css";
 
+// نفس الترجمة المستخدمة في TeacherProfile - أسماء المواد بالباك إنجليزية
+// (subject_title محكوم بـ pattern: ^[A-Za-z]+$)
+const subjectArabicNames = {
+  Mathematics: "رياضيات",
+  Physics: "فيزياء",
+  Chemistry: "كيمياء",
+  Biology: "أحياء",
+  English: "لغة إنجليزية",
+  Arabic: "لغة عربية",
+  History: "تاريخ",
+  Geography: "جغرافيا",
+  ComputerScience: "معلوماتية",
+};
+
+const getSubjectArabicName = (englishName) => {
+  if (!englishName) return "غير محدد";
+  return subjectArabicNames[englishName] || englishName;
+};
+
+// صورة افتراضية محلية (SVG كـ data URI) بدل خدمة خارجية مثل dicebear.com
+// تعمل بدون اتصال بالإنترنت ولا تعتمد على أي خدمة خارجية
+const DEFAULT_AVATAR =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+      <rect width="120" height="120" fill="#e5e7eb"/>
+      <circle cx="60" cy="45" r="22" fill="#9ca3af"/>
+      <path d="M20 110 C20 80 100 80 100 110" fill="#9ca3af"/>
+    </svg>
+  `);
+
 const statusMap = {
   open: { icon: "hourglass_top", status: "قيد المعالجة", type: "pending" },
   closed_shortlist: {
@@ -59,16 +90,16 @@ const HomePage = () => {
                   t.reviews.length
                 ).toFixed(1)
               : 0,
-            subject: t.tutor_subjects?.[0]?.subject_name || "غير محدد",
+            subject: getSubjectArabicName(
+              t.tutor_subjects?.[0]?.subject?.subject_title,
+            ),
             experience: t.total_experience_years || 0,
             modes:
               t.tution_type === "both"
                 ? ["online", "offline"]
                 : [t.tution_type],
-            price: 0,
-            image:
-              t.tutor_photo ||
-              `https://api.dicebear.com/7.x/avataaars/svg?seed=${t.first_name}`,
+            price: t.tutor_subjects?.[0]?.price_per_hour || 0,
+            image: t.tutor_photo || DEFAULT_AVATAR,
           })),
         );
 

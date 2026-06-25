@@ -1,21 +1,100 @@
 import React, { useState, useEffect } from "react";
 import Header from "../../components/Header";
 import TeacherCard from "../../components/TeacherCard";
+import api from "../../api/api.js";
+import teacherImg from "../../assets/user-avatar.jpg";
 import "../../styles/sstyle/FavPage.css";
 
+// نفس الترجمة المستخدمة بباقي الصفحات (TeacherProfile / TutorsPage)
+const subjectTranslation = {
+  Mathematics: "رياضيات",
+  Physics: "فيزياء",
+  Chemistry: "كيمياء",
+  Biology: "أحياء",
+  English: "لغة إنجليزية",
+  Arabic: "لغة عربية",
+};
+
+// تحويل بيانات المعلم الخام من الباك (TutorOut) إلى الشكل الذي تتوقعه TeacherCard
+// نفس منطق التحويل المستخدم في TutorsPage.jsx
+const mapTutorToTeacherCard = (tutor) => {
+  const tutorSubjects = tutor.tutor_subjects || [];
+  const prices = tutorSubjects.map((s) => s.price_per_hour);
+  const minPrice = prices.length > 0 ? Math.min(...prices) : null;
+
+  const stage = tutorSubjects.some((s) => s.high_stage)
+    ? "ثانوي"
+    : tutorSubjects.some((s) => s.middle_stage)
+      ? "متوسط"
+      : tutorSubjects.some((s) => s.elementory_stage)
+        ? "ابتدائي"
+        : "تأسيسي";
+
+  return {
+    id: tutor.tutor_id,
+    name: `${tutor.first_name} ${tutor.last_name}`,
+    subtitle: tutor.bio || "",
+    rating: tutor.reviews?.length
+      ? (
+          tutor.reviews.reduce((s, r) => s + r.number_of_stars, 0) /
+          tutor.reviews.length
+        ).toFixed(1)
+      : 0,
+    reviews: tutor.reviews?.length || 0,
+    experience: tutor.total_experience_years || 0,
+    subjects: tutorSubjects
+      .map((subject) => {
+        const raw = subject?.subject?.subject_title?.trim();
+        return subjectTranslation[raw] || raw;
+      })
+      .filter(Boolean),
+    stage,
+    onlinePrice: tutor.tution_type === "offline" ? null : minPrice,
+    offlinePrice: tutor.tution_type === "online" ? null : minPrice,
+    modes:
+      tutor.tution_type === "both"
+        ? ["online", "offline"]
+        : [tutor.tution_type],
+    image: tutor.tutor_photo || teacherImg,
+    originalData: tutor,
+  };
+};
+
 const FavPage = () => {
-  const [teachers, setTeachers] = useState([]);
+  // نحتفظ بـ favorite_id مع بيانات المعلم سوية لأن الحذف يحتاج favorite_id
+  const [favorites, setFavorites] = useState([]); // [{ favoriteId, teacher }]
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchFavorites = async () => {
       try {
-        const response = await fetch("/api/favorites");
-        if (!response.ok) throw new Error("فشل تحميل البيانات");
-        const data = await response.json();
-        setTeachers(data);
-      } catch (error) {
-        console.error(error);
+        setError(null);
+
+        // 1) نجيب لائحة المفضلات (فيها فقط tutor_id, favorite_id)
+        const { data: favoritesList } = await api.get("/favorites/my-favorites");
+
+        // 2) نجيب تفاصيل كل معلم بالتوازي عبر /tutors/{tutor_id}
+        const results = await Promise.allSettled(
+          favoritesList.map((fav) => api.get(`/tutors/${fav.tutor_id}`)),
+        );
+
+        // 3) نركب البيانات: favorite_id من اللائحة + بيانات المعلم المحوّلة
+        const merged = results
+          .map((result, index) => {
+            if (result.status !== "fulfilled") return null;
+            return {
+              favoriteId: favoritesList[index].favorite_id,
+              teacher: mapTutorToTeacherCard(result.value.data),
+            };
+          })
+          .filter(Boolean);
+
+        setFavorites(merged);
+      } catch (err) {
+        setError(
+          err.response?.data?.detail || "فشل تحميل قائمة المدرسين المفضلين",
+        );
       } finally {
         setLoading(false);
       }
@@ -24,8 +103,11 @@ const FavPage = () => {
     fetchFavorites();
   }, []);
 
-  const removeTeacher = (indexToRemove) => {
-    setTeachers((prev) => prev.filter((_, index) => index !== indexToRemove));
+  // عند حذف المفضلة من داخل TeacherCard، نزيل الكرت من القائمة هنا أيضاً
+  const handleFavoriteChange = (isFav, favoriteId) => {
+    if (!isFav) {
+      setFavorites((prev) => prev.filter((f) => f.favoriteId !== favoriteId));
+    }
   };
 
   return (
@@ -42,22 +124,28 @@ const FavPage = () => {
 
               <div className="fav-page__counter-badge">
                 <span className="material-symbols-outlined">group</span>
-                <span>{teachers.length} مدرسين في قائمتك</span>
+                <span>{favorites.length} مدرسين في قائمتك</span>
               </div>
 
               {loading ? (
                 <p className="fav-page__loading">جارٍ تحميل المدرسين...</p>
-              ) : teachers.length === 0 ? (
+              ) : error ? (
+                <p className="fav-page__empty" style={{ color: "red" }}>
+                  {error}
+                </p>
+              ) : favorites.length === 0 ? (
                 <p className="fav-page__empty">
                   لا يوجد مدرسين في المفضلة بعد.
                 </p>
               ) : (
-                <div className="fav-page__teachers-list">
-                  {teachers.map((teacher, index) => (
+                <div className="teachers-grid">
+                  {favorites.map(({ favoriteId, teacher }) => (
                     <TeacherCard
-                      key={index}
+                      key={favoriteId}
                       teacher={teacher}
-                      onRemove={() => removeTeacher(index)}
+                      isFavorite={true}
+                      favoriteId={favoriteId}
+                      onFavoriteChange={handleFavoriteChange}
                     />
                   ))}
                 </div>
