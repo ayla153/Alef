@@ -21,7 +21,10 @@ api.interceptors.request.use((config) => {
 export default function Profile() {
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
 
+  // تصحيح: الـ enum الحقيقي بالباك هو high_1/2/3 وليس secondary_1/2/3
   const gradeMap = {
     "الصف الأول": "primary_1",
     "الصف الثاني": "primary_2",
@@ -34,9 +37,9 @@ export default function Profile() {
     "الصف الثامن": "middle_2",
     "الصف التاسع": "middle_3",
 
-    "الصف العاشر": "secondary_1",
-    "الصف الحادي عشر": "secondary_2",
-    "الصف الثاني عشر": "secondary_3",
+    "الصف العاشر": "high_1",
+    "الصف الحادي عشر": "high_2",
+    "الصف الثاني عشر": "high_3",
   };
 
   const gradeLabels = {
@@ -51,9 +54,9 @@ export default function Profile() {
     middle_2: "الصف الثامن",
     middle_3: "الصف التاسع",
 
-    secondary_1: "الصف العاشر",
-    secondary_2: "الصف الحادي عشر",
-    secondary_3: "الصف الثاني عشر",
+    high_1: "الصف العاشر",
+    high_2: "الصف الحادي عشر",
+    high_3: "الصف الثاني عشر",
   };
 
   const [user, setUser] = useState({
@@ -87,24 +90,6 @@ export default function Profile() {
 
         const data = res.data;
 
-        let age = "";
-
-        if (data.date_birth) {
-          const birthDate = new Date(data.date_birth);
-          const today = new Date();
-
-          age = today.getFullYear() - birthDate.getFullYear();
-
-          const monthDiff = today.getMonth() - birthDate.getMonth();
-
-          if (
-            monthDiff < 0 ||
-            (monthDiff === 0 && today.getDate() < birthDate.getDate())
-          ) {
-            age--;
-          }
-        }
-
         const mappedUser = {
           fullName: `${data.first_name || ""} ${data.last_name || ""}`.trim(),
           email: data.email || "",
@@ -116,7 +101,9 @@ export default function Profile() {
             : "",
           date_birth: data.date_birth || "",
           age: calculateAge(data.date_birth).toString(),
-          address: data.address || "",
+          // ملاحظة: لا يوجد حقل address ضمن StudentOut بالباك حالياً.
+          // العنوان يُدار عبر endpoint منفصل: /addresses/student/me
+          address: "",
         };
 
         setUser(mappedUser);
@@ -130,15 +117,6 @@ export default function Profile() {
 
     fetchMe();
   }, []);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-
-    setEditUser((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
 
   const calculateAge = (date_birth) => {
     if (!date_birth) return "";
@@ -158,6 +136,17 @@ export default function Profile() {
     }
 
     return age;
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+
+    setEditUser((prev) => ({
+      ...prev,
+      [name]: value,
+      // إعادة حساب العمر فوراً عند تغيير تاريخ الميلاد
+      ...(name === "date_birth" ? { age: calculateAge(value).toString() } : {}),
+    }));
   };
 
   const handlePhoneChange = (e) => {
@@ -188,9 +177,14 @@ export default function Profile() {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    setSaveError(null);
 
     const [first_name, ...rest] = editUser.fullName.split(" ");
     const last_name = rest.join(" ") || "";
+
+    // grade_level يجب أن يطابق القيم المسموحة بالـ enum بالباك بالضبط
+    // (primary_1..6, middle_1..3, high_1..3)
+    const mappedGrade = gradeMap[editUser.grade] || editUser.grade;
 
     const payload = {
       first_name,
@@ -199,22 +193,46 @@ export default function Profile() {
       phone_number: editUser.phone,
       student_photo: editUser.avatar,
       date_birth: editUser.date_birth,
-      grade_level: gradeMap[editUser.grade] || editUser.grade,
+      grade_level: mappedGrade,
+      // ملاحظة: لا نرسل address هنا لأن UpdateStudentRequest
+      // لا يحتوي هذا الحقل أصلاً؛ العنوان له endpoint مستقل.
     };
+
+    setSaving(true);
 
     try {
       await api.patch("/students/me", payload);
 
-      setUser(editUser);
+      setUser({
+        ...editUser,
+        grade: gradeLabels[mappedGrade] || editUser.grade,
+        age: calculateAge(editUser.date_birth).toString(),
+      });
       setEditMode(false);
     } catch (err) {
       console.error(err);
-      alert("فشل الحفظ");
+
+      const errData = err.response?.data;
+      let msg = "فشل حفظ التعديلات";
+
+      if (typeof errData?.detail === "string") {
+        msg = errData.detail;
+      } else if (Array.isArray(errData?.detail)) {
+        // أخطاء الـ validation (422) بتجي كلائحة، منعرضها مفصّلة بالعربي
+        msg = errData.detail
+          .map((e) => `${e.loc?.[e.loc.length - 1] || ""}: ${e.msg}`)
+          .join("، ");
+      }
+
+      setSaveError(msg);
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleCancel = () => {
     setEditUser({ ...user });
+    setSaveError(null);
     setEditMode(false);
   };
 
@@ -322,6 +340,22 @@ export default function Profile() {
 
           {editMode && (
             <section className="profile-page__form-card">
+              {saveError && (
+                <div
+                  style={{
+                    background: "#fee2e2",
+                    color: "#dc2626",
+                    padding: "12px 16px",
+                    borderRadius: "8px",
+                    marginBottom: "16px",
+                    textAlign: "center",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {saveError}
+                </div>
+              )}
+
               <form onSubmit={handleSave}>
                 <div className="profile-page__image-edit">
                   <div className="profile-page__image-wrapper-edit">
@@ -428,15 +462,20 @@ export default function Profile() {
                 </div>
 
                 <div className="profile-page__form-actions">
-                  <button className="profile-page__btn-primary" type="submit">
+                  <button
+                    className="profile-page__btn-primary"
+                    type="submit"
+                    disabled={saving}
+                  >
                     <span className="material-symbols-outlined">save</span>
-                    <span>حفظ التعديلات</span>
+                    <span>{saving ? "جارٍ الحفظ..." : "حفظ التعديلات"}</span>
                   </button>
 
                   <button
                     type="button"
                     className="profile-page__btn-outline"
                     onClick={handleCancel}
+                    disabled={saving}
                   >
                     <span>إلغاء</span>
                   </button>

@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import "../../styles/sstyle/PrivateLeadDetails.css";
 import Header from "../../components/Header";
 import { useNavigate } from "react-router-dom";
-
-const BASE_URL = "http://127.0.0.1:8000";
+import api from "../../api/api.js";
 
 export default function PrivateLeadDetails({ lead }) {
   const navigate = useNavigate();
@@ -36,24 +35,14 @@ export default function PrivateLeadDetails({ lead }) {
   const handleCloseLead = async (matched) => {
     try {
       setActionLoading(true);
-      const token = localStorage.getItem("token");
-      const res = await fetch(
-        `${BASE_URL}/leads/${lead.post_requirements_id}/close`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ matched }),
-        }
+      const { data } = await api.post(
+        `/leads/${lead.post_requirements_id}/close`,
+        { matched },
       );
-
-      if (!res.ok) throw new Error("فشل إغلاق الطلب");
-      const updated = await res.json();
-      setLeadStatus(updated.lead_status);
+      setLeadStatus(data.lead_status);
     } catch (err) {
-      alert(err.message);
+      const msg = err.response?.data?.detail || "فشل إغلاق الطلب";
+      alert(typeof msg === "string" ? msg : "فشل إغلاق الطلب");
     } finally {
       setActionLoading(false);
     }
@@ -194,20 +183,20 @@ export default function PrivateLeadDetails({ lead }) {
                   </div>
 
                   <div className="pld-action-buttons-group">
-                    
+                    <a
                       href={`tel:${tutorPhone}`}
                       className="pld-btn-direct-call"
-                 <a>
+                    >
                       <span className="material-symbols-outlined">call</span>
                       <span>اتصال مباشر</span>
                     </a>
 
-                    
+                    <a
                       href={`https://wa.me/${tutorPhone.replace(/\D/g, "")}`}
                       target="_blank"
                       rel="noreferrer"
                       className="pld-btn-whatsapp"
-                    <a>
+                    >
                       <span className="material-symbols-outlined">chat</span>
                       <span>واتساب المعلم</span>
                     </a>

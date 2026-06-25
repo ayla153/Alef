@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import api from "../../api/api";
 
 import Header from "../../components/Header";
 import FiltersBar from "../../components/FiltersBar";
@@ -36,9 +37,24 @@ function TutorsPage() {
   useEffect(() => {
     const fetchTutors = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/tutors");
+        const [tutorsRes, favsRes] = await Promise.allSettled([
+          axios.get("http://localhost:8000/tutors"),
+          api.get("/favorites/my-favorites"),
+        ]);
 
-        const mappedTutors = (res.data || []).map((tutor) => {
+        const tutorsData =
+          tutorsRes.status === "fulfilled" ? tutorsRes.value.data || [] : [];
+
+        const favsData =
+          favsRes.status === "fulfilled" ? favsRes.value.data || [] : [];
+
+        // خريطة tutor_id -> favorite_id لمعرفة مين محفوظ فعلياً بالمفضلة
+        const favMap = {};
+        favsData.forEach((fav) => {
+          favMap[fav.tutor_id] = fav.favorite_id;
+        });
+
+        const mappedTutors = tutorsData.map((tutor) => {
           const tutorSubjects = tutor.tutor_subjects || [];
 
           const prices = tutorSubjects.map((subject) => subject.price_per_hour);
@@ -92,6 +108,10 @@ function TutorsPage() {
 
             image: tutor.tutor_photo || teacherImg,
 
+            // حالة المفضلة الحقيقية القادمة من الباك، لتلوين البوكمارك من أول تحميل
+            isFavorite: favMap[tutor.tutor_id] !== undefined,
+            favoriteId: favMap[tutor.tutor_id] ?? null,
+
             originalData: tutor,
           };
         });
@@ -106,6 +126,18 @@ function TutorsPage() {
 
     fetchTutors();
   }, []);
+
+  // عند تغيّر حالة المفضلة من داخل أي كرت، نحدّث القائمة المحلية
+  // عشان يضل البوكمارك متزامن وملوّن صحيح بدون الحاجة لإعادة تحميل الصفحة
+  const handleFavoriteChange = (tutorId, isFav, favoriteId) => {
+    setTeachers((prev) =>
+      prev.map((t) =>
+        t.id === tutorId
+          ? { ...t, isFavorite: isFav, favoriteId: isFav ? favoriteId : null }
+          : t,
+      ),
+    );
+  };
 
   // ===== السعر حسب نوع الدرس =====
   const getPrice = (teacher) => {
@@ -172,13 +204,6 @@ function TutorsPage() {
     );
   }
 
-  console.log("SELECTED:", JSON.stringify(subjectSelected));
-  console.log("FIRST TEACHER SUBJECTS:", teachers[0]?.subjects);
-  console.log("subjectSelected:", subjectSelected);
-  console.log("first teacher subjects:", teachers[0]?.subjects);
-  console.log("stageSelected:", stageSelected);
-  console.log("modeSelected:", modeSelected);
-
   const subjectsList = [
     "رياضيات",
     "فيزياء",
@@ -216,6 +241,11 @@ function TutorsPage() {
                 key={teacher.id}
                 teacher={teacher}
                 mode={mode}
+                isFavorite={teacher.isFavorite}
+                favoriteId={teacher.favoriteId}
+                onFavoriteChange={(isFav, favoriteId) =>
+                  handleFavoriteChange(teacher.id, isFav, favoriteId)
+                }
                 onSelect={(selectedTeacher) => {
                   navigate("/Create/Lead", {
                     state: {

@@ -80,6 +80,12 @@ const HomePage = () => {
         const favsData =
           favsRes.status === "fulfilled" ? favsRes.value.data : [];
 
+        // نبني خريطة tutor_id -> favorite_id لمعرفة مين محفوظ فعلياً بالباك
+        const favMap = {};
+        favsData.forEach((fav) => {
+          favMap[fav.tutor_id] = fav.favorite_id;
+        });
+
         setTeachers(
           tutorsData.map((t) => ({
             id: t.tutor_id,
@@ -100,6 +106,8 @@ const HomePage = () => {
                 : [t.tution_type],
             price: t.tutor_subjects?.[0]?.price_per_hour || 0,
             image: t.tutor_photo || DEFAULT_AVATAR,
+            isFavorite: favMap[t.tutor_id] !== undefined,
+            favoriteId: favMap[t.tutor_id] ?? null,
           })),
         );
 
@@ -124,8 +132,18 @@ const HomePage = () => {
     fetchData();
   }, []);
 
-  const handleToggleFav = (added) => {
-    setFavCount((prev) => (added ? prev + 1 : prev - 1));
+  // عند تغيّر حالة المفضلة من داخل أي كرت، نحدّث العداد وحالة المعلم نفسه
+  // بهذه القائمة المحلية، عشان يضل البوكمارك ملوّن صحيح حتى لو ظهر نفس المعلم
+  // بأكثر من مكان بالصفحة
+  const handleFavoriteChange = (tutorId, isFav, favoriteId) => {
+    setFavCount((prev) => (isFav ? prev + 1 : prev - 1));
+    setTeachers((prev) =>
+      prev.map((t) =>
+        t.id === tutorId
+          ? { ...t, isFavorite: isFav, favoriteId: isFav ? favoriteId : null }
+          : t,
+      ),
+    );
   };
 
   if (loading)
@@ -175,7 +193,8 @@ const HomePage = () => {
                 <TeachersSection
                   teachers={teachers.map((t) => ({
                     ...t,
-                    onToggleFav: handleToggleFav,
+                    onFavoriteChange: (isFav, favoriteId) =>
+                      handleFavoriteChange(t.id, isFav, favoriteId),
                   }))}
                 />
               </section>
