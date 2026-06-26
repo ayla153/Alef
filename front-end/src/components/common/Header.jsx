@@ -44,7 +44,7 @@ export default function Header({ activeTab, setActiveTab }) {
         </button>
       </div>
       <div className="account-buttons">
-        <button onClick={() => navigate('/create-account/step1')}>
+        <button onClick={() => navigate('/selection')}>
           <FaUserPlus className="btn-icon" /> إنشاء حساب
         </button>
         <button onClick={() => navigate('/login')} className="signupbtn">

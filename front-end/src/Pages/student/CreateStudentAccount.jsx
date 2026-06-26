@@ -164,7 +164,7 @@ export default function CreateStudentAccount() {
           </p>
         </div>
 
-        <form className="create-student-account__form">
+        <form className="create-student-account__form" autoComplete="off" >
           {/* الاسم */}
           <div className="create-student-account__inputs-row">
             <div>
@@ -291,6 +291,7 @@ export default function CreateStudentAccount() {
                 className="create-student-account__input"
                 value={studentEmail}
                 placeholder="user@gmail.com"
+                autoComplete="off"
                 onChange={(e) => setStudentEmail(e.target.value)}
               />
               {errors.email && (
@@ -312,6 +313,7 @@ export default function CreateStudentAccount() {
                 className="create-student-account__input"
                 value={studentPassword}
                 placeholder="كلمة السّر"
+                autoComplete="new-password"
                 onChange={(e) => setStudentPassword(e.target.value)}
               />
               {errors.password && (
@@ -332,6 +334,7 @@ export default function CreateStudentAccount() {
                 className="create-student-account__input"
                 value={confirmStudentPassword}
                 placeholder="تأكيد كلمة السّر"
+                autoComplete="new-password"
                 onChange={(e) => setConfirmStudentPassword(e.target.value)}
               />
               {errors.confirm && (

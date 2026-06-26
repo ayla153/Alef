@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import BesTutors from "../BesTutors";
 import "../../styles/TeacherTab.css";
 import { 
@@ -11,6 +11,51 @@ import {
   FaFilter, 
   FaBookmark 
 } from "react-icons/fa";
+import { getPublicTutors } from "../../api/publicTutors";
+import { getErrorMessage } from "../../utils/apiErrors";
+
+// تحويل بيانات معلّم من الباك إند (TutorOut) إلى الشكل الذي يتوقعه BesTutors
+function mapTutorToCard(tutor) {
+  const reviews = tutor.reviews || [];
+  const avgRating = reviews.length > 0
+    ? Number((reviews.reduce((sum, r) => sum + r.number_of_stars, 0) / reviews.length).toFixed(1))
+    : 0;
+
+  const subjectsList = (tutor.tutor_subjects || []).map((ts) => ts.subject?.subject_title).filter(Boolean);
+
+  // ⚠️ الباك إند لا يفصل سعر "أونلاين" عن سعر "حضوري" — السعر مرتبط بكل مادة (price_per_hour)
+  // وليس بطريقة التدريس. نأخذ هنا متوسط أسعار مواد المعلّم كتقريب يُستخدم لكلا الحقلين.
+  const prices = (tutor.tutor_subjects || []).map((ts) => ts.price_per_hour).filter((p) => typeof p === 'number');
+  const avgPrice = prices.length > 0 ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : 0;
+
+  const modes = [];
+  if (tutor.tution_type === 'online' || tutor.tution_type === 'both') modes.push('online');
+  if (tutor.tution_type === 'offline' || tutor.tution_type === 'both') modes.push('offline');
+
+  const levels = [];
+  (tutor.tutor_subjects || []).forEach((ts) => {
+    if (ts.foundation && !levels.includes('تأسيس')) levels.push('تأسيس');
+    if (ts.elementory_stage && !levels.includes('ابتدائية')) levels.push('ابتدائية');
+    if (ts.middle_stage && !levels.includes('إعدادية')) levels.push('إعدادية');
+    if (ts.high_stage && !levels.includes('ثانوية')) levels.push('ثانوية');
+  });
+
+  return {
+    id: tutor.tutor_id,
+    name: `${tutor.first_name} ${tutor.last_name}`,
+    image: tutor.tutor_photo || 'https://randomuser.me/api/portraits/lego/1.jpg',
+    // ⚠️ لا يوجد حقل "وصف قصير/تخصص" بالباك إند، نستخدم بداية النبذة كبديل
+    subtitle: tutor.bio ? tutor.bio.slice(0, 40) : 'مدرّس/ة',
+    rating: avgRating,
+    reviews: reviews.length,
+    experience: tutor.total_experience_years ?? 0,
+    subjects: subjectsList,
+    levels,
+    modes,
+    onlinePrice: modes.includes('online') ? avgPrice : 0,
+    offlinePrice: modes.includes('offline') ? avgPrice : 0
+  };
+}
 
 export default function TeachersTab({ setSelectedTeacher, setActiveTab }) {
   // حالات الفلاتر
@@ -20,189 +65,49 @@ export default function TeachersTab({ setSelectedTeacher, setActiveTab }) {
   const [selectedLevel, setSelectedLevel] = useState("");
   const [selectedMode, setSelectedMode] = useState(""); // online, offline
 
-  // قائمة المواد (ثابتة)
-  const subjectList = [
-    "الرياضيات",
-    "اللغة العربية",
-    "اللغة الانكليزية",
-    "اللغة الفرنسية",
-    "العلوم",
-    "الفيزياء",
-    "الكيمياء",
-    "التربية الاسلامية",
-    "التاريخ",
-    "الجغرافية",
-    "الوطنية",
-    "معلوماتية",
-  ];
+  const [teachers, setTeachers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // قائمة المراحل الدراسية
+  // قائمة المراحل الدراسية (ثابتة - تطابق الأعلام التي نولّدها من بيانات الباك إند)
   const levelList = ["تأسيس", "ابتدائية", "إعدادية", "ثانوية"];
 
-  // بيانات المعلمين (موسعة ومتنوعة)
-  const teachers = [
-    {
-      id: 1,
-      name: "رغد طليمات",
-      image: "https://randomuser.me/api/portraits/women/68.jpg",
-      subtitle: "مدرسة رياضيات متخصصة",
-      rating: 4.8,
-      reviews: 120,
-      experience: 5,
-      subjects: ["رياضيات", "فيزياء"],
-      levels: ["ابتدائية", "إعدادية"],
-      modes: ["online", "offline"],
-      onlinePrice: 300,
-      offlinePrice: 400,
-    },
-    {
-      id: 2,
-      name: "شهد عبارة",
-      image: "https://randomuser.me/api/portraits/women/65.jpg",
-      subtitle: "مدرسة لغة إنجليزية",
-      rating: 4.9,
-      reviews: 95,
-      experience: 4,
-      subjects: ["اللغة الانكليزية"],
-      levels: ["إعدادية", "ثانوية"],
-      modes: ["online"],
-      onlinePrice: 250,
-      offlinePrice: 0,
-    },
-    {
-      id: 3,
-      name: "هدى الطبال",
-      image: "https://randomuser.me/api/portraits/women/29.jpg",
-      subtitle: "مدرسة لغة عربية",
-      rating: 4.7,
-      reviews: 88,
-      experience: 6,
-      subjects: ["اللغة العربية", "التربية الاسلامية"],
-      levels: ["ابتدائية", "إعدادية", "ثانوية"],
-      modes: ["online", "offline"],
-      onlinePrice: 280,
-      offlinePrice: 350,
-    },
-    {
-      id: 4,
-      name: "أيلة الراس",
-      image: "https://randomuser.me/api/portraits/women/33.jpg",
-      subtitle: "مدرسة تاريخ",
-      rating: 4.6,
-      reviews: 72,
-      experience: 3,
-      subjects: ["التاريخ", "الجغرافية"],
-      levels: ["إعدادية", "ثانوية"],
-      modes: ["online"],
-      onlinePrice: 220,
-      offlinePrice: 0,
-    },
-    {
-      id: 5,
-      name: "رقية الأبرش",
-      image: "https://randomuser.me/api/portraits/women/52.jpg",
-      subtitle: "مدرسة فرنسي",
-      rating: 4.6,
-      reviews: 72,
-      experience: 3,
-      subjects: ["اللغة الفرنسية", "الجغرافية"],
-      levels: ["ابتدائية", "إعدادية"],
-      modes: ["online"],
-      onlinePrice: 220,
-      offlinePrice: 0,
-    },
-    {
-      id: 6,
-      name: "عفاف شاهين",
-      image: "https://randomuser.me/api/portraits/women/44.jpg",
-      subtitle: "مدرسة فيزياء",
-      rating: 4.6,
-      reviews: 72,
-      experience: 3,
-      subjects: ["الفيزياء", "الكيمياء"],
-      levels: ["ثانوية"],
-      modes: ["online"],
-      onlinePrice: 220,
-      offlinePrice: 0,
-    },
-    {
-      id: 7,
-      name: "رهف الحاج يونس",
-      image: "https://randomuser.me/api/portraits/women/57.jpg",
-      subtitle: "مدرسة جغرافية",
-      rating: 4.6,
-      reviews: 72,
-      experience: 3,
-      subjects: ["التاريخ", "الجغرافية"],
-      levels: ["إعدادية", "ثانوية"],
-      modes: ["online"],
-      onlinePrice: 220,
-      offlinePrice: 0,
-    },
-    {
-      id: 8,
-      name: "قمر طليمات",
-      image: "https://randomuser.me/api/portraits/women/91.jpg",
-      subtitle: "مدرسة علوم",
-      rating: 4.7,
-      reviews: 55,
-      experience: 2,
-      subjects: ["العلوم", "الأحياء"],
-      levels: ["ابتدائية", "إعدادية"],
-      modes: ["online"],
-      onlinePrice: 200,
-      offlinePrice: 0,
-    },
-    {
-      id: 9,
-      name: "ليان الحسين",
-      image: "https://randomuser.me/api/portraits/women/12.jpg",
-      subtitle: "مدرسة رياضيات",
-      rating: 4.9,
-      reviews: 110,
-      experience: 8,
-      subjects: ["الرياضيات"],
-      levels: ["ثانوية"],
-      modes: ["online", "offline"],
-      onlinePrice: 350,
-      offlinePrice: 450,
-    },
-    {
-      id: 10,
-      name: "سلمى الشيخ",
-      image: "https://randomuser.me/api/portraits/women/45.jpg",
-      subtitle: "مدرسة لغة عربية",
-      rating: 4.5,
-      reviews: 60,
-      experience: 2,
-      subjects: ["اللغة العربية"],
-      levels: ["تأسيس", "ابتدائية"],
-      modes: ["offline"],
-      onlinePrice: 0,
-      offlinePrice: 250,
-    },
-  ];
+  const fetchTeachers = async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const response = await getPublicTutors({ page: 1, page_size: 100 });
+      // نعرض فقط المعلمين الموثّقين (verified) للطلاب
+      const verifiedOnly = response.data.filter((t) => t.verified === true);
+      setTeachers(verifiedOnly.map(mapTutorToCard));
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const id = setTimeout(() => {
+      fetchTeachers();
+    }, 0);
+    return () => clearTimeout(id);
+  }, []);
+
+  // ⚠️ قائمة المواد للفلتر مبنية ديناميكياً من بيانات المعلمين الفعليين
+  // (وليست قائمة عربية ثابتة) لأنّ أسماء المواد بالباك إند الحالي مقيّدة بأحرف إنكليزية فقط
+  const subjectList = Array.from(new Set(teachers.flatMap((t) => t.subjects))).sort();
 
   // دالة التصفية الرئيسية
   const filteredTeachers = teachers.filter((teacher) => {
-    // فلتر المادة
     if (selectedSubject && !teacher.subjects.includes(selectedSubject)) return false;
-
-    // فلتر التقييم (نجوم)
     if (selectedRating > 0 && teacher.rating < selectedRating) return false;
-
-    // فلتر الخبرة
     if (selectedExperience === 1 && teacher.experience < 3) return false;
     if (selectedExperience === 2 && (teacher.experience < 3 || teacher.experience > 5)) return false;
     if (selectedExperience === 3 && teacher.experience <= 5) return false;
-
-    // فلتر المرحلة
     if (selectedLevel && !teacher.levels.includes(selectedLevel)) return false;
-
-    // فلتر نوع الحضور
     if (selectedMode === "online" && !teacher.modes.includes("online")) return false;
     if (selectedMode === "offline" && !teacher.modes.includes("offline")) return false;
-
     return true;
   });
 
@@ -296,21 +201,27 @@ export default function TeachersTab({ setSelectedTeacher, setActiveTab }) {
         </div>
       </div>
 
+      {error && <div className="error-message">{error}</div>}
+
       {/* عدد النتائج */}
       <div className="results-count">
-        <FaFilter /> {filteredTeachers.length} أستاذ/ة متاح(ة)
+        <FaFilter /> {isLoading ? '...' : filteredTeachers.length} أستاذ/ة متاح(ة)
       </div>
 
       {/* بطاقات الأساتذة */}
-      <div className="bestTutorsContainer">
-        {filteredTeachers.map((teacher) => (
-          <BesTutors 
-            key={teacher.id} 
-            teacher={teacher} 
-            onViewProfile={handleViewProfile}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <p>جارِ تحميل قائمة الأساتذة...</p>
+      ) : (
+        <div className="bestTutorsContainer">
+          {filteredTeachers.map((teacher) => (
+            <BesTutors 
+              key={teacher.id} 
+              teacher={teacher} 
+              onViewProfile={handleViewProfile}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

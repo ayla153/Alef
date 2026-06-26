@@ -1,19 +1,153 @@
+import { useState, useEffect } from 'react';
 import '../../styles/MainPage.css';
 import RequestsCard from '../common/StatisticsCard';
 import RecentRequests from '../common/RecentRequests'
 import { FaPlusCircle, FaClipboardList, FaUserEdit, FaEnvelope, FaClock, FaStar, FaCheckCircle, FaHandHoldingHeart, FaRegClock, FaBolt, FaChartLine, FaBook, FaFlask, FaAtom, FaGlobe, FaLandmark, FaLeaf, FaLaptop, FaChalkboardTeacher, FaLanguage, FaBookOpen, FaFlagCheckered, FaTimesCircle, FaBell } from 'react-icons/fa';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { getMyProfile } from '../../api/tutorProfile';
+import { getTutorInbox, getTutorOffers } from '../../api/tutorLeads';
+import { getMyReviews } from '../../api/reviews';
+import { formatRelativeTime } from '../../utils/formatRelativeTime';
+
+// يبني عدد "الطلبات" (خاصة + عامة) لكل يوم من آخر 7 أيام، من تواريخ إنشاء حقيقية
+function buildWeeklyData(timestamps) {
+  const order = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
+  const jsDayToLabel = { 6: 'السبت', 0: 'الأحد', 1: 'الاثنين', 2: 'الثلاثاء', 3: 'الأربعاء', 4: 'الخميس', 5: 'الجمعة' };
+  const counts = {};
+  order.forEach((d) => { counts[d] = 0; });
+
+  const now = new Date();
+  const sevenDaysAgo = new Date(now);
+  sevenDaysAgo.setDate(now.getDate() - 6);
+  sevenDaysAgo.setHours(0, 0, 0, 0);
+
+  timestamps.forEach((ts) => {
+    if (!ts) return;
+    const date = new Date(ts);
+    if (date < sevenDaysAgo || date > now) return;
+    const label = jsDayToLabel[date.getDay()];
+    if (label) counts[label] += 1;
+  });
+
+  return order.map((day) => ({ day, requests: counts[day] }));
+}
+
+// يبني قائمة "نشاط حديث" حقيقية من أحداث صندوق الوارد الخاص + متابعة العروض العامة
+function buildRecentActivities(inbox, offers) {
+  const events = [];
+
+  inbox.forEach((lead) => {
+    if (lead.lead_status === 'closed_matched') {
+      events.push({
+        text: 'تم تأكيد التواصل على طلب خاص',
+        icon: <FaCheckCircle />,
+        color: '#10b981',
+        timestamp: lead.closed_at || lead.created_at
+      });
+    } else if (lead.lead_status === 'open') {
+      events.push({
+        text: 'وصلك طلب تدريس خاص جديد',
+        icon: <FaEnvelope />,
+        color: '#6366f1',
+        timestamp: lead.created_at
+      });
+    }
+  });
+
+  offers.forEach((offer) => {
+    if (offer.outcome === 'contact_shared') {
+      events.push({
+        text: `تم قبول عرضك على طلب "${offer.lead_title}"`,
+        icon: <FaCheckCircle />,
+        color: '#10b981',
+        timestamp: offer.contact_revealed_at || offer.offer_created_at
+      });
+    } else if (offer.outcome === 'rejected') {
+      events.push({
+        text: `تم رفض عرضك على طلب "${offer.lead_title}"`,
+        icon: <FaTimesCircle />,
+        color: '#ef4444',
+        timestamp: offer.offer_created_at
+      });
+    }
+  });
+
+  events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  return events.slice(0, 5).map((e, idx) => ({
+    id: idx,
+    text: e.text,
+    icon: e.icon,
+    color: e.color,
+    time: formatRelativeTime(e.timestamp)
+  }));
+}
 
 export default function MainPage() {
-    const weeklyData = [
-    { day: 'السبت', requests: 12 },
-    { day: 'الأحد', requests: 19 },
-    { day: 'الاثنين', requests: 15 },
-    { day: 'الثلاثاء', requests: 10 },
-    { day: 'الأربعاء', requests: 14 },
-    { day: 'الخميس', requests: 18 },
-    { day: 'الجمعة', requests: 8 },
-  ];
+  const [tutorName, setTutorName] = useState('');
+  const [stats, setStats] = useState({ newCount: 0, pendingCount: 0, acceptedCount: 0, rating: 0 });
+  const [weeklyData, setWeeklyData] = useState([
+    { day: 'السبت', requests: 0 }, { day: 'الأحد', requests: 0 }, { day: 'الاثنين', requests: 0 },
+    { day: 'الثلاثاء', requests: 0 }, { day: 'الأربعاء', requests: 0 }, { day: 'الخميس', requests: 0 }, { day: 'الجمعة', requests: 0 }
+  ]);
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const fetchDashboardData = async () => {
+    setIsLoading(true);
+    try {
+      const [profileRes, inboxRes, offersRes, reviewsRes] = await Promise.all([
+        getMyProfile(),
+        getTutorInbox(),
+        getTutorOffers(),
+        getMyReviews()
+      ]);
+
+      setTutorName(profileRes.data.first_name || '');
+
+      const inbox = inboxRes.data || [];
+      const offers = offersRes.data || [];
+      const reviews = reviewsRes.data || [];
+
+      // ✅ تفسير الإحصائيات بناءً على البيانات الحقيقية المتاحة:
+      // - "الطلبات الجديدة": عروض عامة قدّمها المعلّم وما زالت بانتظار رد الطالب (outcome: pending)
+      // - "الطلبات المعلقة": طلبات خاصة بصندوق الوارد بانتظار موافقة المعلّم (lead_status: open)
+      // - "الطلبات المقبولة": طلبات خاصة تم قبولها + عروض عامة تم قبولها (contact_shared)
+      const newCount = offers.filter((o) => o.outcome === 'pending').length;
+      const pendingCount = inbox.filter((l) => l.lead_status === 'open').length;
+      const acceptedCount =
+        inbox.filter((l) => l.lead_status === 'closed_matched').length +
+        offers.filter((o) => o.outcome === 'contact_shared').length;
+      const rating = reviews.length > 0
+        ? Number((reviews.reduce((sum, r) => sum + r.number_of_stars, 0) / reviews.length).toFixed(1))
+        : 0;
+
+      setStats({ newCount, pendingCount, acceptedCount, rating });
+
+      // ✅ مشتق فعلياً من تواريخ إنشاء حقيقية (created_at / offer_created_at)
+      const allTimestamps = [
+        ...inbox.map((l) => l.created_at),
+        ...offers.map((o) => o.offer_created_at)
+      ];
+      setWeeklyData(buildWeeklyData(allTimestamps));
+
+      // ✅ مشتق فعلياً من أحداث حقيقية (وليس Mock)
+      setRecentActivities(buildRecentActivities(inbox, offers));
+    } catch (err) {
+      console.error('فشل تحميل بيانات لوحة التحكم:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const id = setTimeout(() => {
+      fetchDashboardData();
+    }, 0);
+    return () => clearTimeout(id);
+  }, []);
+
+  // ⚠️ "أفضل المواد طلباً" تبقى بيانات تجريبية: لا يمكن اشتقاقها بشكل صحيح من حساب معلّم واحد
+  // لأن /leads/browse مفلترة سلفاً من السيرفر لتُظهر فقط مواد هذا المعلّم تحديداً، وليست إحصائية
+  // شاملة لكل السوق. تحتاج Endpoint تحليلات (Analytics) مخصص من الباك إند لحساب هذا بشكل صحيح.
    const topSubjects = [
     { name: 'الرياضيات', percentage: 45, icon: <FaBook />, color: '#3b82f6' },
     { name: 'الكيمياء', percentage: 25, icon: <FaFlask />, color: '#10b981' },
@@ -29,27 +163,21 @@ export default function MainPage() {
     { name: 'معلوماتية', percentage: 16, icon: <FaLaptop />, color: '#6b7280' }
   ];
 
-   const recentActivities = [
-    { id: 1, text: 'تم قبول طلب من أحمد', icon: <FaCheckCircle />, color: '#10b981', time: 'منذ 5 دقائق' },
-    { id: 2, text: 'تم إلغاء جلسة مع سارة', icon: <FaTimesCircle />, color: '#ef4444', time: 'منذ ساعة' },
-    { id: 3, text: 'تم استلام تقييم جديد', icon: <FaStar />, color: '#f59e0b', time: 'منذ 3 ساعات' }
-  ];
-
   return (
     <div className='con fade-in'>
       <div className="welcome-section">
         <FaHandHoldingHeart className="welcome-icon" />
         <div className="welcome-text">
-          <h2>أهلا بك أستاذ أحمد</h2>
+          <h2>أهلا بك أستاذ {isLoading ? '...' : tutorName}</h2>
           <p>ألق نظرة على نشاطك التعليمي !</p>
         </div>
       </div>
 
       <div className="requests-container">
-        <RequestsCard title="الطلبات الجديدة" icon={<FaEnvelope style={{ color: '#10b981' }} />} count='3' bgcolor='#d1fae5' hcolor='#10b981' />
-        <RequestsCard title="الطلبات المعلقة" icon={<FaClock style={{ color: '#6366f1' }} />} count='5' bgcolor='#e0e7ff' hcolor='#6366f1' />
-        <RequestsCard title="الطلبات المقبولة" icon={<FaCheckCircle style={{ color: '#10b981' }} />} count='2' bgcolor='#d1fae5' hcolor='#10b981' />
-        <RequestsCard title="التقييم" icon={<FaStar style={{ color: '#f59e0b' }} />} count='4.1' bgcolor='#fef3c7' hcolor='#f59e0b' />
+        <RequestsCard title="الطلبات الجديدة" icon={<FaEnvelope style={{ color: '#10b981' }} />} count={isLoading ? '...' : stats.newCount} bgcolor='#d1fae5' hcolor='#10b981' />
+        <RequestsCard title="الطلبات المعلقة" icon={<FaClock style={{ color: '#6366f1' }} />} count={isLoading ? '...' : stats.pendingCount} bgcolor='#e0e7ff' hcolor='#6366f1' />
+        <RequestsCard title="الطلبات المقبولة" icon={<FaCheckCircle style={{ color: '#10b981' }} />} count={isLoading ? '...' : stats.acceptedCount} bgcolor='#d1fae5' hcolor='#10b981' />
+        <RequestsCard title="التقييم" icon={<FaStar style={{ color: '#f59e0b' }} />} count={isLoading ? '...' : stats.rating} bgcolor='#fef3c7' hcolor='#f59e0b' />
       </div>
 
       <div className="bottom-row">
@@ -128,6 +256,9 @@ export default function MainPage() {
               <h3>نشاط حديث</h3>
             </div>
             <div className="activity-list">
+              {recentActivities.length === 0 && !isLoading && (
+                <p>لا يوجد نشاط حديث بعد.</p>
+              )}
               {recentActivities.map((activity) => (
                 <div key={activity.id} className="activity-item">
                   <span className="activity-icon-wrapper" style={{ color: activity.color }}>{activity.icon}</span>

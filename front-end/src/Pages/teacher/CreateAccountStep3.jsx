@@ -4,6 +4,8 @@ import { useState, useRef } from 'react';
 import PriceCard from '../../components/PriceCard';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft , FaArrowRight , FaTimesCircle ,FaLaptop, FaUniversity, FaChalkboardTeacher ,FaUserGraduate , FaMoneyBillWave} from "react-icons/fa";
+import { registerTutorStep3 } from '../../api/tutorRegistration';
+import { getErrorMessage } from '../../utils/apiErrors';
 
 export default function CreateAccountStep3(){
     const [selected, setSelected] = useState({
@@ -12,7 +14,9 @@ export default function CreateAccountStep3(){
     });
     const navigate = useNavigate();
     const [experienceYears, setExperienceYears] = useState('');
-    
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [generalError, setGeneralError] = useState('');
+
     // أخطاء الفاليديشن
     const [errors, setErrors] = useState({
         teachingMethod: '',
@@ -24,27 +28,30 @@ export default function CreateAccountStep3(){
 
     const handleSelect = (type) => {
         setSelected((prev) => ({ ...prev, [type]: !prev[type] }));
-        // مسح خطأ طريقة التدريس عند التحديد
         if (errors.teachingMethod) setErrors(prev => ({ ...prev, teachingMethod: '' }));
+    };
+
+    const getTuitionType = () => {
+        if (selected.online && selected.offline) return 'both';
+        if (selected.online) return 'online';
+        if (selected.offline) return 'offline';
+        return null;
     };
 
     const validateForm = () => {
         let isValid = true;
         const newErrors = { teachingMethod: '', experience: '', stages: '' };
 
-        // 1. التحقق من طريقة التدريس
         if (!selected.online && !selected.offline) {
             newErrors.teachingMethod = 'يرجى اختيار طريقة تدريس واحدة على الأقل (أونلاين أو حضوري).';
             isValid = false;
         }
 
-        // 2. التحقق من سنوات الخبرة
         if (experienceYears === '' || isNaN(experienceYears) || Number(experienceYears) < 0) {
             newErrors.experience = 'يرجى إدخال عدد سنوات الخبرة (رقم صحيح 0 أو أكثر).';
             isValid = false;
         }
 
-        // 3. التحقق من المراحل والأسعار (استدعاء دالة من PriceCard)
         const stagesValid = priceCardRef.current?.validateStages();
         if (!stagesValid) {
             newErrors.stages = 'يرجى اختيار مرحلة واحدة على الأقل وتعبئة السعر (يمكن أن يكون 0).';
@@ -55,9 +62,42 @@ export default function CreateAccountStep3(){
         return isValid;
     };
 
-    const handleNext = () => {
-        if (validateForm()) {
+    const handleNext = async () => {
+        setGeneralError('');
+        if (!validateForm()) return;
+
+        const prices = priceCardRef.current?.getPrices?.() || {};
+
+        setIsSubmitting(true);
+        try {
+            // 1. استدعاء API الخطوة 3
+            const response = await registerTutorStep3({
+                tution_type: getTuitionType(),
+                total_experience_years: Number(experienceYears),
+                price_stage_1: prices.price_stage_1 ?? null,
+                price_stage_2: prices.price_stage_2 ?? null,
+                price_stage_3: prices.price_stage_3 ?? null
+            });
+
+            // 2. 🔥 تخزين التوكن الجديد القادم من الباك إند (step: 4)
+            if (response?.data?.registration_token) {
+                localStorage.setItem('tutor_registration_token', response.data.registration_token);
+                console.log('✅ تم تحديث توكن التسجيل (الخطوة 4)');
+            } else {
+                // في حال كان الهيكل مختلفاً
+                if (response?.registration_token) {
+                    localStorage.setItem('tutor_registration_token', response.registration_token);
+                } else {
+                    console.warn('⚠️ لم يتم العثور على registration_token في رد الخطوة 3', response);
+                }
+            }
+
+            // 3. الانتقال للخطوة 4
             navigate('/create-account/step4');
+        } catch (err) {
+            setGeneralError(getErrorMessage(err));
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -66,12 +106,12 @@ export default function CreateAccountStep3(){
             <header className="steponeheader">
                 <div className="logoAndtitle">
                     <img className="Alef-logo" src={logo} alt="logo" />
-                    إنشاء حساب مُعلّم - منصَّة ألِف
+                    إنشاء حساب مُعلّم - منصَّة ألِف
                 </div>
             </header>
             <div className='content'>
                 <div className="titleforstep1">
-                    <h2>أهلاً بكُم في مِنصَّتنا التَّعليميَّة !</h2>
+                    <h2>أهلاً بكُم في مِنصَّتنا التَّعليميَّة !</h2>
                     <p className="welcom">حدد أسعارك للمراحل التعليمية المختلفة و حدد طرق التدريس الخاصة بك.</p>
                     <div className="progress-bar-wrapper">
                         <p className="personalinfo">الخطوةُ 3 من 4 : تفاصيل الدرس </p>
@@ -82,6 +122,8 @@ export default function CreateAccountStep3(){
                 </div>
 
                 <div className='step3content stp3'>
+                    {generalError && <div className="validation-error">{generalError}</div>}
+
                     {/* قسم طريقة التدريس */}
                     <div className="method-cards-container">
                         <div className="method-cards-title">
@@ -152,10 +194,10 @@ export default function CreateAccountStep3(){
                     {errors.stages && <div className="validation-error stages-error">{errors.stages}</div>}
                     
                     <div className="tutorbuttons">
-                        <button className="movetostep2" onClick={handleNext}>
-                            <FaArrowRight className="btn-icon" /> متابعة للخطوة التالية
+                        <button className="movetostep2" onClick={handleNext} disabled={isSubmitting} type="button">
+                            <FaArrowRight className="btn-icon" /> {isSubmitting ? 'جارِ الإرسال...' : 'متابعة للخطوة التالية'}
                         </button>
-                        <button className="cancele" onClick={()=>{navigate('/create-account/step2')}}> 
+                        <button className="cancele" onClick={()=>{navigate('/create-account/step2')}} disabled={isSubmitting} type="button"> 
                             <FaArrowLeft className="btn-icon"/> 
                         </button>
                     </div>

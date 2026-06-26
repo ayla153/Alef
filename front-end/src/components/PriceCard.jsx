@@ -36,8 +36,24 @@ const PriceCard = forwardRef((props, ref) => {
         });
     };
 
+    // ✅ دالة جديدة: تُرجع أسعار المراحل الثلاث بالشكل الذي يطلبه الباك إند (price_stage_1/2/3)
+    // المرحلة غير المفعّلة (active: false) تُرسل كـ null بدلاً من 0، لأنها تعني "غير مُدرَّسة"
+    const getPrices = () => {
+        const findStage = (id) => stages.find((s) => s.id === id);
+        const stage1 = findStage(1);
+        const stage2 = findStage(2);
+        const stage3 = findStage(3);
+
+        return {
+            price_stage_1: stage1?.active && stage1.price !== '' ? Number(stage1.price) : null,
+            price_stage_2: stage2?.active && stage2.price !== '' ? Number(stage2.price) : null,
+            price_stage_3: stage3?.active && stage3.price !== '' ? Number(stage3.price) : null
+        };
+    };
+
     useImperativeHandle(ref, () => ({
-        validateStages
+        validateStages,
+        getPrices
     }));
 
     return (

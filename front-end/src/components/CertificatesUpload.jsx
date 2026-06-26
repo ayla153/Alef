@@ -1,8 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, forwardRef, useImperativeHandle } from 'react';
 import '../styles/tstyle/CertificatesUpload.css';
 import { FaFileAlt , FaCloudUploadAlt, FaFilePdf, FaFileImage, FaTrashAlt, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 
-export default function CertificatesUpload () {
+const CertificatesUpload = forwardRef((props, ref) => {
   const [files, setFiles] = useState([]);
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
@@ -49,10 +49,9 @@ export default function CertificatesUpload () {
   };
 
   // محاكاة رفع الملفات إلى الخادم (تحديث حالة uploaded إلى true)
+  // ⚠️ لا يوجد Endpoint حقيقي بالباك إند لرفع الشهادات حالياً (الباك إند يستقبل بس certificate_url
+  // كنص جاهز بخطوة التسجيل الرابعة). لذلك هذا الرفع محاكاة محلية فقط لحين إضافة Endpoint فعلي.
   const handleUpload = async () => {
-    // هنا يمكنك استدعاء API لرفع الملفات
-    // بعد نجاح الرفع، نغير حالة uploaded لكل ملف
-    // للمثال: سنقوم بتحديث uploaded لكل الملفات بعد 1 ثانية
     const updatedFiles = files.map(f => ({ ...f, uploaded: true }));
     setFiles(updatedFiles);
     alert('تم رفع الملفات بنجاح (محاكاة)');
@@ -87,6 +86,14 @@ export default function CertificatesUpload () {
     if (type === 'application/pdf') return <FaFilePdf className="file-icon pdf" />;
     return <FaFileImage className="file-icon image" />;
   };
+
+  // ✅ تعريض دوال للكومبوننت الأب (مثلاً CreateAccountStep4) عبر الـ ref
+  useImperativeHandle(ref, () => ({
+    getFilesCount: () => files.length,
+    // ⚠️ بما إنه ما في رفع حقيقي للسيرفر بعد، هاي بترجع أسماء الملفات فقط وليس روابط فعلية مستضافة.
+    // لما يضاف Endpoint حقيقي للرفع، لازم تستبدل هاد بالروابط الفعلية القادمة من السيرفر.
+    getUploadedUrls: () => files.map((f) => f.name)
+  }));
 
   return (
     <div className="certificates-container">
@@ -156,6 +163,6 @@ export default function CertificatesUpload () {
       )}
     </div>
   );
-};
+});
 
-
+export default CertificatesUpload;

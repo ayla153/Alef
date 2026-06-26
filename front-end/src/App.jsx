@@ -15,7 +15,7 @@ import TutorsPage from './Pages/student/TutorsPage';
 import Profile from './Pages/student/Profile';
 import FavPage from './Pages/student/FavPage';
 import Notifications from './Pages/student/notification';
-import StudentTeacherProfile from './Pages/student/TeacherProfile';
+import TeacherProfile from './Pages/student/TeacherProfile';
 import SelectionPage from './Pages/student/SelectionPage';
 import CreateStudentAccount from './Pages/student/CreateStudentAccount';
 import Login from './Pages/student/login';
@@ -28,6 +28,10 @@ import CreateAccountStep1 from './Pages/teacher/CreateAccountStep1';
 import CreateAccountStep2 from './Pages/teacher/CreateAccountStep2';
 import CreateAccountStep3 from './Pages/teacher/CreateAccountStep3';
 import CreateAccountStep4 from './Pages/teacher/CreateAccountStep4';
+
+
+
+
 
 function App() {
   return (
@@ -49,18 +53,22 @@ function App() {
 
       <Route path="/home" element={<HomePage />} />
       <Route path="/tutors" element={<TutorsPage />} />
+      <Route path="/tutor/:tutor_id" element={<TeacherProfile />} />
       <Route path="/favorites" element={<FavPage />} />
       <Route path="/notifications" element={<Notifications />} />
       <Route path="/profile" element={<Profile />} />
-      <Route path="/teacher/profile" element={<StudentTeacherProfile />} />
-      <Route path="/tutor/profile" element={<TutorProfilePage />} />
+      
 
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/Dashboard" element={<Dashboard />} />
 
       <Route path="/Create/Lead" element={<CreateLeadWizard />} />
       <Route path="/MyLeads" element={<MyLeads />} />
-      <Route path="/lead/:id" element={<LeadDetailsPage />} />
+     <Route path="/lead/:id" element={<LeadDetailsPage />} />
+
+     
+      
+
 
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="/admin/request/:id" element={<AdminRequestDetails />} />

@@ -3,44 +3,42 @@ import "../../styles/sstyle/CreateLeadStep2.css";
 import Header from "../../components/Header";
 
 const CreateLeadStep2 = ({ formData, updateForm, onNext, onBack }) => {
-  const [budgetValue, setBudgetValue] = useState(500);
+  // budgetValue: قيمة الـ slider للعرض — مربوطة مع formData.expected_fee
+  const [budgetValue, setBudgetValue] = useState(
+    formData.expected_fee || 500
+  );
   const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    updateForm({
-      [name]: value,
-    });
-
-    setErrors({
-      ...errors,
-      [name]: "",
-    });
+    updateForm({ [name]: value });
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
+
+  // ─── Validation ─────────────────────────────────────────────
+  // weeklyClasses و time: حقول واجهة فقط (ما عندها مقابل بالباك)
+  // بنتحقق منهم لأن الـ UX بيطلبهم، لكن ما بنبعتهم للـ API
 
   const validateForm = () => {
-    let newErrors = {};
+  const newErrors = {};
 
-    if (!formData.weeklyClasses) {
-      newErrors.weeklyClasses = "الرجاء إدخال عدد الحصص الأسبوعية";
-    }
+  if (!formData.time) {
+    newErrors.time = "الرجاء اختيار الوقت المناسب";
+  }
 
-    if (!formData.time) {
-      newErrors.time = "الرجاء اختيار الوقت المناسب";
-    }
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
 
-    setErrors(newErrors);
+const handleNext = () => {
+  updateForm({
+    weeklyClasses: formData.weeklyClasses || 1,
+  });
 
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleNext = () => {
-    if (validateForm()) {
-      onNext();
-    }
-  };
-
+  if (validateForm()) {
+    onNext();
+  }
+};
   return (
     <div className="createLeadStep2_appContainer" dir="rtl">
       <Header />
@@ -83,7 +81,7 @@ const CreateLeadStep2 = ({ formData, updateForm, onNext, onBack }) => {
               </h3>
 
               <div className="createLeadStep2_formGrid">
-                {/* Field 1 */}
+                {/* عدد الحصص — واجهة فقط */}
                 <label className="createLeadStep2_formGroup">
                   <span className="createLeadStep2_formLabel">
                     كم حصة تحتاج أسبوعياً؟
@@ -94,23 +92,16 @@ const CreateLeadStep2 = ({ formData, updateForm, onNext, onBack }) => {
                       type="number"
                       min="1"
                       max="7"
-                      defaultValue="1"
                       name="weeklyClasses"
-                      value={formData.weeklyClasses}
+                      value={formData.weeklyClasses || "1"}
                       onChange={handleChange}
                       className="createLeadStep2_formControl"
                     />
                     <span className="createLeadStep2_inputSuffix">حصص</span>
                   </div>
-
-                  {errors.weeklyClasses && (
-                    <span className="createLeadStep2_errorText">
-                      {errors.weeklyClasses}
-                    </span>
-                  )}
                 </label>
 
-                {/* Field 2 */}
+                {/* الوقت المناسب — واجهة فقط */}
                 <label className="createLeadStep2_formGroup">
                   <span className="createLeadStep2_formLabel">
                     الوقت المناسب
@@ -120,7 +111,7 @@ const CreateLeadStep2 = ({ formData, updateForm, onNext, onBack }) => {
                     <input
                       type="time"
                       name="time"
-                      value={formData.time}
+                      value={formData.time || ""}
                       onChange={handleChange}
                       className="createLeadStep2_formControl"
                     />
@@ -136,7 +127,7 @@ const CreateLeadStep2 = ({ formData, updateForm, onNext, onBack }) => {
                   )}
                 </label>
 
-                {/* Field 3 (بدون validation حسب طلبك) */}
+                {/* الميزانية — expected_fee (بينبعت للباك) */}
                 <div className="createLeadStep2_formGroup createLeadStep2_fullWidth createLeadStep2_budgetGroup">
                   <div className="createLeadStep2_budgetHeader">
                     <span className="createLeadStep2_formLabel">
@@ -156,11 +147,9 @@ const CreateLeadStep2 = ({ formData, updateForm, onNext, onBack }) => {
                       step="10"
                       value={budgetValue}
                       onChange={(e) => {
-                        setBudgetValue(e.target.value);
-
-                        updateForm({
-                          budget: e.target.value,
-                        });
+                        const val = Number(e.target.value);
+                        setBudgetValue(val);
+                        updateForm({ expected_fee: val });
                       }}
                       className="createLeadStep2_rangeSlider"
                     />

@@ -61,7 +61,6 @@ export default function HomeTab({ onViewProfile }) {
       offlinePrice: 0,
     }
   ];
-
   return (
     <>
       <div className="firstsection fade-in">

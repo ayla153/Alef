@@ -1,9 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import "../../styles/sstyle/MyLeads.css";
 import Header from "../../components/Header";
 import { useNavigate } from "react-router-dom";
+import api from "../../api/api.js";
 
-/* 🎯 ألوان المواد حسب الاسم */
 const subjectColors = {
   رياضيات: "blue",
   فيزياء: "purple",
@@ -16,7 +16,7 @@ const subjectColors = {
   معلوماتية: "indigo",
 };
 
-const getSubjectIcon = (title) => {
+const getSubjectIcon = (title = "") => {
   if (title.includes("رياضيات")) return "calculate";
   if (title.includes("فيزياء")) return "biotech";
   if (title.includes("كيمياء")) return "science";
@@ -26,58 +26,14 @@ const getSubjectIcon = (title) => {
   if (title.includes("تاريخ")) return "history_edu";
   if (title.includes("جغرافيا")) return "public";
   if (title.includes("معلوماتية")) return "computer";
-
   return "school";
 };
 
-/* 🎯 استخراج لون المادة من العنوان */
-const getSubjectColor = (title) => {
+const getSubjectColor = (title = "") => {
   const match = Object.keys(subjectColors).find((key) => title.includes(key));
-
   return subjectColors[match] || "gray";
 };
 
-const INITIAL_LEADS = [
-  {
-    id: 1,
-    title: "رياضيات - تفاضل وتكامل",
-    type: "public",
-    status: "open",
-    level: "المرحلة الثانوية",
-    price: "200 - 300 ل.س",
-    offersCount: 3,
-  },
-  {
-    id: 2,
-    title: "معلوماتية",
-    type: "public",
-    status: "pending",
-    level: "المرحلة الثانوية",
-    price: "400 - 600 ل.س",
-    offersCount: 0,
-  },
-  {
-    id: 3,
-    title: "لغة إنجليزية",
-    type: "public",
-    status: "closed_matched",
-    level: "المرحلة المتوسطة",
-    price: "150 ل.س",
-    offersCount: 6,
-  },
-  {
-    id: 4,
-    title: "كيمياء حيوي",
-    type: "private",
-    status: "waiting_tutor",
-    level: "المرحلة الجامعية",
-    price: "300 - 450 ل.س",
-    offersCount: 0,
-    tutorName: "أحمد علي",
-  },
-];
-
-/* 🎯 STATUS CONFIG */
 const STATUS_CONFIG = {
   open: {
     statusText: "مفتوح",
@@ -88,7 +44,6 @@ const STATUS_CONFIG = {
     buttonClass: "btn-blue",
     canAction: true,
   },
-
   slots_full: {
     statusText: "العروض ممتلئة",
     statusColor: "amber",
@@ -98,9 +53,28 @@ const STATUS_CONFIG = {
     buttonClass: "btn-outline-gray",
     canAction: true,
   },
-
+  // طلب خاص (target_tutor_id موجود) لسا open، يعني المعلم لسا ما وافق على التواصل.
+  // هاي حالة مختلفة تماماً عن "العروض ممتلئة" لأن الطلب الخاص ما فيه عروض من أساسه.
+  waiting_tutor_response: {
+    statusText: "بانتظار رد المعلم",
+    statusColor: "amber",
+    badgeText: "لم يستجب المعلم بعد",
+    badgeType: "warning",
+    buttonText: "عرض التفاصيل",
+    buttonClass: "btn-outline-gray",
+    canAction: true,
+  },
+  closed_shortlist: {
+    statusText: "مغلق — قائمة العروض",
+    statusColor: "blue",
+    badgeText: "تم اختيار معلمين",
+    badgeType: "success",
+    buttonText: "عرض النتيجة",
+    buttonClass: "btn-blue",
+    canAction: true,
+  },
   closed_matched: {
-    statusText: "تم الإغلاق",
+    statusText: "مغلق — تم الاختيار",
     statusColor: "blue",
     badgeText: "تم اختيار معلم",
     badgeType: "success",
@@ -108,29 +82,17 @@ const STATUS_CONFIG = {
     buttonClass: "btn-blue",
     canAction: true,
   },
-
-  closed_no_match: {
-    statusText: "تم الإغلاق",
+  closed_empty: {
+    statusText: "ملغي",
     statusColor: "gray",
-    badgeText: "لم يتم اختيار أحد",
+    badgeText: "تم إلغاء الطلب",
     badgeType: "expired",
     buttonText: "عرض التفاصيل",
     buttonClass: "btn-outline-gray",
     canAction: true,
   },
-
-  waiting_tutor: {
-    statusText: "طلب خاص",
-    statusColor: "purple",
-    badgeText: "بانتظار رد المعلم",
-    badgeType: "warning",
-    buttonText: "متابعة الطلب",
-    buttonClass: "btn-blue",
-    canAction: true,
-  },
-
-  expired: {
-    statusText: "انتهى الطلب",
+  closed_expired: {
+    statusText: "منتهي",
     statusColor: "gray",
     badgeText: "انتهت الصلاحية",
     badgeType: "expired",
@@ -140,16 +102,48 @@ const STATUS_CONFIG = {
   },
 };
 
+// شكل "مطفي" بصرياً فقط: الملغي (closed_empty) والمنتهي (closed_expired)
+const DIMMED_STATUSES = ["closed_empty", "closed_expired"];
+
 export default function MyLeads() {
   const [filter, setFilter] = useState("all");
-  const [leads, setLeads] = useState(INITIAL_LEADS);
-
+  const [leads, setLeads] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  /* 🔴 FIX 1: حماية config من undefined */
-  const safeConfig = (status) => {
+  useEffect(() => {
+    const fetchLeads = async () => {
+      try {
+        const { data } = await api.get("/leads/me");
+        setLeads(data);
+      } catch (err) {
+        setError(err.response?.data?.detail || "فشل في جلب الطلبات");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLeads();
+  }, []);
+
+  const safeConfig = (lead) => {
+    const isPrivate = lead.target_tutor_id != null;
+
+    let statusKey = lead.lead_status;
+
+    if (lead.lead_status === "open") {
+      if (isPrivate) {
+        // الطلب الخاص لسا open = بانتظار رد المعلم المستهدف، لا علاقة له بامتلاء العروض
+        statusKey = "waiting_tutor_response";
+      } else if (!lead.accepting_applications) {
+        // الطلب العام فقط هو اللي ممكن توصل عروضه للحد الأقصى
+        statusKey = "slots_full";
+      }
+    }
+
     return (
-      STATUS_CONFIG[status] || {
+      STATUS_CONFIG[statusKey] || {
         statusText: "غير معروف",
         statusColor: "gray",
         badgeText: "",
@@ -161,60 +155,78 @@ export default function MyLeads() {
     );
   };
 
-  /* 🎯 فلترة */
+  const isDimmed = (lead) => DIMMED_STATUSES.includes(lead.lead_status);
+
   const filteredLeads = useMemo(() => {
     switch (filter) {
       case "active":
-        return leads.filter((l) => ["open", "slots_full"].includes(l.status));
-
+        return leads.filter((l) => l.lead_status === "open");
       case "waiting":
-        return leads.filter((l) => ["waiting_tutor"].includes(l.status));
-
+        return leads.filter(
+          (l) => l.lead_status === "open" && l.target_tutor_id != null
+        );
       case "closed":
         return leads.filter((l) =>
-          ["closed_matched", "closed_no_match", "expired"].includes(l.status),
+          ["closed_shortlist", "closed_matched", "closed_empty", "closed_expired"].includes(
+            l.lead_status
+          )
         );
-
       default:
         return leads;
     }
   }, [filter, leads]);
 
-  const handleCreateLead = () => {
-    console.log("Create Lead");
-  };
-
   const handleViewDetails = (lead) => {
-    navigate(`/lead/${lead.id}`, { state: lead });
+    navigate(`/lead/${lead.post_requirements_id}`, { state: lead });
   };
 
   const handleArchiveLead = (id) => {
-    setLeads((prev) => prev.filter((l) => l.id !== id));
+    setLeads((prev) => prev.filter((l) => l.post_requirements_id !== id));
   };
 
   const handleAction = (lead) => {
-    const config = safeConfig(lead.status);
-
+    const config = safeConfig(lead);
     if (config.canAction) {
       handleViewDetails(lead);
-      return;
+    } else {
+      handleArchiveLead(lead.post_requirements_id);
     }
-
-    handleArchiveLead(lead.id);
   };
 
   const getBadgeIcon = (badgeType) => {
     switch (badgeType) {
-      case "warning":
-        return "schedule";
-      case "success":
-        return "verified";
-      case "expired":
-        return "event_busy";
-      default:
-        return "info";
+      case "warning": return "schedule";
+      case "success": return "verified";
+      case "expired": return "event_busy";
+      default: return "info";
     }
   };
+
+  if (loading) {
+    return (
+      <div className="app-container" dir="rtl">
+        <Header />
+        <main className="main-content">
+          <div style={{ textAlign: "center", padding: "4rem" }}>
+            جاري التحميل...
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="app-container" dir="rtl">
+        <Header />
+        <main className="main-content">
+          <div style={{ textAlign: "center", padding: "4rem", color: "red" }}>
+            {error}
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="app-container" dir="rtl">
@@ -236,36 +248,22 @@ export default function MyLeads() {
           </button>
         </div>
 
-        {/* filters */}
         <div className="filters-section">
           <div className="tabs-container">
-            <button
-              className={`tab-btn ${filter === "all" ? "active" : ""}`}
-              onClick={() => setFilter("all")}
-            >
-              الكل
-            </button>
-
-            <button
-              className={`tab-btn ${filter === "active" ? "active" : ""}`}
-              onClick={() => setFilter("active")}
-            >
-              نشط
-            </button>
-
-            <button
-              className={`tab-btn ${filter === "waiting" ? "active" : ""}`}
-              onClick={() => setFilter("waiting")}
-            >
-              قيد الانتظار
-            </button>
-
-            <button
-              className={`tab-btn ${filter === "closed" ? "active" : ""}`}
-              onClick={() => setFilter("closed")}
-            >
-              منتهي
-            </button>
+            {[
+              { key: "all", label: "الكل" },
+              { key: "active", label: "نشط" },
+              { key: "waiting", label: "قيد الانتظار" },
+              { key: "closed", label: "منتهي" },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                className={`tab-btn ${filter === tab.key ? "active" : ""}`}
+                onClick={() => setFilter(tab.key)}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -276,15 +274,15 @@ export default function MyLeads() {
         ) : (
           <div className="leads-container">
             {filteredLeads.map((lead) => {
-              const config = safeConfig(lead.status);
+              const config = safeConfig(lead);
               const subjectColor = getSubjectColor(lead.title);
+              const dimmed = isDimmed(lead);
+              const isPrivate = lead.target_tutor_id != null;
 
               return (
                 <div
-                  key={lead.id}
-                  className={`lead-card ${
-                    !config.canAction ? "expired-card" : ""
-                  }`}
+                  key={lead.post_requirements_id}
+                  className={`lead-card ${dimmed ? "expired-card" : ""}`}
                 >
                   <div className="lead-right-side">
                     <div className={`subject-icon icon-${subjectColor}`}>
@@ -296,27 +294,36 @@ export default function MyLeads() {
                     <div className="subject-details">
                       <div className="subject-title-row">
                         <h3>{lead.title}</h3>
-
-                        <span
-                          className={`status-badge status-${config.statusColor}`}
-                        >
-                          {config.statusText}
-                        </span>
+                        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                          <span
+                            style={{
+                              fontSize: "11px",
+                              padding: "2px 8px",
+                              borderRadius: "99px",
+                              background: lead.target_tutor_id ? "#ede9fe" : "#dbeafe",
+                              color: lead.target_tutor_id ? "#7c3aed" : "#1d4ed8",
+                            }}
+                          >
+                            {lead.target_tutor_id ? "طلب خاص" : "طلب عام"}
+                          </span>
+                          <span className={`status-badge status-${config.statusColor}`}>
+                            {config.statusText}
+                          </span>
+                        </div>
                       </div>
 
                       <div className="subject-meta">
                         <div className="meta-item">
-                          <span className="material-symbols-outlined">
-                            school
-                          </span>
-                          <span>{lead.level}</span>
+                          <span className="material-symbols-outlined">payments</span>
+                          <span>{lead.expected_fee} ل.س / ساعة</span>
                         </div>
-
-                        <div className="meta-item price-item">
+                        <div className="meta-item">
                           <span className="material-symbols-outlined">
-                            payments
+                            {lead.tution_type === "online" ? "wifi" : lead.tution_type === "offline" ? "person_pin" : "devices"}
                           </span>
-                          <span>{lead.price}</span>
+                          <span>
+                            {lead.tution_type === "online" ? "أونلاين" : lead.tution_type === "offline" ? "حضوري" : "أونلاين وحضوري"}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -333,12 +340,13 @@ export default function MyLeads() {
                         </div>
                       )}
 
-                      <div className="info-badge badge-primary-light">
-                        <span className="material-symbols-outlined">
-                          groups
-                        </span>
-                        <span>{lead.offersCount} عروض مستلمة</span>
-                      </div>
+                      {/* عداد العروض المستلمة منطقي فقط للطلب العام؛ الطلب الخاص ما فيه "عروض" */}
+                      {!isPrivate && (
+                        <div className="info-badge badge-primary-light">
+                          <span className="material-symbols-outlined">groups</span>
+                          <span>{lead.pending_offer_count} عروض مستلمة</span>
+                        </div>
+                      )}
                     </div>
 
                     <button

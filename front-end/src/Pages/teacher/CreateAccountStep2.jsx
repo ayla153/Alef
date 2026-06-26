@@ -9,13 +9,11 @@ import { getErrorMessage } from '../../utils/apiErrors';
 export default function CreateAccountStep2() {
   const navigate = useNavigate();
 
-  // قوائم المواد والمستويات القادمة من الباك إند
   const [subjectsList, setSubjectsList] = useState([]);
   const [levelsList, setLevelsList] = useState([]);
   const [isLoadingCatalog, setIsLoadingCatalog] = useState(true);
   const [catalogError, setCatalogError] = useState('');
 
-  // حقول إضافة مادة جديدة
   const [selectedSubjectId, setSelectedSubjectId] = useState('');
   const [selectedLevelId, setSelectedLevelId] = useState('');
   const [selectedYears, setSelectedYears] = useState(0);
@@ -28,11 +26,9 @@ export default function CreateAccountStep2() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // تحميل قائمة المواد والمستويات عند فتح الصفحة، والتأكد من وجود توكن التسجيل
   useEffect(() => {
     const token = localStorage.getItem('tutor_registration_token');
     if (!token) {
-      // لا يوجد توكن تسجيل صالح، يجب البدء من الخطوة الأولى
       navigate('/create-account/step1');
       return;
     }
@@ -42,8 +38,8 @@ export default function CreateAccountStep2() {
       setCatalogError('');
       try {
         const [subjectsRes, levelsRes] = await Promise.all([getSubjects(), getLevels()]);
-        setSubjectsList(subjectsRes.data || []);
-        setLevelsList(levelsRes.data || []);
+        setSubjectsList(subjectsRes.data);
+        setLevelsList(levelsRes.data);
       } catch (err) {
         setCatalogError(getErrorMessage(err));
       } finally {
@@ -96,8 +92,8 @@ export default function CreateAccountStep2() {
         foundation: selectedFoundation,
         primary_stage: selectedPrimary,
         elementary_stage: selectedElementary,
-        high_school_stage: selectedHighSchool,
-      },
+        high_school_stage: selectedHighSchool
+      }
     ]);
 
     resetAddSubjectFields();
@@ -134,11 +130,20 @@ export default function CreateAccountStep2() {
           experience_years: s.years,
           primary_stage: s.primary_stage,
           elementary_stage: s.elementary_stage,
-          high_school_stage: s.high_school_stage,
-        })),
+          high_school_stage: s.high_school_stage
+        }))
       };
 
-      await registerTutorStep2(payload);
+      const response = await registerTutorStep2(payload);
+
+      // 🔥 التعديل الجوهري: التوكن موجود داخل response.data
+      if (response?.data?.registration_token) {
+        localStorage.setItem('tutor_registration_token', response.data.registration_token);
+        console.log('✅ تم تحديث توكن التسجيل (الخطوة 3)');
+      } else {
+        console.warn('⚠️ لم يتم العثور على registration_token في الرد:', response);
+      }
+
       navigate('/create-account/step3');
     } catch (err) {
       setError(getErrorMessage(err));

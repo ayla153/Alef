@@ -4,11 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaTimesCircle, FaArrowRight , FaLightbulb , FaFileAlt } from "react-icons/fa";
 import { useState, useRef } from 'react';
 import CertificatesUpload from '../../components/common/CertificatesUpload'
+import { registerTutorStep4 } from '../../api/tutorRegistration';
+import { getErrorMessage } from '../../utils/apiErrors';
 
 export default function CreateAccountStep4(){
     const navigate = useNavigate();
     const [bio, setBio] = useState('');
     const [validationError, setValidationError] = useState('');
+    const [generalError, setGeneralError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const certificatesRef = useRef();
 
     const validateForm = () => {
@@ -22,9 +26,39 @@ export default function CreateAccountStep4(){
         return true;
     };
 
-    const handleNext = () => {
-        if (validateForm()) {
+    const handleNext = async () => {
+        setGeneralError('');
+        if (!validateForm()) return;
+
+        // ===== ملاحظة مهمّة =====
+        // الباك إند يستقبل في هذه الخطوة رابط الشهادة (certificate_url) كنص جاهز،
+        // وليس ملفاً مباشراً (لا يوجد في الـ API الحالي مسار رفع ملفات للشهادات).
+        // نفترض هنا أن مكوّن CertificatesUpload يرفع الملفات بنفسه (إلى خدمة تخزين
+        // خارجية مثلاً) ويُعيد الروابط الناتجة عبر دالة getUploadedUrls() على الـ ref.
+        // إذا كان اسم الدالة الفعلي مختلفاً، أو إذا كان المكوّن لا يرفع الملفات حالياً
+        // ويحتفظ بها محلياً فقط، يجب تعديل هذا الجزء بما يطابق التنفيذ الحقيقي.
+        const uploadedUrls = certificatesRef.current?.getUploadedUrls?.() || [];
+        const certificateUrl = uploadedUrls[0] || null;
+
+        setIsSubmitting(true);
+        try {
+            const response = await registerTutorStep4({
+                bio: bio.trim() || null,
+                tutor_photo_url: null,
+                tutor_video_url: null,
+                certificate_url: certificateUrl
+            });
+
+            // هذه هي الخطوة الأخيرة: الباك إند يرجع access_token نهائي وحقيقي للحساب
+            const { access_token } = response.data;
+            localStorage.setItem('access_token', access_token);
+            localStorage.removeItem('tutor_registration_token');
+
             navigate('/dashboard');
+        } catch (err) {
+            setGeneralError(getErrorMessage(err));
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -34,12 +68,12 @@ export default function CreateAccountStep4(){
                 <header className="steponeheader">
                     <div className="logoAndtitle">
                         <img className="Alef-logo" src={logo} alt="logo" />
-                        إنشاء حساب مُعلّم - منصَّة ألِف
+                        إنشاء حساب مُعلّم - منصَّة ألِف
                     </div>
                 </header>
                 <div className='content'>
                     <div className="titleforstep1">
-                        <h2>أهلاً بكُم في مِنصَّتنا التَّعليميَّة !</h2>
+                        <h2>أهلاً بكُم في مِنصَّتنا التَّعليميَّة !</h2>
                         <p className="welcom">اكتب نبذة عنك و ادخل شهاداتك</p>
                         <div className="progress-bar-wrapper">
                             <p className="personalinfo">الخطوةُ 4 من 4 : التفاصيل المهنية </p>
@@ -86,14 +120,15 @@ export default function CreateAccountStep4(){
 
                         <CertificatesUpload ref={certificatesRef} />
 
-                        {/* عرض رسالة الخطأ إن وجدت */}
+                        {/* عرض رسائل الخطأ إن وجدت */}
+                        {generalError && <div className="validation-error">{generalError}</div>}
                         {validationError && <div className="validation-error">{validationError}</div>}
 
                         <div className="tutorbuttons">
-                            <button className="movetostep2" onClick={handleNext}>
-                                <FaArrowRight className="btn-icon" /> متابعة للخطوة التالية
+                            <button className="movetostep2" onClick={handleNext} disabled={isSubmitting} type="button">
+                                <FaArrowRight className="btn-icon" /> {isSubmitting ? 'جارِ الإرسال...' : 'إنشاء الحساب'}
                             </button>
-                            <button className="cancele" onClick={() => navigate('/create-account/step3')}>
+                            <button className="cancele" onClick={() => navigate('/create-account/step3')} disabled={isSubmitting} type="button">
                                 <FaArrowLeft className="btn-icon" />
                             </button>
                         </div>

@@ -6,6 +6,8 @@ import {
   FaBook, FaCheckCircle
 } from 'react-icons/fa';
 import '../../styles/TutorProfile.css';
+import { getMyProfile, updateTutor, uploadTutorPhoto } from '../../api/tutorProfile';
+import { getErrorMessage } from '../../utils/apiErrors';
 
 const availableSubjects = [
   'الرياضيات', 'اللغة العربية', 'اللغة الانكليزية', 'اللغة الفرنسية',
@@ -13,42 +15,82 @@ const availableSubjects = [
   'التاريخ', 'الجغرافية', 'الوطنية', 'معلوماتية'
 ];
 
-const initialTeacherData = {
-  profileImage: null,
-  firstname: 'أحمد',
-  lastname: 'محمد',
-  phone: '+963988888888',
-  email: 'ahmed@example.com',
-  totalYearsExperience: 5,
-  teachingMethods: { online: true, offline: true },
-  subjects: [
-    { name: 'الرياضيات', years: 5 },
-    { name: 'الفيزياء', years: 3 }
-  ],
-  stagesPrices: [
-    { stage: 'المرحلة الابتدائية', price: 300000 },
-    { stage: 'المرحلة المتوسطة', price: 400000 },
-    { stage: 'المرحلة الثانوية', price: 500000 }
-  ],
-  bio: 'أنا مدرس متخصص في الرياضيات والفيزياء، لدي خبرة 5 سنوات في تدريس المراحل الثانوية والجامعية.',
-  certificates: ['شهادة التعليم العالي.pdf', 'دورة تدريبية.pdf']
-};
+// تحويل بيانات المعلّم القادمة من الباك إند (TutorOut) إلى شكل الواجهة
+function mapTutorToProfile(tutor) {
+  return {
+    profileImage: tutor.tutor_photo || null,
+    firstname: tutor.first_name || '',
+    lastname: tutor.last_name || '',
+    phone: tutor.phone_number || '',
+    email: tutor.email || '',
+    totalYearsExperience: tutor.total_experience_years ?? 0,
+    teachingMethods: {
+      online: tutor.tution_type === 'online' || tutor.tution_type === 'both',
+      offline: tutor.tution_type === 'offline' || tutor.tution_type === 'both'
+    },
+    subjects: (tutor.tutor_subjects || []).map((ts) => ({
+      name: ts.subject?.subject_title || '—',
+      years: ts.experience_years
+    })),
+    // ⚠️ الباك إند لا يخزّن "سعر موحّد لكل مرحلة"، بل سعر لكل مادة (price_per_hour ضمن tutor_subjects).
+    // نعرض هنا قيماً تقريبية لعرضها فقط؛ التعديل عليها هنا لن يُحفظ بالسيرفر (راجع الملاحظة أسفل الكارد).
+    stagesPrices: [
+      { stage: 'المرحلة الابتدائية', price: 0 },
+      { stage: 'المرحلة المتوسطة', price: 0 },
+      { stage: 'المرحلة الثانوية', price: 0 }
+    ],
+    bio: tutor.bio || '',
+    // ⚠️ الباك إند الحالي لا يرجّع رابط الشهادات ضمن بيانات المعلّم
+    certificates: []
+  };
+}
 
 export default function TutorProfile() {
-  const [profileData, setProfileData] = useState(initialTeacherData);
-  const [originalData, setOriginalData] = useState(initialTeacherData);
+  const [tutorId, setTutorId] = useState(null);
+  const [profileData, setProfileData] = useState(null);
+  const [originalData, setOriginalData] = useState(null);
   const [profileImagePreview, setProfileImagePreview] = useState(
-    initialTeacherData.profileImage || 'https://randomuser.me/api/portraits/men/32.jpg'
+    'https://randomuser.me/api/portraits/men/32.jpg'
   );
   const [errors, setErrors] = useState({});
   const [showValidation, setShowValidation] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [saveError, setSaveError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const fileInputRef = useRef(null);
   const fileCertificateRef = useRef(null);
   const [selectedSubject, setSelectedSubject] = useState('');
   const [newSubjectYears, setNewSubjectYears] = useState(0);
 
+  const fetchProfile = async () => {
+    setIsLoading(true);
+    setLoadError('');
+    try {
+      const response = await getMyProfile();
+      const mapped = mapTutorToProfile(response.data);
+      setTutorId(response.data.tutor_id);
+      setProfileData(mapped);
+      setOriginalData(mapped);
+      if (mapped.profileImage) setProfileImagePreview(mapped.profileImage);
+    } catch (err) {
+      setLoadError(getErrorMessage(err));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const id = setTimeout(() => {
+      fetchProfile();
+    }, 0);
+    return () => clearTimeout(id);
+  }, []);
+
   // حساب وجود تغييرات باستخدام useMemo (لا يسبب تحذيرات ESLint)
   const hasChanges = useMemo(() => {
+    if (!profileData || !originalData) return false;
     return JSON.stringify(profileData) !== JSON.stringify(originalData);
   }, [profileData, originalData]);
 
@@ -129,12 +171,41 @@ export default function TutorProfile() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
+  // يحوّل اختيار (أونلاين/حضوري) إلى قيمة tution_type التي يفهمها الباك إند
+  const deriveTuitionType = () => {
+    const { online, offline } = profileData.teachingMethods;
+    if (online && offline) return 'both';
+    if (online) return 'online';
+    if (offline) return 'offline';
+    return null;
+  };
+
+  const handleSave = async () => {
     setShowValidation(true);
-    if (runValidation()) {
+    setSaveError('');
+    if (!runValidation()) return;
+
+    setIsSaving(true);
+    try {
+      // ✅ نرسل فقط الحقول التي يدعمها الباك إند فعلياً (UpdateTutorRequest)
+      // المواد/الأسعار/الشهادات لا يدعمها الباك إند بعد التسجيل، لذلك لا تُرسل هنا
+      await updateTutor(tutorId, {
+        first_name: profileData.firstname.trim(),
+        last_name: profileData.lastname.trim(),
+        email: profileData.email.trim(),
+        phone_number: profileData.phone.trim(),
+        bio: profileData.bio,
+        total_experience_years: Number(profileData.totalYearsExperience),
+        tution_type: deriveTuitionType()
+      });
+
       setOriginalData(JSON.parse(JSON.stringify(profileData)));
-      alert('تم حفظ التغييرات بنجاح!');
+      alert('تم حفظ التغييرات بنجاح! (المواد والأسعار والشهادات لم تُحفظ على السيرفر - راجع الملاحظات بالأسفل)');
       setShowValidation(false);
+    } catch (err) {
+      setSaveError(getErrorMessage(err));
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -226,15 +297,50 @@ export default function TutorProfile() {
   const handleProfileImageClick = () => fileInputRef.current.click();
   const handleProfileImageChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfileImagePreview(reader.result);
-        setProfileData(prev => ({ ...prev, profileImage: reader.result }));
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+
+    // معاينة فورية محلية (نفس السلوك السابق)
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setProfileImagePreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+
+    // ✅ رفع فعلي للصورة إلى الباك إند
+    setIsUploadingPhoto(true);
+    setSaveError('');
+    uploadTutorPhoto(tutorId, file)
+      .then((response) => {
+        const newPhotoUrl = response.data?.tutor_photo;
+        if (newPhotoUrl) {
+          setProfileImagePreview(newPhotoUrl);
+          setProfileData((prev) => ({ ...prev, profileImage: newPhotoUrl }));
+          setOriginalData((prev) => ({ ...prev, profileImage: newPhotoUrl }));
+        }
+      })
+      .catch((err) => {
+        setSaveError(`فشل رفع الصورة: ${getErrorMessage(err)}`);
+      })
+      .finally(() => {
+        setIsUploadingPhoto(false);
+      });
   };
+
+  if (isLoading) {
+    return (
+      <div className="page-container2">
+        <p>جارِ تحميل الملف الشخصي...</p>
+      </div>
+    );
+  }
+
+  if (loadError || !profileData) {
+    return (
+      <div className="page-container2">
+        <p className="error-text">{loadError || 'تعذّر تحميل البيانات'}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="page-container2">
@@ -244,11 +350,13 @@ export default function TutorProfile() {
           <p>عرض وتعديل بياناتك المسجلة في المنصة</p>
         </div>
 
+        {saveError && <p className="error-text">{saveError}</p>}
+
         <div className="action-buttons top-buttons">
-          <button className="save-btn" onClick={handleSave} disabled={!hasChanges}>
-            <FaSave /> حفظ التغييرات
+          <button className="save-btn" onClick={handleSave} disabled={!hasChanges || isSaving}>
+            <FaSave /> {isSaving ? 'جارِ الحفظ...' : 'حفظ التغييرات'}
           </button>
-          <button className="cancel-btn" onClick={handleCancel}>
+          <button className="cancel-btn" onClick={handleCancel} disabled={isSaving}>
             <FaUndo /> إلغاء التغييرات
           </button>
         </div>
@@ -257,8 +365,8 @@ export default function TutorProfile() {
           <div className="profile-sidebar">
             <div className="profile-avatar-container">
               <img src={profileImagePreview} alt="صورة الأستاذ" className="profile-avatar" />
-              <button className="upload-photo-btn" onClick={handleProfileImageClick}>
-                <FaCamera /> تغيير الصورة
+              <button className="upload-photo-btn" onClick={handleProfileImageClick} disabled={isUploadingPhoto}>
+                <FaCamera /> {isUploadingPhoto ? 'جارِ الرفع...' : 'تغيير الصورة'}
               </button>
               <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleProfileImageChange} />
             </div>
@@ -310,6 +418,7 @@ export default function TutorProfile() {
 
             <div className="profile-card">
               <div className="card-title"><FaChalkboardTeacher /> المواد التي أدرسها</div>
+              <p className="hint">⚠️ تعديل المواد هنا لن يُحفظ على السيرفر حالياً — لا يوجد Endpoint بالباك إند لتحديثها بعد التسجيل.</p>
               {profileData.subjects.map((subject, idx) => (
                 <div key={idx} className="subject-row">
                   <span className="subject-name-display">{subject.name}</span>
@@ -338,6 +447,7 @@ export default function TutorProfile() {
 
             <div className="profile-card">
               <div className="card-title"><FaMoneyBillWave /> الأسعار حسب المرحلة</div>
+              <p className="hint">⚠️ الباك إند لا يخزّن سعراً موحّداً لكل مرحلة (السعر مرتبط بكل مادة)، لذلك هذا القسم للعرض فقط حالياً ولن يُحفظ.</p>
               {profileData.stagesPrices.map((stage, idx) => (
                 <div key={idx} className="price-row">
                   <span className="stage-name">{stage.stage}</span>
@@ -357,6 +467,7 @@ export default function TutorProfile() {
 
             <div className="profile-card">
               <div className="card-title"><FaFileAlt /> الشهادات والمستندات (PDF فقط)</div>
+              <p className="hint">⚠️ لا يوجد Endpoint بالباك إند لرفع/جلب الشهادات بعد التسجيل، لذلك هذه القائمة محلية فقط حالياً.</p>
               <ul className="certificates-list">
                 {profileData.certificates.map((cert, idx) => (
                   <li key={idx}>

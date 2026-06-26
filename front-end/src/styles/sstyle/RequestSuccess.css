@@ -1,0 +1,247 @@
+/* إعداد الألوان والخطوط المتوافقة مع هوية تطبيق ألف البصرية */
+.rs-wrapper {
+  background-color: #ffffff;
+  color: #0f172a;
+  font-family: 'Lexend', sans-serif;
+  direction: rtl;
+  min-height: 100vh;
+}
+
+/* شريط التنقل العلوي النظيف */
+.rs-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+  padding: 16px 24px;
+}
+
+.rs-nav-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.rs-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rs-logo-icon {
+  color: #2563eb;
+  font-size: 28px;
+}
+
+.rs-logo-text {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+/* المحتوى وتوسيط العناصر */
+.rs-main-content {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  box-sizing: border-box;
+}
+
+.rs-container {
+  max-width: 42rem;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+
+/* أنميشن أيقونة النجاح النبضية الدائرية */
+.rs-success-checkmark {
+  position: relative;
+  animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.rs-pulse-ring {
+  width: 192px;
+  height: 192px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(37, 99, 235, 0.1);
+  animation: pulse 2s infinite;
+}
+
+.rs-icon-bg {
+  width: 144px;
+  height: 144px;
+  background-color: #dbeafe;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.1);
+}
+
+.rs-check-icon {
+  color: #2563eb;
+  font-size: 96px !important;
+}
+
+/* جزيئات الزينة الجانبية حول الدائرة */
+.rs-particle {
+  position: absolute;
+  border-radius: 9999px;
+  opacity: 0.4;
+  filter: blur(2px);
+}
+
+.rs-particle-top {
+  top: -16px;
+  right: -16px;
+  width: 16px;
+  height: 16px;
+  background-color: #2563eb;
+}
+
+.rs-particle-bottom {
+  bottom: -8px;
+  left: -24px;
+  width: 24px;
+  height: 24px;
+  background-color: #e0f2fe;
+}
+
+/* النصوص */
+.rs-text-space {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rs-title {
+  color: #2563eb;
+  font-size: 48px;
+  font-weight: 900;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.rs-description {
+  color: #475569;
+  font-size: 18px;
+  line-height: 1.6;
+  max-width: 32rem;
+  margin: 0 auto;
+}
+
+/* الأزرار التفاعلية */
+.rs-action-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  width: 100%;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.rs-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 32px;
+  border-radius: 9999px;
+  font-size: 18px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease-in-out;
+  box-sizing: border-box;
+}
+
+.rs-btn-primary {
+  background-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+}
+
+.rs-btn-primary:hover {
+  opacity: 0.9;
+}
+
+.rs-btn-secondary {
+  background-color: transparent;
+  border: 2px solid rgba(37, 99, 235, 0.2);
+  color: #2563eb;
+}
+
+.rs-btn-secondary:hover {
+  background-color: rgba(37, 99, 235, 0.05);
+}
+
+/* تأثيرات الأنيميشن الإضافية */
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+@keyframes bounceIn {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.05); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.03); opacity: 0.9; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* التوافق والتجاوبية مع الشاشات الصغيرة (الهواتف المحمولة) */
+@media (max-width: 768px) {
+  .rs-main-content {
+    padding-top: 128px;
+  }
+  
+  .rs-pulse-ring {
+    width: 128px;
+    height: 128px;
+  }
+  
+  .rs-icon-bg {
+    width: 96px;
+    height: 96px;
+  }
+  
+  .rs-check-icon {
+    font-size: 60px !important;
+  }
+  
+  .rs-title {
+    font-size: 36px;
+  }
+  
+  .rs-action-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .rs-btn {
+    width: 100%;
+  }
+}

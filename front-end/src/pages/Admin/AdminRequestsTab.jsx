@@ -1,91 +1,63 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/Admin/AdminRequestsTab.css';
 import { FaEnvelope, FaCheckCircle, FaTimesCircle, FaChartLine } from 'react-icons/fa';
-
-// بيانات وهمية للطلبات (محاكاة لقاعدة البيانات)
-const mockRequests = [
-  {
-    id: 1,
-    firstname: 'أحمد',
-    lastname: 'محمد',
-    email: 'ahmed@example.com',
-    phone: '+963988888888',
-    status: 'pending',
-    submittedAt: '2025-05-20',
-    yearsExperience: 5,
-    teachingMethods: { online: true, offline: false },
-    subjects: [{ name: 'رياضيات', years: 5 }, { name: 'فيزياء', years: 3 }],
-    stagesPrices: [
-      { stage: 'المرحلة الابتدائية', price: 300000 },
-      { stage: 'المرحلة المتوسطة', price: 400000 },
-      { stage: 'المرحلة الثانوية', price: 500000 }
-    ],
-    bio: 'أنا مدرس رياضيات خبرة 5 سنوات...',
-    certificates: ['شهادة.pdf', 'دورة.jpg']
-  },
-  {
-    id: 2,
-    firstname: 'سارة',
-    lastname: 'خالد',
-    email: 'sara@example.com',
-    phone: '+963911111111',
-    status: 'accepted',
-    submittedAt: '2025-05-18',
-    yearsExperience: 8,
-    teachingMethods: { online: true, offline: true },
-    subjects: [{ name: 'لغة عربية', years: 8 }],
-    stagesPrices: [
-      { stage: 'المرحلة الابتدائية', price: 250000 },
-      { stage: 'المرحلة المتوسطة', price: 350000 },
-      { stage: 'المرحلة الثانوية', price: 450000 }
-    ],
-    bio: 'مدرسة لغة عربية متميزة...',
-    certificates: ['شهادة ماجستير.pdf']
-  },
-  {
-    id: 3,
-    firstname: 'عمر',
-    lastname: 'علي',
-    email: 'omar@example.com',
-    phone: '+963922222222',
-    status: 'rejected',
-    submittedAt: '2025-05-15',
-    yearsExperience: 2,
-    teachingMethods: { online: false, offline: true },
-    subjects: [{ name: 'كيمياء', years: 2 }],
-    stagesPrices: [
-      { stage: 'المرحلة الابتدائية', price: 200000 },
-      { stage: 'المرحلة المتوسطة', price: 250000 },
-      { stage: 'المرحلة الثانوية', price: 300000 }
-    ],
-    bio: 'مدرس كيمياء مبتدئ...',
-    certificates: []
-  }
-];
+import { getAllTutors } from '../../api/adminTeachers';
+import { mapTutorToUI } from "../../api/tutorMapper";
+import { getErrorMessage } from '../../utils/apiErrors';
 
 export default function AdminRequestsTab() {
   const navigate = useNavigate();
-  const [requests] = useState(mockRequests); // ✅ تهيئة مباشرة بدون useEffect
+  const [requests, setRequests] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
   const [filter, setFilter] = useState('all');
 
+  useEffect(() => {
+    const fetchRequests = async () => {
+      setIsLoading(true);
+      setError('');
+      try {
+        const response = await getAllTutors({ page: 1, page_size: 100 });
+        const mapped = response.data.map((tutor) => ({
+          ...mapTutorToUI(tutor),
+          // ⚠️ الباك إند الحالي يدعم فقط verified: true/false، ولا توجد حالة "مرفوض" منفصلة.
+          // pending = verified:false ، accepted = verified:true ، rejected لا وجود لها فعلياً بالباك إند.
+          status: tutor.verified ? 'accepted' : 'pending'
+        }));
+        setRequests(mapped);
+      } catch (err) {
+        setError(getErrorMessage(err));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRequests();
+  }, []);
+
   const stats = {
-    pending: requests.filter(r => r.status === 'pending').length,
-    accepted: requests.filter(r => r.status === 'accepted').length,
-    rejected: requests.filter(r => r.status === 'rejected').length,
+    pending: requests.filter((r) => r.status === 'pending').length,
+    accepted: requests.filter((r) => r.status === 'accepted').length,
+    // ⚠️ ستبقى دائماً صفر لعدم وجود حالة "مرفوض" بالباك إند الحالي
+    rejected: requests.filter((r) => r.status === 'rejected').length,
     dailyAverage: (requests.length / 7).toFixed(1)
   };
 
-  const filteredRequests = filter === 'all' 
-    ? requests 
-    : requests.filter(r => r.status === filter);
+  const filteredRequests = filter === 'all' ? requests : requests.filter((r) => r.status === filter);
 
   const handleViewDetails = (requestId) => {
     navigate(`/admin/request/${requestId}`);
   };
 
+  if (isLoading) {
+    return <div className="loading">جارِ تحميل الطلبات...</div>;
+  }
+
   return (
     <div className="admin-requests-tab">
+      {error && <div className="error-message">{error}</div>}
+
       <div className="stats-cards">
         <div className="stat-card pending">
           <FaEnvelope className="stat-icon" />
@@ -117,6 +89,11 @@ export default function AdminRequestsTab() {
         </div>
       </div>
 
+      <p className="backend-limitation-note">
+        * حالة "مرفوضة" غير مدعومة حالياً بالباك إند (يوجد فقط verified: true/false)، لذلك هذا الفلتر
+        والإحصائية المرتبطة فيه لن يُظهرا نتائج فعلية لحين إضافة دعم لهذه الحالة بالسيرفر.
+      </p>
+
       <div className="filter-buttons">
         <button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>الكل</button>
         <button className={filter === 'pending' ? 'active' : ''} onClick={() => setFilter('pending')}>معلقة</button>
@@ -132,7 +109,12 @@ export default function AdminRequestsTab() {
           <span>الحالة</span>
           <span></span>
         </div>
-        {filteredRequests.map(req => (
+        {filteredRequests.length === 0 && (
+          <div className="table-row">
+            <span>لا توجد طلبات لعرضها.</span>
+          </div>
+        )}
+        {filteredRequests.map((req) => (
           <div key={req.id} className="table-row">
             <span>{req.firstname} {req.lastname}</span>
             <span>{req.email}</span>
