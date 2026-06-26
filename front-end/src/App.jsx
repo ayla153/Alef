@@ -19,6 +19,8 @@ import TeacherProfile from './Pages/student/TeacherProfile';
 import SelectionPage from './Pages/student/SelectionPage';
 import CreateStudentAccount from './Pages/student/CreateStudentAccount';
 import Login from './Pages/student/login';
+import ForgotPassword from './Pages/student/ForgotPassword';
+import ResetPassword from './Pages/student/ResetPassword';
 import OTP from './Pages/student/OTP';
 import CreateLeadWizard from './Pages/student/CreateLeadWizard';
 import MyLeads from './Pages/student/MyLeads';
@@ -48,6 +50,8 @@ function App() {
         <Route path="/create-account/step3" element={<CreateAccountStep3 />} />
         <Route path="/create-account/step4" element={<CreateAccountStep4 />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/otp" element={<OTP />} />
 
         <Route path="/home" element={<HomePage />} />

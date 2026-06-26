@@ -55,3 +55,8 @@ export function isAuthenticated() {
   if (!expMs) return Boolean(getAccessToken());
   return expMs > Date.now();
 }
+
+export function getAuthRole() {
+  const payload = decodeJwtPayload(getAccessToken());
+  return payload?.role ?? null;
+}

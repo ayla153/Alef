@@ -3,8 +3,9 @@ import { FaEnvelope, FaLock, FaArrowLeft, FaUserPlus } from "react-icons/fa";
 import "../../styles//sstyle/login.css";
 import loginImage from "../../assets/logo_noBG.png";
 import { Link, useNavigate } from "react-router-dom";
-import api from "../../api/api";
-import { saveAuthTokens } from "../../api/authStorage";
+import { login } from "../../api/auth";
+import { getAuthRole, saveAuthTokens } from "../../api/authStorage";
+import { getErrorMessage } from "../../utils/apiErrors";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -23,26 +24,16 @@ export default function Login() {
     try {
       setLoading(true);
 
-      const response = await api.post("/auth/student/login", {
-        email,
-        password,
-      });
+      const response = await login(email, password);
 
-      console.log("LOGIN SUCCESS:", response.data);
-
-      // لو الباك بيرجع token
       if (response.data?.access_token) {
         saveAuthTokens(response.data);
       }
 
-      // تحويل إلى الصفحة الرئيسية
-      navigate("/home");
+      const role = getAuthRole();
+      navigate(role === "tutor" ? "/dashboard" : "/home");
     } catch (err) {
-      console.log("LOGIN ERROR:", err.response?.data || err.message);
-
-      setError(
-        err.response?.data?.message || "فشل تسجيل الدخول، تحقق من البيانات",
-      );
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -57,7 +48,9 @@ export default function Login() {
 
         <div className="login-form-side">
           <p className="login-title">أهلاً بك في أَلِفْ</p>
-          <p className="login-subtitle">الرجاء إدخال تفاصيل حسابك للمتابعة</p>
+          <p className="login-subtitle">
+            سجّل الدخول بحسابك كطالب أو معلّم
+          </p>
 
           {/* ERROR */}
           {error && <p style={{ color: "red", fontSize: "12px" }}>{error}</p>}
@@ -85,7 +78,11 @@ export default function Login() {
                 <FaLock className="login-input-icon" /> كلمة السِّر
               </label>
 
-              <Link to="/otp" className="login-forgot-link">
+              <Link
+                to="/forgot-password"
+                state={{ email }}
+                className="login-forgot-link"
+              >
                 نسيت كلمة المرور؟
               </Link>
             </div>
