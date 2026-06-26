@@ -10,6 +10,10 @@
 # Local tooling (not part of the app)
 jira-tools/
 
-# Other repo areas — not tracked on the front branch (noise when using one clone)
-back-end/
+# Python bytecode / cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
 docs/
