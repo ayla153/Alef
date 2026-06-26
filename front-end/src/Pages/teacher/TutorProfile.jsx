@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
-  FaUser, FaUserTag, FaPhone, FaEnvelope, FaSave, FaUndo,
+  FaUser, FaUserTag, FaPhone, FaEnvelope, FaSave, FaUndo, FaEdit,
   FaChalkboardTeacher, FaUserGraduate, FaMoneyBillWave, FaFileAlt,
   FaLaptop, FaUniversity, FaCamera, FaPlus, FaTrashAlt,
   FaBook, FaCheckCircle
@@ -59,6 +59,7 @@ export default function TutorProfile() {
   const [saveError, setSaveError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const fileInputRef = useRef(null);
   const fileCertificateRef = useRef(null);
   const [selectedSubject, setSelectedSubject] = useState('');
@@ -96,14 +97,14 @@ export default function TutorProfile() {
 
   useEffect(() => {
     const handleBeforeUnload = (e) => {
-      if (hasChanges) {
+      if (isEditing && hasChanges) {
         e.preventDefault();
         e.returnValue = 'لديك تغييرات غير محفوظة. هل تريد المغادرة؟';
       }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [hasChanges]);
+  }, [hasChanges, isEditing]);
 
   const validateFirstname = (name) => {
     const trimmed = name.trim();
@@ -200,6 +201,7 @@ export default function TutorProfile() {
       });
 
       setOriginalData(JSON.parse(JSON.stringify(profileData)));
+      setIsEditing(false);
       alert('تم حفظ التغييرات بنجاح! (المواد والأسعار والشهادات لم تُحفظ على السيرفر - راجع الملاحظات بالأسفل)');
       setShowValidation(false);
     } catch (err) {
@@ -209,13 +211,26 @@ export default function TutorProfile() {
     }
   };
 
+  const handleStartEdit = () => {
+    setProfileData(JSON.parse(JSON.stringify(originalData)));
+    setProfileImagePreview(
+      originalData.profileImage || 'https://randomuser.me/api/portraits/men/32.jpg'
+    );
+    setErrors({});
+    setShowValidation(false);
+    setSaveError('');
+    setIsEditing(true);
+  };
+
   const handleCancel = () => {
-    if (hasChanges && window.confirm('هل أنت متأكد من تجاهل جميع التغييرات غير المحفوظة؟')) {
-      setProfileData(JSON.parse(JSON.stringify(originalData)));
-      setProfileImagePreview(originalData.profileImage || 'https://randomuser.me/api/portraits/men/32.jpg');
-      setErrors({});
-      setShowValidation(false);
+    if (hasChanges && !window.confirm('هل أنت متأكد من تجاهل جميع التغييرات غير المحفوظة؟')) {
+      return;
     }
+    setProfileData(JSON.parse(JSON.stringify(originalData)));
+    setProfileImagePreview(originalData.profileImage || 'https://randomuser.me/api/portraits/men/32.jpg');
+    setErrors({});
+    setShowValidation(false);
+    setIsEditing(false);
   };
 
   const handleInputChange = (field, value) => {
@@ -294,7 +309,9 @@ export default function TutorProfile() {
     setProfileData(prev => ({ ...prev, stagesPrices: updated }));
   };
 
-  const handleProfileImageClick = () => fileInputRef.current.click();
+  const handleProfileImageClick = () => {
+    if (isEditing) fileInputRef.current.click();
+  };
   const handleProfileImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -326,6 +343,13 @@ export default function TutorProfile() {
       });
   };
 
+  const teachingMethodsLabel = () => {
+    const methods = [];
+    if (profileData.teachingMethods.online) methods.push('أونلاين');
+    if (profileData.teachingMethods.offline) methods.push('حضوري');
+    return methods.length > 0 ? methods.join('، ') : '—';
+  };
+
   if (isLoading) {
     return (
       <div className="page-container2">
@@ -347,28 +371,40 @@ export default function TutorProfile() {
       <div className="profile-full-wrapper">
         <div className="profile-header">
           <h1>الملف الشخصي</h1>
-          <p>عرض وتعديل بياناتك المسجلة في المنصة</p>
+          <p>{isEditing ? 'عدّل بياناتك ثم احفظ التغييرات' : 'عرض بياناتك كما تظهر للطلاب'}</p>
         </div>
 
         {saveError && <p className="error-text">{saveError}</p>}
 
         <div className="action-buttons top-buttons">
-          <button className="save-btn" onClick={handleSave} disabled={!hasChanges || isSaving}>
-            <FaSave /> {isSaving ? 'جارِ الحفظ...' : 'حفظ التغييرات'}
-          </button>
-          <button className="cancel-btn" onClick={handleCancel} disabled={isSaving}>
-            <FaUndo /> إلغاء التغييرات
-          </button>
+          {isEditing ? (
+            <>
+              <button className="save-btn" onClick={handleSave} disabled={!hasChanges || isSaving}>
+                <FaSave /> {isSaving ? 'جارِ الحفظ...' : 'حفظ التغييرات'}
+              </button>
+              <button className="cancel-btn" onClick={handleCancel} disabled={isSaving}>
+                <FaUndo /> إلغاء التعديل
+              </button>
+            </>
+          ) : (
+            <button type="button" className="edit-profile-btn" onClick={handleStartEdit}>
+              <FaEdit /> تعديل الملف الشخصي
+            </button>
+          )}
         </div>
 
         <div className="profile-grid">
           <div className="profile-sidebar">
             <div className="profile-avatar-container">
               <img src={profileImagePreview} alt="صورة الأستاذ" className="profile-avatar" />
-              <button className="upload-photo-btn" onClick={handleProfileImageClick} disabled={isUploadingPhoto}>
-                <FaCamera /> {isUploadingPhoto ? 'جارِ الرفع...' : 'تغيير الصورة'}
-              </button>
-              <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleProfileImageChange} />
+              {isEditing && (
+                <>
+                  <button className="upload-photo-btn" onClick={handleProfileImageClick} disabled={isUploadingPhoto}>
+                    <FaCamera /> {isUploadingPhoto ? 'جارِ الرفع...' : 'تغيير الصورة'}
+                  </button>
+                  <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleProfileImageChange} />
+                </>
+              )}
             </div>
             <div className="quick-stats">
               <div className="stat"><FaBook /> {profileData.subjects.length} مواد</div>
@@ -383,78 +419,133 @@ export default function TutorProfile() {
               <div className="two-columns">
                 <div className="input-group">
                   <label><FaUserTag /> الاسم الأول</label>
-                  <input type="text" value={profileData.firstname} onChange={(e) => handleInputChange('firstname', e.target.value)} />
-                  {showValidation && errors.firstname && <span className="error-text">{errors.firstname}</span>}
+                  {isEditing ? (
+                    <>
+                      <input type="text" value={profileData.firstname} onChange={(e) => handleInputChange('firstname', e.target.value)} />
+                      {showValidation && errors.firstname && <span className="error-text">{errors.firstname}</span>}
+                    </>
+                  ) : (
+                    <div className="profile-view-value">{profileData.firstname}</div>
+                  )}
                 </div>
                 <div className="input-group">
                   <label><FaUserTag /> الاسم الأخير</label>
-                  <input type="text" value={profileData.lastname} onChange={(e) => handleInputChange('lastname', e.target.value)} />
-                  {showValidation && errors.lastname && <span className="error-text">{errors.lastname}</span>}
+                  {isEditing ? (
+                    <>
+                      <input type="text" value={profileData.lastname} onChange={(e) => handleInputChange('lastname', e.target.value)} />
+                      {showValidation && errors.lastname && <span className="error-text">{errors.lastname}</span>}
+                    </>
+                  ) : (
+                    <div className="profile-view-value">{profileData.lastname}</div>
+                  )}
                 </div>
                 <div className="input-group">
                   <label><FaPhone /> رقم الهاتف</label>
-                  <input type="tel" value={profileData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} />
-                  {showValidation && errors.phone && <span className="error-text">{errors.phone}</span>}
+                  {isEditing ? (
+                    <>
+                      <input type="tel" value={profileData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} />
+                      {showValidation && errors.phone && <span className="error-text">{errors.phone}</span>}
+                    </>
+                  ) : (
+                    <div className="profile-view-value">{profileData.phone}</div>
+                  )}
                 </div>
                 <div className="input-group">
                   <label><FaEnvelope /> البريد الإلكتروني</label>
-                  <input type="email" value={profileData.email} onChange={(e) => handleInputChange('email', e.target.value)} />
-                  {showValidation && errors.email && <span className="error-text">{errors.email}</span>}
+                  {isEditing ? (
+                    <>
+                      <input type="email" value={profileData.email} onChange={(e) => handleInputChange('email', e.target.value)} />
+                      {showValidation && errors.email && <span className="error-text">{errors.email}</span>}
+                    </>
+                  ) : (
+                    <div className="profile-view-value">{profileData.email}</div>
+                  )}
                 </div>
                 <div className="input-group full-width">
                   <label><FaUserGraduate /> سنوات الخبرة الإجمالية</label>
-                  <input type="number" min="0" value={profileData.totalYearsExperience} onChange={(e) => handleInputChange('totalYearsExperience', parseInt(e.target.value) || 0)} />
-                  {showValidation && errors.totalYearsExperience && <span className="error-text">{errors.totalYearsExperience}</span>}
+                  {isEditing ? (
+                    <>
+                      <input type="number" min="0" value={profileData.totalYearsExperience} onChange={(e) => handleInputChange('totalYearsExperience', parseInt(e.target.value) || 0)} />
+                      {showValidation && errors.totalYearsExperience && <span className="error-text">{errors.totalYearsExperience}</span>}
+                    </>
+                  ) : (
+                    <div className="profile-view-value">{profileData.totalYearsExperience} سنوات</div>
+                  )}
                 </div>
                 <div className="input-group full-width checkbox-group">
                   <label>طرق التدريس:</label>
-                  <div className="checkbox-options">
-                    <label className="checkbox-label"><input type="checkbox" checked={profileData.teachingMethods.online} onChange={() => handleTeachingMethodChange('online')} /><FaLaptop /> أونلاين</label>
-                    <label className="checkbox-label"><input type="checkbox" checked={profileData.teachingMethods.offline} onChange={() => handleTeachingMethodChange('offline')} /><FaUniversity /> حضوري</label>
-                  </div>
+                  {isEditing ? (
+                    <div className="checkbox-options">
+                      <label className="checkbox-label"><input type="checkbox" checked={profileData.teachingMethods.online} onChange={() => handleTeachingMethodChange('online')} /><FaLaptop /> أونلاين</label>
+                      <label className="checkbox-label"><input type="checkbox" checked={profileData.teachingMethods.offline} onChange={() => handleTeachingMethodChange('offline')} /><FaUniversity /> حضوري</label>
+                    </div>
+                  ) : (
+                    <div className="profile-view-value">{teachingMethodsLabel()}</div>
+                  )}
                 </div>
               </div>
             </div>
 
             <div className="profile-card">
               <div className="card-title"><FaChalkboardTeacher /> المواد التي أدرسها</div>
-              <p className="hint">⚠️ تعديل المواد هنا لن يُحفظ على السيرفر حالياً — لا يوجد Endpoint بالباك إند لتحديثها بعد التسجيل.</p>
+              {isEditing && (
+                <p className="hint">⚠️ تعديل المواد هنا لن يُحفظ على السيرفر حالياً — لا يوجد Endpoint بالباك إند لتحديثها بعد التسجيل.</p>
+              )}
+              {profileData.subjects.length === 0 && (
+                <p className="hint">لا توجد مواد مسجّلة بعد.</p>
+              )}
               {profileData.subjects.map((subject, idx) => (
                 <div key={idx} className="subject-row">
                   <span className="subject-name-display">{subject.name}</span>
-                  <div className="subject-years">
-                    <label>سنوات الخبرة:</label>
-                    <input type="number" min="0" value={subject.years} onChange={(e) => handleSubjectChange(idx, 'years', e.target.value)} />
-                  </div>
-                  <button className="delete-subject-btn" onClick={() => removeSubject(idx)}><FaTrashAlt /></button>
-                  {showValidation && errors[`subject_${idx}`] && <span className="error-text">{errors[`subject_${idx}`]}</span>}
+                  {isEditing ? (
+                    <>
+                      <div className="subject-years">
+                        <label>سنوات الخبرة:</label>
+                        <input type="number" min="0" value={subject.years} onChange={(e) => handleSubjectChange(idx, 'years', e.target.value)} />
+                      </div>
+                      <button type="button" className="delete-subject-btn" onClick={() => removeSubject(idx)}><FaTrashAlt /></button>
+                      {showValidation && errors[`subject_${idx}`] && <span className="error-text">{errors[`subject_${idx}`]}</span>}
+                    </>
+                  ) : (
+                    <span className="profile-view-inline">{subject.years} سنوات خبرة</span>
+                  )}
                 </div>
               ))}
-              <div className="add-subject-row">
-                <select value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)} className="new-subject-select">
-                  <option value="">-- اختر مادة --</option>
-                  {availableSubjects.filter(s => !profileData.subjects.some(ex => ex.name === s)).map(sub => (
-                    <option key={sub} value={sub}>{sub}</option>
-                  ))}
-                </select>
-                <div className="subject-years">
-                  <label>سنوات الخبرة:</label>
-                  <input type="number" min="0" value={newSubjectYears} onChange={(e) => setNewSubjectYears(e.target.value)} />
+              {isEditing && (
+                <div className="add-subject-row">
+                  <select value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)} className="new-subject-select">
+                    <option value="">-- اختر مادة --</option>
+                    {availableSubjects.filter(s => !profileData.subjects.some(ex => ex.name === s)).map(sub => (
+                      <option key={sub} value={sub}>{sub}</option>
+                    ))}
+                  </select>
+                  <div className="subject-years">
+                    <label>سنوات الخبرة:</label>
+                    <input type="number" min="0" value={newSubjectYears} onChange={(e) => setNewSubjectYears(e.target.value)} />
+                  </div>
+                  <button type="button" className="add-subject-btn" onClick={addSubject}><FaPlus /> إضافة مادة</button>
                 </div>
-                <button className="add-subject-btn" onClick={addSubject}><FaPlus /> إضافة مادة</button>
-              </div>
+              )}
             </div>
 
             <div className="profile-card">
               <div className="card-title"><FaMoneyBillWave /> الأسعار حسب المرحلة</div>
-              <p className="hint">⚠️ الباك إند لا يخزّن سعراً موحّداً لكل مرحلة (السعر مرتبط بكل مادة)، لذلك هذا القسم للعرض فقط حالياً ولن يُحفظ.</p>
+              {isEditing && (
+                <p className="hint">⚠️ الباك إند لا يخزّن سعراً موحّداً لكل مرحلة (السعر مرتبط بكل مادة)، لذلك هذا القسم للعرض فقط حالياً ولن يُحفظ.</p>
+              )}
               {profileData.stagesPrices.map((stage, idx) => (
                 <div key={idx} className="price-row">
                   <span className="stage-name">{stage.stage}</span>
-                  <div className="price-input">
-                    <input type="number" min="0" value={stage.price} onChange={(e) => handleStagePriceChange(idx, e.target.value)} />
-                    <span className="currency">ل.س / شهر</span>
-                  </div>
+                  {isEditing ? (
+                    <div className="price-input">
+                      <input type="number" min="0" value={stage.price} onChange={(e) => handleStagePriceChange(idx, e.target.value)} />
+                      <span className="currency">ل.س / شهر</span>
+                    </div>
+                  ) : (
+                    <span className="profile-view-inline">
+                      {stage.price > 0 ? `${stage.price} ل.س / شهر` : '—'}
+                    </span>
+                  )}
                   {showValidation && errors[`stage_${idx}`] && <span className="error-text">{errors[`stage_${idx}`]}</span>}
                 </div>
               ))}
@@ -462,25 +553,39 @@ export default function TutorProfile() {
 
             <div className="profile-card">
               <div className="card-title"><FaFileAlt /> نبذة عنك</div>
-              <textarea rows="4" value={profileData.bio} onChange={(e) => handleInputChange('bio', e.target.value)} className="bio-textarea" />
+              {isEditing ? (
+                <textarea rows="4" value={profileData.bio} onChange={(e) => handleInputChange('bio', e.target.value)} className="bio-textarea" />
+              ) : (
+                <p className="profile-view-bio">{profileData.bio || 'لا توجد نبذة بعد.'}</p>
+              )}
             </div>
 
             <div className="profile-card">
               <div className="card-title"><FaFileAlt /> الشهادات والمستندات (PDF فقط)</div>
-              <p className="hint">⚠️ لا يوجد Endpoint بالباك إند لرفع/جلب الشهادات بعد التسجيل، لذلك هذه القائمة محلية فقط حالياً.</p>
-              <ul className="certificates-list">
-                {profileData.certificates.map((cert, idx) => (
-                  <li key={idx}>
-                    {cert}
-                    <button className="delete-cert-btn" onClick={() => removeCertificate(idx)}><FaTrashAlt /></button>
-                  </li>
-                ))}
-              </ul>
-              <div className="add-certificate">
-                <input type="file" ref={fileCertificateRef} style={{ display: 'none' }} accept=".pdf" onChange={handleCertificateFileChange} />
-                <button className="add-cert-btn" onClick={() => fileCertificateRef.current.click()}><FaPlus /> إضافة شهادة (PDF)</button>
-                <p className="hint">الملفات المسموحة: PDF فقط - الحد الأقصى 5MB</p>
-              </div>
+              {isEditing && (
+                <p className="hint">⚠️ لا يوجد Endpoint بالباك إند لرفع/جلب الشهادات بعد التسجيل، لذلك هذه القائمة محلية فقط حالياً.</p>
+              )}
+              {profileData.certificates.length === 0 ? (
+                <p className="hint">لا توجد شهادات مرفوعة.</p>
+              ) : (
+                <ul className="certificates-list">
+                  {profileData.certificates.map((cert, idx) => (
+                    <li key={idx}>
+                      {cert}
+                      {isEditing && (
+                        <button type="button" className="delete-cert-btn" onClick={() => removeCertificate(idx)}><FaTrashAlt /></button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {isEditing && (
+                <div className="add-certificate">
+                  <input type="file" ref={fileCertificateRef} style={{ display: 'none' }} accept=".pdf" onChange={handleCertificateFileChange} />
+                  <button type="button" className="add-cert-btn" onClick={() => fileCertificateRef.current.click()}><FaPlus /> إضافة شهادة (PDF)</button>
+                  <p className="hint">الملفات المسموحة: PDF فقط - الحد الأقصى 5MB</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
