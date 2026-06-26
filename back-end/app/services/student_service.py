@@ -3,13 +3,17 @@ from datetime import datetime, timezone
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func
 
 from app.models.students import Student
-from app.schemas.students import CreateStudent, StudentOut, UpdateStudentRequest
+from app.schemas.students import CreateStudent, StudentOut, UpdateStudentRequest, AcceptedRequestsCountOut, RecentRequestOut, RecentRequestsOut
 from app.services.tutor_service import hash_password
 
-
+from app.models.lead_applications import LeadApplication
+from app.models.post_requirements import PostRequirement
+from app.schemas.enums import LeadApplicationStatusEnum, LeadStatusEnum
+ 
 def get_student_by_id(db: Session, student_id: int) -> Student | None:
     return db.get(Student, student_id)
 
@@ -108,3 +112,82 @@ def delete_student(db: Session, student_id: int) -> None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
     db.delete(student)
     db.commit()
+
+
+_ACCEPTED_LEAD_STATUSES = (LeadStatusEnum.CLOSED_SHORTLIST, LeadStatusEnum.CLOSED_MATCHED)
+ 
+ 
+def get_accepted_requests_count(db: Session, student_id: int) -> AcceptedRequestsCountOut:
+    count = (
+        db.query(func.count(PostRequirement.post_requirements_id))
+        .filter(
+            PostRequirement.student_id == student_id,
+            PostRequirement.lead_status.in_(_ACCEPTED_LEAD_STATUSES),
+        )
+        .scalar()
+        or 0
+    )
+    return AcceptedRequestsCountOut(accepted_requests=count)
+ 
+ 
+def _resolve_matched_tutor_name(lead: PostRequirement) -> str | None:
+    # Private lead, accepted -> the target tutor.
+    if lead.lead_target is not None and lead.lead_status == LeadStatusEnum.CLOSED_MATCHED:
+        tutor = lead.lead_target.tutor
+        return f"{tutor.first_name} {tutor.last_name}" if tutor else None
+ 
+    # Public lead, matched -> whichever tutor(s) got their contact revealed.
+    # If the student accepted multiple offers, show the first one matched.
+    if lead.lead_status == LeadStatusEnum.CLOSED_SHORTLIST:
+        accepted_application = next(
+            (
+                application
+                for application in lead.lead_applications
+                if application.contact_revealed_at is not None
+            ),
+            None,
+        )
+        if accepted_application is not None and accepted_application.tutor is not None:
+            tutor = accepted_application.tutor
+            return f"{tutor.first_name} {tutor.last_name}"
+ 
+    return None
+ 
+ 
+def get_recent_requests(db: Session, student_id: int, limit: int = 5) -> RecentRequestsOut:
+    leads = (
+        db.query(PostRequirement)
+        .options(
+            joinedload(PostRequirement.subject),
+            joinedload(PostRequirement.level),
+            joinedload(PostRequirement.lead_target),
+            joinedload(PostRequirement.lead_applications).joinedload(LeadApplication.tutor),
+        )
+        .filter(PostRequirement.student_id == student_id)
+        .order_by(PostRequirement.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+ 
+    items = [
+        RecentRequestOut(
+            lead_id=lead.post_requirements_id,
+            title=lead.title,
+            subject=lead.subject.subject_title if lead.subject else "",
+            level=lead.level.level_title if lead.level else "",
+            is_public=lead.is_public,
+            lead_status=lead.lead_status.value,
+            applications_count=len(
+                [
+                    application
+                    for application in lead.lead_applications
+                    if application.application_status != LeadApplicationStatusEnum.WITHDRAWN
+                ]
+            ),
+            matched_tutor_name=_resolve_matched_tutor_name(lead),
+            created_at=lead.created_at,
+        )
+        for lead in leads
+    ]
+ 
+    return RecentRequestsOut(items=items)

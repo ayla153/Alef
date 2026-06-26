@@ -269,3 +269,30 @@ class TutorOut(BaseModel):
     reviews: Optional[List[ReviewOut]] = None
     Address: Optional[AddressOut] = None
     tutor_subjects: Optional[List[TutorSubjectsOut]] = None
+
+
+
+class WeeklyActivityPoint(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+ 
+    day: str
+    count: int
+ 
+ 
+class RecentActivityItem(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+ 
+    type: str
+    text: str
+    timestamp: datetime
+ 
+ 
+class TutorStatsOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+ 
+    new_requests: int
+    pending_requests: int
+    accepted_requests: int
+    average_rating: Optional[float]
+    weekly_activity: List[WeeklyActivityPoint]
+    recent_activity: List[RecentActivityItem]
