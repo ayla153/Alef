@@ -15,6 +15,7 @@ from app.models.pending_student_registrations import PendingStudentRegistration
 from app.models.pending_tutor_registrations import PendingTutorRegistration
 from app.schemas.auth import (
     LoginRequest,
+    RefreshTokenRequest,
     StudentRegister,
     StudentRegistrationProgress,
     Token,
@@ -72,7 +73,7 @@ def login_student(db: DbSession, body: LoginRequest) -> Token:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
         )
-    return Token(access_token=auth_service.token_for_student(student))
+    return auth_service.tokens_for_student(student)
 
 
 @router.post("/tutor/login", response_model=Token)
@@ -88,7 +89,7 @@ def login_tutor(db: DbSession, body: LoginRequest) -> Token:
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Email verification required. Complete registration with OTP.",
         )
-    return Token(access_token=auth_service.token_for_tutor(tutor))
+    return auth_service.tokens_for_tutor(tutor)
 
 
 @router.post("/admin/login", response_model=Token)
@@ -99,7 +100,18 @@ def login_admin(db: DbSession, body: LoginRequest) -> Token:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
         )
-    return Token(access_token=auth_service.token_for_admin(admin))
+    return auth_service.tokens_for_admin(admin)
+
+
+@router.post("/refresh", response_model=Token)
+def refresh_tokens(body: RefreshTokenRequest) -> Token:
+    try:
+        return auth_service.refresh_auth_tokens(body.refresh_token)
+    except AuthError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=e.message,
+        ) from e
 
 
 @router.post(

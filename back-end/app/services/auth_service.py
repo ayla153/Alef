@@ -1,11 +1,17 @@
-from datetime import datetime, timedelta, timezone
+from jose import JWTError
 
 from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core.security import create_access_token, get_password_hash, verify_password
+from app.core.security import (
+    create_access_token,
+    create_refresh_token,
+    decode_access_token,
+    get_password_hash,
+    verify_password,
+)
 from app.models.admins import Admin
 from app.models.levels import Level
 from app.models.students import Student
@@ -15,6 +21,7 @@ from app.models.tutors import Tutor
 from app.services import notification_service
 from app.schemas.auth import (
     StudentRegister,
+    Token,
     TutorRegister,
     TutorRegisterStep1,
     TutorRegisterStep2,
@@ -137,6 +144,50 @@ def token_for_admin(admin: Admin) -> str:
     return create_access_token(str(admin.admin_id), "admin")
 
 
+def tokens_for_student(student: Student) -> Token:
+    subject = str(student.student_id)
+    return Token(
+        access_token=create_access_token(subject, "student"),
+        refresh_token=create_refresh_token(subject, "student"),
+    )
+
+
+def tokens_for_tutor(tutor: Tutor) -> Token:
+    subject = str(tutor.tutor_id)
+    return Token(
+        access_token=create_access_token(subject, "tutor"),
+        refresh_token=create_refresh_token(subject, "tutor"),
+    )
+
+
+def tokens_for_admin(admin: Admin) -> Token:
+    subject = str(admin.admin_id)
+    return Token(
+        access_token=create_access_token(subject, "admin"),
+        refresh_token=create_refresh_token(subject, "admin"),
+    )
+
+
+def refresh_auth_tokens(refresh_token: str) -> Token:
+    try:
+        claims = decode_access_token(refresh_token)
+    except JWTError as exc:
+        raise AuthError("Invalid or expired refresh token", "invalid_refresh_token") from exc
+
+    if claims.get("typ") != "refresh":
+        raise AuthError("Invalid or expired refresh token", "invalid_refresh_token")
+
+    role = claims.get("role")
+    subject = claims.get("sub")
+    if role not in {"student", "tutor", "admin"} or subject is None:
+        raise AuthError("Invalid or expired refresh token", "invalid_refresh_token")
+
+    return Token(
+        access_token=create_access_token(str(subject), role),
+        refresh_token=create_refresh_token(str(subject), role),
+    )
+
+
 TUTOR_REGISTRATION_ROLE = "tutor_registration"
 STUDENT_REGISTRATION_ROLE = "student_registration"
 
@@ -170,6 +221,7 @@ def register_tutor_step1(db: Session, data: TutorRegisterStep1) -> Tutor:
         password=hashed,
         date_birth=data.date_birth,
         phone_number=data.phone_number,
+        gender=data.gender,
         tution_type=TuitionTypeEnum.BOTH,
         bio=None,
         total_experience_years=None,

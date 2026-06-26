@@ -26,9 +26,26 @@ def create_access_token(
     if expires_delta is None:
         expires_delta = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     expire = datetime.now(timezone.utc) + expires_delta
-    to_encode: dict[str, Any] = {"sub": subject, "role": role, "exp": expire}
+    to_encode: dict[str, Any] = {"sub": subject, "role": role, "exp": expire, "typ": "access"}
     if extra_claims:
         to_encode.update(extra_claims)
+    return jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+
+
+def create_refresh_token(
+    subject: str,
+    role: str,
+    expires_delta: timedelta | None = None,
+) -> str:
+    if expires_delta is None:
+        expires_delta = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    expire = datetime.now(timezone.utc) + expires_delta
+    to_encode: dict[str, Any] = {
+        "sub": subject,
+        "role": role,
+        "exp": expire,
+        "typ": "refresh",
+    }
     return jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
 

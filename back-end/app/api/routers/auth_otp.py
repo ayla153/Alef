@@ -92,7 +92,7 @@ def student_register_confirm(
         raise _http_for_otp_error(e) from e
     except AuthError as e:
         raise _http_for_auth_error(e) from e
-    return Token(access_token=auth_service.token_for_student(student))
+    return auth_service.tokens_for_student(student)
 
 
 @router.post("/student/password-reset/request", response_model=OtpMessageResponse)
@@ -181,7 +181,7 @@ def tutor_register_step_4_confirm(
         raise _http_for_otp_error(e) from e
     except AuthError as e:
         raise _http_for_auth_error(e) from e
-    return Token(access_token=auth_service.token_for_tutor(tutor))
+    return auth_service.tokens_for_tutor(tutor)
 
 
 @router.post("/tutor/password-reset/confirm", response_model=OtpMessageResponse)
