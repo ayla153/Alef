@@ -41,7 +41,7 @@ def get_tutor_by_id(db: Session, tutor_id: int) -> Tutor | None:
 
 
 def _tutor_to_out(tutor: Tutor) -> TutorOut:
-    return TutorOut.model_validate(tutor)
+    return TutorOut.model_validate(tutor, from_attributes=True)
 
 
 def get_tutor_by_id_out(db: Session, tutor_id: int) -> Tutor | None:
@@ -76,6 +76,7 @@ def create_tutor(db: Session, tutor_data: CreateTutor) -> TutorOut:
     db.add(tutor_obj)
     db.commit()
     db.refresh(tutor_obj)
+
     return _tutor_to_out(tutor_obj)
 
 

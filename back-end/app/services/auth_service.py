@@ -12,6 +12,7 @@ from app.models.students import Student
 from app.models.subjects import Subject
 from app.models.tutor_subjects import TutorSubject
 from app.models.tutors import Tutor
+from app.services import notification_service
 from app.schemas.auth import (
     StudentRegister,
     TutorRegister,
@@ -120,6 +121,7 @@ def register_tutor(db: Session, data: TutorRegister) -> Tutor:
             raise AuthError("Email already registered", "email_taken") from None
         raise
     db.refresh(tutor)
+
     return tutor
 
 
@@ -136,12 +138,22 @@ def token_for_admin(admin: Admin) -> str:
 
 
 TUTOR_REGISTRATION_ROLE = "tutor_registration"
+STUDENT_REGISTRATION_ROLE = "student_registration"
 
 
 def registration_token_for_tutor(tutor_id: int, step: int) -> str:
     return create_access_token(
         str(tutor_id),
         TUTOR_REGISTRATION_ROLE,
+        expires_delta=timedelta(minutes=settings.REGISTRATION_TOKEN_EXPIRE_MINUTES),
+        extra_claims={"step": step},
+    )
+
+
+def registration_token_for_student(pending_id: int, step: int) -> str:
+    return create_access_token(
+        str(pending_id),
+        STUDENT_REGISTRATION_ROLE,
         expires_delta=timedelta(minutes=settings.REGISTRATION_TOKEN_EXPIRE_MINUTES),
         extra_claims={"step": step},
     )
@@ -209,3 +221,24 @@ def apply_tutor_registration_step4(db: Session, tutor: Tutor, data: TutorRegiste
     tutor.bio = data.bio
     db.commit()
     db.refresh(tutor)
+    notification_service.notify_new_tutor_pending(db, tutor.tutor_id)
+
+
+def reset_student_password(db: Session, email: str, new_password: str) -> Student:
+    student = db.scalar(select(Student).where(Student.email == email.lower()))
+    if not student:
+        raise AuthError("Account not found", "account_not_found")
+    student.password = get_password_hash(new_password)
+    db.commit()
+    db.refresh(student)
+    return student
+
+
+def reset_tutor_password(db: Session, email: str, new_password: str) -> Tutor:
+    tutor = db.scalar(select(Tutor).where(Tutor.email == email.lower()))
+    if not tutor:
+        raise AuthError("Account not found", "account_not_found")
+    tutor.password = get_password_hash(new_password)
+    db.commit()
+    db.refresh(tutor)
+    return tutor
