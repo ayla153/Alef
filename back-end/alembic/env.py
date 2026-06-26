@@ -69,11 +69,12 @@ def run_migrations_online() -> None:
     with connectable.connect() as connection:
         connection.exec_driver_sql("SET search_path TO public")
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection,
+            target_metadata=target_metadata,
+            transaction_per_migration=True,
         )
 
-        with context.begin_transaction():
-            context.run_migrations()
+        context.run_migrations()
 
 
 if context.is_offline_mode():

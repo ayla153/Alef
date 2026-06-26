@@ -1,7 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
-from app.schemas.auth import StudentRegister, TutorRegister, TutorRegisterStep4
-
 
 class OtpSendRequest(BaseModel):
     email: EmailStr
@@ -11,29 +9,12 @@ class OtpMessageResponse(BaseModel):
     message: str
 
 
-class StudentRegisterVerify(StudentRegister):
-    otp: str = Field(..., min_length=4, max_length=10)
-
-    @field_validator("otp")
-    @classmethod
-    def otp_not_empty(cls, v: str) -> str:
-        if not v.strip():
-            raise ValueError("otp cannot be empty")
-        return v.strip()
+class OtpEmailResponse(BaseModel):
+    message: str
+    email: EmailStr
 
 
-class TutorRegisterVerify(TutorRegister):
-    otp: str = Field(..., min_length=4, max_length=10)
-
-    @field_validator("otp")
-    @classmethod
-    def otp_not_empty(cls, v: str) -> str:
-        if not v.strip():
-            raise ValueError("otp cannot be empty")
-        return v.strip()
-
-
-class TutorRegisterStep4Verify(TutorRegisterStep4):
+class OtpVerifyOnly(BaseModel):
     otp: str = Field(..., min_length=4, max_length=10)
 
     @field_validator("otp")

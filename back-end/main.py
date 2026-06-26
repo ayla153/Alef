@@ -17,8 +17,7 @@ from app.api.routers.Favorites.Favorites_router import router as favorites_route
 from app.api.routers.Leads import router as leads_router
 from app.core.config import settings
 from app.database import Base, engine
-from app.models import cities, email_otps
-from app.api.routers.auth_otp import router as email_otps_router  # noqa: F401 — triggers dynamic model imports
+from app.models import cities  # noqa: F401 — triggers dynamic model imports
 
 print(Base.metadata.tables.keys())
 
@@ -54,4 +53,3 @@ app.include_router(reviews_router)
 app.include_router(favorites_router)
 app.include_router(leads_router)
 app.include_router(auth_router)
-app.include_router(email_otps_router)

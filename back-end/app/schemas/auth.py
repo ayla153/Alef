@@ -65,6 +65,13 @@ class TutorRegistrationProgress(BaseModel):
     token_type: str = "bearer"
 
 
+class StudentRegistrationProgress(BaseModel):
+    """Bearer token for OTP verification; not accepted by normal student-protected routes."""
+
+    registration_token: str
+    token_type: str = "bearer"
+
+
 class TutorRegisterStep1(BaseModel):
     first_name: str = Field(..., max_length=50)
     last_name: str = Field(..., max_length=50)

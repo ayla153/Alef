@@ -33,7 +33,7 @@ def create_student_endpoint(
 
 @router.get("/me", response_model=StudentOut)
 def get_me_student(current_student: Student = Depends(get_current_student)):
-    return student_service._student_to_out(current_student)
+    return StudentOut.model_validate(current_student)
 
 
 @router.patch("/me", response_model=StudentOut)

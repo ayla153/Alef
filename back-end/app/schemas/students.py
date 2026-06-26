@@ -2,7 +2,6 @@ from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-from app.schemas.addresses import AddressOut
 from app.schemas.enums import student_grade_enum
 
 
@@ -50,4 +49,3 @@ class StudentOut(BaseModel):
     student_photo: str | None = None
     registered_at: datetime
     grade_level: student_grade_enum
-    address: AddressOut | None = None

@@ -37,6 +37,7 @@ class LeadApplicationStatusEnum(str, Enum):
     REJECTED = "rejected"
     WITHDRAWN = "withdrawn"
 
+
 class AuthUserRoleEnum(str, Enum):
     STUDENT = "student"
     TUTOR = "tutor"

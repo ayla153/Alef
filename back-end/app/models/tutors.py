@@ -33,6 +33,7 @@ class Tutor(Base):
         nullable=False,
     )
     verified: Mapped[bool] = mapped_column(nullable=False, default=False)
+    email_verified: Mapped[bool] = mapped_column(nullable=False, default=False)
 
     #relationships
     favorites : Mapped[List["Favorite"]] = relationship("Favorite", back_populates="tutor", cascade="all, delete-orphan")

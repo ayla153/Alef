@@ -3,16 +3,23 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 
 from app.core.security import decode_access_token
 from app.database import get_db
 from app.models.admins import Admin
+from app.models.pending_student_registrations import PendingStudentRegistration
+from app.models.pending_tutor_registrations import PendingTutorRegistration
 from app.models.students import Student
-from app.models.tutor_subjects import TutorSubject
 from app.models.tutors import Tutor
 from app.schemas.auth import TokenPayload
-from app.services.auth_service import TUTOR_REGISTRATION_ROLE
+from app.services.auth_service import (
+    AuthError,
+    STUDENT_REGISTRATION_ROLE,
+    TUTOR_REGISTRATION_ROLE,
+)
+from app.services.pending_student_registration_service import get_pending_or_404 as get_student_pending_or_404
+from app.services.pending_tutor_registration_service import get_pending_or_404
 
 security = HTTPBearer()
 
@@ -56,14 +63,7 @@ def get_current_student(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not a student account",
         )
-    student = (
-        db.query(Student)
-        .options(
-            joinedload(Student.address),
-        )
-        .filter(Student.student_id == payload.sub)
-        .first()
-    )
+    student = db.get(Student, payload.sub)
     if not student:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -81,17 +81,7 @@ def get_current_tutor(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not a tutor account",
         )
-    tutor = (
-        db.query(Tutor)
-        .options(
-            joinedload(Tutor.reviews),
-            joinedload(Tutor.address),
-            joinedload(Tutor.tutor_subjects).joinedload(TutorSubject.subject),
-            joinedload(Tutor.tutor_subjects).joinedload(TutorSubject.level),
-        )
-        .filter(Tutor.tutor_id == payload.sub)
-        .first()
-    )
+    tutor = db.get(Tutor, payload.sub)
     if not tutor:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -114,29 +104,24 @@ def get_verified_tutor(
 def get_current_tutor_registration(
     db: DbSession,
     payload: Annotated[TokenPayload, Depends(get_token_payload)],
-) -> Tutor:
+) -> PendingTutorRegistration:
     if payload.role != TUTOR_REGISTRATION_ROLE:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not a valid tutor registration token",
         )
-    tutor = (
-        db.query(Tutor)
-        .options(
-            joinedload(Tutor.reviews),
-            joinedload(Tutor.address),
-            joinedload(Tutor.tutor_subjects).joinedload(TutorSubject.subject),
-            joinedload(Tutor.tutor_subjects).joinedload(TutorSubject.level),
-        )
-        .filter(Tutor.tutor_id == payload.sub)
-        .first()
-    )
-    if not tutor:
+    try:
+        return get_pending_or_404(db, payload.sub)
+    except AuthError as exc:
+        if exc.code == "registration_expired":
+            raise HTTPException(
+                status_code=status.HTTP_410_GONE,
+                detail=exc.message,
+            ) from exc
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User no longer exists",
-        )
-    return tutor
+            detail=exc.message,
+        ) from exc
 
 
 def _require_registration_step(payload: TokenPayload, expected_step: int) -> None:
@@ -151,20 +136,75 @@ def require_tutor_registration_step(expected_step: int):
     def _dependency(
         db: DbSession,
         payload: Annotated[TokenPayload, Depends(get_token_payload)],
-    ) -> Tutor:
+    ) -> PendingTutorRegistration:
         if payload.role != TUTOR_REGISTRATION_ROLE:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Not a valid tutor registration token",
             )
         _require_registration_step(payload, expected_step)
-        tutor = db.get(Tutor, payload.sub)
-        if not tutor:
+        try:
+            return get_pending_or_404(db, payload.sub)
+        except AuthError as exc:
+            if exc.code == "registration_expired":
+                raise HTTPException(
+                    status_code=status.HTTP_410_GONE,
+                    detail=exc.message,
+                ) from exc
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User no longer exists",
+                detail=exc.message,
+            ) from exc
+
+    return _dependency
+
+
+def get_current_student_registration(
+    db: DbSession,
+    payload: Annotated[TokenPayload, Depends(get_token_payload)],
+) -> PendingStudentRegistration:
+    if payload.role != STUDENT_REGISTRATION_ROLE:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not a valid student registration token",
+        )
+    try:
+        return get_student_pending_or_404(db, payload.sub)
+    except AuthError as exc:
+        if exc.code == "registration_expired":
+            raise HTTPException(
+                status_code=status.HTTP_410_GONE,
+                detail=exc.message,
+            ) from exc
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=exc.message,
+        ) from exc
+
+
+def require_student_registration_step(expected_step: int):
+    def _dependency(
+        db: DbSession,
+        payload: Annotated[TokenPayload, Depends(get_token_payload)],
+    ) -> PendingStudentRegistration:
+        if payload.role != STUDENT_REGISTRATION_ROLE:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not a valid student registration token",
             )
-        return tutor
+        _require_registration_step(payload, expected_step)
+        try:
+            return get_student_pending_or_404(db, payload.sub)
+        except AuthError as exc:
+            if exc.code == "registration_expired":
+                raise HTTPException(
+                    status_code=status.HTTP_410_GONE,
+                    detail=exc.message,
+                ) from exc
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=exc.message,
+            ) from exc
 
     return _dependency
 

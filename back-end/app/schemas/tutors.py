@@ -6,9 +6,9 @@ import re
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
-from app.schemas.addresses import AddressOut
 from app.schemas.enums import TuitionTypeEnum
 from app.schemas.reviews import ReviewOut
+from app.api.routers.Addresses.Address_out import AddressOut
 from app.api.routers.Tutor_Subjects.Tutor_Subjects_out import TutorSubjectsOut
 
 
@@ -262,7 +262,5 @@ class TutorOut(BaseModel):
     tution_type: TuitionTypeEnum
     verified: bool
     reviews: Optional[List[ReviewOut]] = None
-    address: Optional[AddressOut] = None
+    Address: Optional[AddressOut] = None
     tutor_subjects: Optional[List[TutorSubjectsOut]] = None
-
-    model_config = ConfigDict(from_attributes=True)
