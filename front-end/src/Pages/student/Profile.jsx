@@ -3,21 +3,7 @@ import Header from "../../components/Header";
 import "../../styles/sstyle/Profile.css";
 import "../../styles/sstyle/EditProfile.css";
 import defaultAvatar from "../../assets/user-avatar.jpg";
-import axios from "axios";
-
-const api = axios.create({
-  baseURL: "http://localhost:8000",
-});
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
-});
+import api from "../../api/api";
 export default function Profile() {
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(true);

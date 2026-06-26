@@ -28,52 +28,47 @@ import CreateAccountStep1 from './Pages/teacher/CreateAccountStep1';
 import CreateAccountStep2 from './Pages/teacher/CreateAccountStep2';
 import CreateAccountStep3 from './Pages/teacher/CreateAccountStep3';
 import CreateAccountStep4 from './Pages/teacher/CreateAccountStep4';
-
-
-
-
+import SessionExpiryPrompt from './components/SessionExpiryPrompt';
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<LandingPageMainPage />} />
-      <Route path="/how-it-works" element={<HowItWorksTab />} />
-      <Route path="/teachers" element={<TeachersTab />} />
-      <Route path="/teacher-profile/:id" element={<LandingTeacherProfile />} />
+    <>
+      <SessionExpiryPrompt />
+      <Routes>
+        <Route path="/" element={<LandingPageMainPage />} />
+        <Route path="/how-it-works" element={<HowItWorksTab />} />
+        <Route path="/teachers" element={<TeachersTab />} />
+        <Route path="/teacher-profile/:id" element={<LandingTeacherProfile />} />
 
-      <Route path="/selection" element={<SelectionPage />} />
-      <Route path="/register" element={<CreateStudentAccount />} />
-      <Route path="/teacher/register" element={<CreateAccountStep1 />} />
-      <Route path="/create-account/step1" element={<CreateAccountStep1 />} />
-      <Route path="/create-account/step2" element={<CreateAccountStep2 />} />
-      <Route path="/create-account/step3" element={<CreateAccountStep3 />} />
-      <Route path="/create-account/step4" element={<CreateAccountStep4 />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/otp" element={<OTP />} />
+        <Route path="/selection" element={<SelectionPage />} />
+        <Route path="/register" element={<CreateStudentAccount />} />
+        <Route path="/teacher/register" element={<CreateAccountStep1 />} />
+        <Route path="/create-account/step1" element={<CreateAccountStep1 />} />
+        <Route path="/create-account/step2" element={<CreateAccountStep2 />} />
+        <Route path="/create-account/step3" element={<CreateAccountStep3 />} />
+        <Route path="/create-account/step4" element={<CreateAccountStep4 />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/otp" element={<OTP />} />
 
-      <Route path="/home" element={<HomePage />} />
-      <Route path="/tutors" element={<TutorsPage />} />
-      <Route path="/tutor/:tutor_id" element={<TeacherProfile />} />
-      <Route path="/favorites" element={<FavPage />} />
-      <Route path="/notifications" element={<Notifications />} />
-      <Route path="/profile" element={<Profile />} />
-      
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/tutors" element={<TutorsPage />} />
+        <Route path="/tutor/:tutor_id" element={<TeacherProfile />} />
+        <Route path="/favorites" element={<FavPage />} />
+        <Route path="/notifications" element={<Notifications />} />
+        <Route path="/profile" element={<Profile />} />
 
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/Dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/Dashboard" element={<Dashboard />} />
 
-      <Route path="/Create/Lead" element={<CreateLeadWizard />} />
-      <Route path="/MyLeads" element={<MyLeads />} />
-     <Route path="/lead/:id" element={<LeadDetailsPage />} />
+        <Route path="/Create/Lead" element={<CreateLeadWizard />} />
+        <Route path="/MyLeads" element={<MyLeads />} />
+        <Route path="/lead/:id" element={<LeadDetailsPage />} />
 
-     
-      
-
-
-      <Route path="/admin" element={<AdminDashboard />} />
-      <Route path="/admin/request/:id" element={<AdminRequestDetails />} />
-      <Route path="/admin/teacher/:id" element={<AdminTeacherDetails />} />
-    </Routes>
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/request/:id" element={<AdminRequestDetails />} />
+        <Route path="/admin/teacher/:id" element={<AdminTeacherDetails />} />
+      </Routes>
+    </>
   );
 }
 

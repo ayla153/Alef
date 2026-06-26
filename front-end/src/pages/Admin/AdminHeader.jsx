@@ -2,11 +2,13 @@ import { useNavigate } from 'react-router-dom';
 import '../../styles/Admin/AdminDashboard.css';
 import logo from '../../assets/Alef-logo.jpg';
 import { FaClipboardList, FaUserCheck, FaCog, FaSignOutAlt } from 'react-icons/fa';
+import { logoutSession } from '../../api/sessionManager';
 
 export default function AdminHeader({ activeTab, setActiveTab = () => {} }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    logoutSession();
     navigate('/login');
   };
 
