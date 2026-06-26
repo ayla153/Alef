@@ -6,5 +6,8 @@ export function parseValidationErrors(error) {
 }
 
 export function getErrorMessage(error) {
-  return error?.response?.data?.message || error?.message || 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.';
+  const data = error?.response?.data;
+  if (typeof data?.detail === 'string') return data.detail;
+  if (typeof data?.message === 'string') return data.message;
+  return error?.message || 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.';
 }

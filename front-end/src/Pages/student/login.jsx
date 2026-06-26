@@ -4,6 +4,7 @@ import "../../styles//sstyle/login.css";
 import loginImage from "../../assets/logo_noBG.png";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../api/api";
+import { saveAuthTokens } from "../../api/authStorage";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ export default function Login() {
 
       // لو الباك بيرجع token
       if (response.data?.access_token) {
-        localStorage.setItem("token", response.data.access_token);
+        saveAuthTokens(response.data);
       }
 
       // تحويل إلى الصفحة الرئيسية
