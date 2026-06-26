@@ -1,0 +1,97 @@
+set shell := ["zsh", "-cu"]
+python_version := "3.12"
+
+# =========================
+# Discover
+# =========================
+default:
+  @just --list
+
+# =========================
+# Environment Setup
+# =========================
+# Create virtual environment with supported Python
+venv:
+  uv venv --python {{python_version}}
+
+# Install supported Python and create venv
+bootstrap:
+  uv python install {{python_version}}
+  uv venv --python {{python_version}}
+  uv sync --all-groups
+
+# Print activate command (macOS/Linux)
+activate:
+  @echo "source .venv/bin/activate"
+
+# Install project dependencies from pyproject/lock
+sync:
+  uv sync --all-groups
+
+# =========================
+# Run & Test
+# =========================
+# One-shot setup for self-hosting: Python, locked deps, DB migrations.
+# Requires back-end/.env with DATABASE_* and JWT_SECRET_KEY before migrate succeeds.
+setup:
+  uv python install {{python_version}}
+  test -d .venv || uv venv --python {{python_version}}
+  uv sync --frozen
+  uv run alembic upgrade head
+  @echo ""
+  @echo "Setup done. Set DATABASE_* + JWT_SECRET_KEY in back-end/.env, then: just start"
+
+# Apply pending Alembic migrations (safe to run before every start).
+migrate:
+  uv run alembic upgrade head
+
+# Self-hosted / cloud start: listen on all interfaces, honor $PORT (default 8000).
+start:
+  uv run alembic upgrade head
+  uv run uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}
+
+# Local development with auto-reload
+run:
+  uv run uvicorn main:app --reload
+
+# Run test suite
+test:
+  uv run pytest
+
+# =========================
+# pip -> uv Replacements
+# =========================
+# pip install <package>  -> just pip-install package=<package>
+pip-install package:
+  uv add {{package}}
+
+# pip install -r requirements.txt -> just pip-install-r file=requirements.txt
+pip-install-r file="requirements_dev.txt":
+  uv add -r {{file}}
+
+# pip uninstall <package> -> just pip-uninstall package=<package>
+pip-uninstall package:
+  uv remove {{package}}
+
+# pip freeze -> just pip-freeze
+pip-freeze:
+  uv pip freeze
+
+# pip list -> just pip-list
+pip-list:
+  uv pip list
+
+# pip show <package> -> just pip-show package=<package>
+pip-show package:
+  uv pip show {{package}}
+
+# pip install --upgrade <package> -> just pip-upgrade package=<package>
+pip-upgrade package:
+  uv add --upgrade-package {{package}}
+
+# Dev dependency helpers
+add-dev package:
+  uv add --dev {{package}}
+
+add package:
+  uv add {{package}}

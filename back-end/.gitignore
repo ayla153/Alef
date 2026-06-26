@@ -1,0 +1,38 @@
+# Virtual environment
+venv/
+.venv/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Log files
+*.log
+
+# Database files
+*.db
+
+# Env files
+.env
+
+# IDE / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Pytest
+.pytest_cache/
+
+# Windows
+Thumbs.db
+
+# Jupyter (if you ever use it)
+.ipynb_checkpoints/
+
+#uploads
+uploads/
+
+# Optional: uncomment if you don’t want to commit Alembic versions
+# alembic/versions/*.py
