@@ -4,23 +4,17 @@ import re
 import shutil
 
 from fastapi import HTTPException, UploadFile, status
-from passlib.context import CryptContext
 from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload, selectinload
 
+from app.core.security import get_password_hash, verify_password
 from app.models.tutor_subjects import TutorSubject
 from app.models.tutors import Tutor
 from app.schemas.tutors import CreateTutor, TutorOut, UpdateTutorRequest
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 def hash_password(plain_password: str) -> str:
-    return pwd_context.hash(plain_password)
-
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    return get_password_hash(plain_password)
 
 
 def get_tutor_by_email(db: Session, email: str) -> Tutor | None:
