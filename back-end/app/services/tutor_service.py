@@ -4,9 +4,10 @@ import re
 import shutil
 
 from fastapi import HTTPException, UploadFile, status
-from passlib.context import CryptContext
-from sqlalchemy import and_, or_, func 
+from sqlalchemy import or_, and_, func
 from sqlalchemy.orm import Session, joinedload, selectinload
+
+from app.core.security import get_password_hash
 from app.models.reviews import Review
 from app.models.lead_applications import LeadApplication
 from app.models.lead_targets import LeadTarget
@@ -28,15 +29,9 @@ from app.schemas.tutors import (
 
 from app.schemas.enums import LeadApplicationStatusEnum, LeadStatusEnum, NotificationType
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 def hash_password(plain_password: str) -> str:
-    return pwd_context.hash(plain_password)
-
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    return get_password_hash(plain_password)
 
 
 def get_tutor_by_email(db: Session, email: str) -> Tutor | None:
