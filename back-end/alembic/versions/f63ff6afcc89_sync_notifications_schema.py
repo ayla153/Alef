@@ -23,14 +23,23 @@ def _notification_column_names(bind) -> set[str]:
     return {column["name"] for column in inspector.get_columns("notifications")}
 
 
+def _notification_type_needs_enum_migration(bind) -> bool:
+    udt_name = bind.execute(
+        sa.text(
+            """
+            SELECT udt_name
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = 'notifications'
+              AND column_name = 'notification_type'
+            """
+        )
+    ).scalar()
+    return udt_name == "varchar"
+
+
 def _notification_type_is_varchar(bind) -> bool:
-    inspector = sa.inspect(bind)
-    for column in inspector.get_columns("notifications"):
-        if column["name"] != "notification_type":
-            continue
-        column_type = str(column["type"]).upper()
-        return "VARCHAR" in column_type or "CHARACTER VARYING" in column_type
-    return False
+    return _notification_type_needs_enum_migration(bind)
 
 
 def upgrade() -> None:
@@ -53,7 +62,7 @@ def upgrade() -> None:
     if "read_at" not in columns:
         op.add_column("notifications", sa.Column("read_at", sa.TIMESTAMP(), nullable=True))
 
-    if _notification_type_is_varchar(bind):
+    if _notification_type_needs_enum_migration(bind):
         op.execute(
             """
             DO $$ BEGIN
