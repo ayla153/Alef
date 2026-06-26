@@ -10,6 +10,8 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 
+from migration_helpers import column_exists, table_exists
+
 
 # revision identifiers, used by Alembic.
 revision: str = "d4e8f1a20b33"
@@ -31,146 +33,168 @@ LEAD_APPLICATION_STATUS_ENUM = sa.Enum(
     "withdrawn",
     name="leadapplicationstatusenum",
 )
+
+
 def upgrade() -> None:
     bind = op.get_bind()
 
-    # Base.metadata.create_all() (main.py) may have created lead tables with
+    if column_exists("post_requirements", "lead_status"):
+        if table_exists("post_status"):
+            op.drop_table("post_status")
+        return
+
+    # Base.metadata.create_all() may have created lead tables with
     # UPPERCASE enum labels (OPEN, PENDING). This migration uses lowercase
     # values (open, pending) matching LeadStatusEnum.value.
-    op.execute("DROP TABLE IF EXISTS lead_applications CASCADE")
-    op.execute("DROP TABLE IF EXISTS lead_targets CASCADE")
+    if table_exists("lead_applications"):
+        op.execute("DROP TABLE IF EXISTS lead_applications CASCADE")
+    if table_exists("lead_targets"):
+        op.execute("DROP TABLE IF EXISTS lead_targets CASCADE")
     op.execute("DROP TYPE IF EXISTS leadapplicationstatusenum CASCADE")
     op.execute("DROP TYPE IF EXISTS leadstatusenum CASCADE")
 
     LEAD_STATUS_ENUM.create(bind, checkfirst=False)
 
-    op.add_column(
-        "post_requirements",
-        sa.Column(
-            "lead_status",
-            LEAD_STATUS_ENUM,
-            nullable=False,
-            server_default=sa.text("'open'::leadstatusenum"),
-        ),
-    )
-    op.add_column(
-        "post_requirements",
-        sa.Column("is_public", sa.Boolean(), nullable=False, server_default=sa.true()),
-    )
-    op.add_column(
-        "post_requirements",
-        sa.Column(
-            "accepting_applications",
-            sa.Boolean(),
-            nullable=False,
-            server_default=sa.true(),
-        ),
-    )
-    op.add_column(
-        "post_requirements",
-        sa.Column("closed_at", sa.TIMESTAMP(), nullable=True),
-    )
-    op.add_column(
-        "post_requirements",
-        sa.Column(
-            "max_applications",
-            sa.Integer(),
-            nullable=False,
-            server_default="5",
-        ),
-    )
-
-    op.create_table(
-        "lead_targets",
-        sa.Column("lead_target_id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("post_requirements_id", sa.Integer(), nullable=False),
-        sa.Column("tutor_id", sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["post_requirements_id"],
-            ["post_requirements.post_requirements_id"],
-            ondelete="CASCADE",
-        ),
-        sa.ForeignKeyConstraint(["tutor_id"], ["tutors.tutor_id"], ondelete="CASCADE"),
-        sa.PrimaryKeyConstraint("lead_target_id"),
-        sa.UniqueConstraint("post_requirements_id"),
-    )
-
-    op.create_table(
-        "lead_applications",
-        sa.Column("lead_application_id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("proposed_fee", sa.Float(), nullable=False),
-        sa.Column("first_session_note", sa.String(length=200), nullable=False),
-        sa.Column("message", sa.String(length=500), nullable=False),
-        sa.Column(
-            "application_status",
-            LEAD_APPLICATION_STATUS_ENUM,
-            nullable=False,
-            server_default=sa.text("'pending'::leadapplicationstatusenum"),
-        ),
-        sa.Column("contact_revealed_at", sa.TIMESTAMP(), nullable=True),
-        sa.Column("created_at", sa.TIMESTAMP(), nullable=False, server_default=sa.text("NOW()")),
-        sa.Column("post_requirements_id", sa.Integer(), nullable=False),
-        sa.Column("tutor_id", sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["post_requirements_id"],
-            ["post_requirements.post_requirements_id"],
-            ondelete="CASCADE",
-        ),
-        sa.ForeignKeyConstraint(["tutor_id"], ["tutors.tutor_id"], ondelete="CASCADE"),
-        sa.PrimaryKeyConstraint("lead_application_id"),
-        sa.UniqueConstraint(
-            "post_requirements_id",
-            "tutor_id",
-            name="uq_lead_application_tutor",
-        ),
-    )
-
-    # Best-effort migration from legacy post_status (1:1 tutor assignment).
-    op.execute(
-        """
-        INSERT INTO lead_applications (
-            proposed_fee,
-            first_session_note,
-            message,
-            application_status,
-            created_at,
-            post_requirements_id,
-            tutor_id
+    if not column_exists("post_requirements", "lead_status"):
+        op.add_column(
+            "post_requirements",
+            sa.Column(
+                "lead_status",
+                LEAD_STATUS_ENUM,
+                nullable=False,
+                server_default=sa.text("'open'::leadstatusenum"),
+            ),
         )
-        SELECT
-            pr.expected_fee,
-            'Migrated from legacy post_status',
-            'Migrated from legacy post_status',
-            CASE ps.post_status::text
-                WHEN 'REJECTED' THEN 'rejected'::leadapplicationstatusenum
-                ELSE 'pending'::leadapplicationstatusenum
-            END,
-            NOW(),
-            ps.post_requirements_id,
-            ps.tutor_id
-        FROM post_status ps
-        JOIN post_requirements pr ON pr.post_requirements_id = ps.post_requirements_id
-        """
-    )
-    op.execute(
-        """
-        UPDATE post_requirements pr
-        SET lead_status = 'closed_empty'::leadstatusenum,
-            closed_at = NOW(),
-            accepting_applications = FALSE
-        FROM post_status ps
-        WHERE pr.post_requirements_id = ps.post_requirements_id
-          AND ps.post_status::text = 'CLOSED'
-        """
-    )
-    op.drop_table("post_status")
+    if not column_exists("post_requirements", "is_public"):
+        op.add_column(
+            "post_requirements",
+            sa.Column("is_public", sa.Boolean(), nullable=False, server_default=sa.true()),
+        )
+    if not column_exists("post_requirements", "accepting_applications"):
+        op.add_column(
+            "post_requirements",
+            sa.Column(
+                "accepting_applications",
+                sa.Boolean(),
+                nullable=False,
+                server_default=sa.true(),
+            ),
+        )
+    if not column_exists("post_requirements", "closed_at"):
+        op.add_column(
+            "post_requirements",
+            sa.Column("closed_at", sa.TIMESTAMP(), nullable=True),
+        )
+    if not column_exists("post_requirements", "max_applications"):
+        op.add_column(
+            "post_requirements",
+            sa.Column(
+                "max_applications",
+                sa.Integer(),
+                nullable=False,
+                server_default="5",
+            ),
+        )
 
-    op.alter_column("post_requirements", "lead_status", server_default=None)
-    op.alter_column("post_requirements", "is_public", server_default=None)
-    op.alter_column("post_requirements", "accepting_applications", server_default=None)
-    op.alter_column("post_requirements", "max_applications", server_default=None)
-    op.alter_column("lead_applications", "application_status", server_default=None)
-    op.alter_column("lead_applications", "created_at", server_default=None)
+    if not table_exists("lead_targets"):
+        op.create_table(
+            "lead_targets",
+            sa.Column("lead_target_id", sa.Integer(), autoincrement=True, nullable=False),
+            sa.Column("post_requirements_id", sa.Integer(), nullable=False),
+            sa.Column("tutor_id", sa.Integer(), nullable=False),
+            sa.ForeignKeyConstraint(
+                ["post_requirements_id"],
+                ["post_requirements.post_requirements_id"],
+                ondelete="CASCADE",
+            ),
+            sa.ForeignKeyConstraint(["tutor_id"], ["tutors.tutor_id"], ondelete="CASCADE"),
+            sa.PrimaryKeyConstraint("lead_target_id"),
+            sa.UniqueConstraint("post_requirements_id"),
+        )
+
+    if not table_exists("lead_applications"):
+        op.create_table(
+            "lead_applications",
+            sa.Column("lead_application_id", sa.Integer(), autoincrement=True, nullable=False),
+            sa.Column("proposed_fee", sa.Float(), nullable=False),
+            sa.Column("first_session_note", sa.String(length=200), nullable=False),
+            sa.Column("message", sa.String(length=500), nullable=False),
+            sa.Column(
+                "application_status",
+                LEAD_APPLICATION_STATUS_ENUM,
+                nullable=False,
+                server_default=sa.text("'pending'::leadapplicationstatusenum"),
+            ),
+            sa.Column("contact_revealed_at", sa.TIMESTAMP(), nullable=True),
+            sa.Column("created_at", sa.TIMESTAMP(), nullable=False, server_default=sa.text("NOW()")),
+            sa.Column("post_requirements_id", sa.Integer(), nullable=False),
+            sa.Column("tutor_id", sa.Integer(), nullable=False),
+            sa.ForeignKeyConstraint(
+                ["post_requirements_id"],
+                ["post_requirements.post_requirements_id"],
+                ondelete="CASCADE",
+            ),
+            sa.ForeignKeyConstraint(["tutor_id"], ["tutors.tutor_id"], ondelete="CASCADE"),
+            sa.PrimaryKeyConstraint("lead_application_id"),
+            sa.UniqueConstraint(
+                "post_requirements_id",
+                "tutor_id",
+                name="uq_lead_application_tutor",
+            ),
+        )
+
+    if table_exists("post_status"):
+        op.execute(
+            """
+            INSERT INTO lead_applications (
+                proposed_fee,
+                first_session_note,
+                message,
+                application_status,
+                created_at,
+                post_requirements_id,
+                tutor_id
+            )
+            SELECT
+                pr.expected_fee,
+                'Migrated from legacy post_status',
+                'Migrated from legacy post_status',
+                CASE ps.post_status::text
+                    WHEN 'REJECTED' THEN 'rejected'::leadapplicationstatusenum
+                    ELSE 'pending'::leadapplicationstatusenum
+                END,
+                NOW(),
+                ps.post_requirements_id,
+                ps.tutor_id
+            FROM post_status ps
+            JOIN post_requirements pr ON pr.post_requirements_id = ps.post_requirements_id
+            """
+        )
+        op.execute(
+            """
+            UPDATE post_requirements pr
+            SET lead_status = 'closed_empty'::leadstatusenum,
+                closed_at = NOW(),
+                accepting_applications = FALSE
+            FROM post_status ps
+            WHERE pr.post_requirements_id = ps.post_requirements_id
+              AND ps.post_status::text = 'CLOSED'
+            """
+        )
+        op.drop_table("post_status")
+
+    if column_exists("post_requirements", "lead_status"):
+        op.alter_column("post_requirements", "lead_status", server_default=None)
+    if column_exists("post_requirements", "is_public"):
+        op.alter_column("post_requirements", "is_public", server_default=None)
+    if column_exists("post_requirements", "accepting_applications"):
+        op.alter_column("post_requirements", "accepting_applications", server_default=None)
+    if column_exists("post_requirements", "max_applications"):
+        op.alter_column("post_requirements", "max_applications", server_default=None)
+    if table_exists("lead_applications") and column_exists("lead_applications", "application_status"):
+        op.alter_column("lead_applications", "application_status", server_default=None)
+    if table_exists("lead_applications") and column_exists("lead_applications", "created_at"):
+        op.alter_column("lead_applications", "created_at", server_default=None)
 
 
 def downgrade() -> None:

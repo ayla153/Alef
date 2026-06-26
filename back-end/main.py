@@ -19,6 +19,7 @@ from app.api.routers.Notifications.Notifications_router import router as notific
 from app.api.routers.Notifications.Notifications_router import ws_router
 from app.core.config import settings
 from app.database import Base, engine
+from app.db_migrations import upgrade_database_if_needed
 from app.models import cities  # noqa: F401 — triggers dynamic model imports
 
 print(Base.metadata.tables.keys())
@@ -28,8 +29,7 @@ print(Base.metadata.tables.keys())
 async def lifespan(app: FastAPI):
     if not settings.JWT_SECRET_KEY:
         raise RuntimeError("JWT_SECRET_KEY environment variable must be set for authentication.")
-    # Base tables only; schema changes with migrations must run: alembic upgrade head
-    Base.metadata.create_all(bind=engine)
+    upgrade_database_if_needed(engine)
     yield
 
 
