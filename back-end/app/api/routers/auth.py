@@ -42,19 +42,6 @@ def _http_for_auth_error(e: AuthError) -> HTTPException:
     return HTTPException(status_code=code, detail=e.message)
 
 
-def _http_for_login_error(e: AuthError) -> HTTPException:
-    if e.code == "invalid_credentials":
-        return HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=e.message,
-        )
-    if e.code == "email_not_verified":
-        return HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=e.message,
-        )
-    return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
-
 router = APIRouter(prefix="/auth", tags=["auth"])
 router.include_router(auth_student_me_router)
 router.include_router(auth_otp_router)
@@ -77,14 +64,6 @@ class AdminMe(BaseModel):
     email: str
     first_name: str
     last_name: str
-
-
-@router.post("/login", response_model=Token)
-def login(db: DbSession, body: LoginRequest) -> Token:
-    try:
-        return auth_service.login_by_email(db, body.email, body.password)
-    except AuthError as e:
-        raise _http_for_login_error(e) from e
 
 
 @router.post("/student/login", response_model=Token)

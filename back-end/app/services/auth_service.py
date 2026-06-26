@@ -170,24 +170,6 @@ def tokens_for_admin(admin: Admin) -> Token:
     )
 
 
-def login_by_email(db: Session, email: str, password: str) -> Token:
-    """Authenticate a student or tutor by email. Admins use /auth/admin/login."""
-    student = authenticate_student(db, email, password)
-    if student:
-        return tokens_for_student(student)
-
-    tutor = authenticate_tutor(db, email, password)
-    if tutor:
-        if not tutor.email_verified:
-            raise AuthError(
-                "Email verification required. Complete registration with OTP.",
-                "email_not_verified",
-            )
-        return tokens_for_tutor(tutor)
-
-    raise AuthError("Invalid email or password", "invalid_credentials")
-
-
 def refresh_auth_tokens(refresh_token: str) -> Token:
     try:
         claims = decode_access_token(refresh_token)
