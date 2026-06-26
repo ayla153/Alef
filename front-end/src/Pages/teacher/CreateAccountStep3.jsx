@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft , FaArrowRight , FaTimesCircle ,FaLaptop, FaUniversity, FaChalkboardTeacher ,FaUserGraduate , FaMoneyBillWave} from "react-icons/fa";
 import { registerTutorStep3 } from '../../api/tutorRegistration';
 import { getErrorMessage } from '../../utils/apiErrors';
+import Header from '../../components/common/Header';
 
 export default function CreateAccountStep3(){
     const [selected, setSelected] = useState({
@@ -104,10 +105,7 @@ export default function CreateAccountStep3(){
     return(
         <div className='page-container2 fade-in'>
             <header className="steponeheader">
-                <div className="logoAndtitle">
-                    <img className="Alef-logo" src={logo} alt="logo" />
-                    إنشاء حساب مُعلّم - منصَّة ألِف
-                </div>
+               <Header/>
             </header>
             <div className='content'>
                 <div className="titleforstep1">

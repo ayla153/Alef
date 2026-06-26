@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import '../../styles/Header.css';
-import logo from '../../assets/Alef-logo.jpg';
+import logo from '../../assets/logo_noBG.png';
 import { FaHome, FaChalkboardTeacher, FaQuestionCircle, FaUserPlus, FaSignInAlt } from 'react-icons/fa';
 
 export default function Header({ activeTab, setActiveTab }) {
@@ -21,7 +21,6 @@ export default function Header({ activeTab, setActiveTab }) {
     <header className="steponeheader lanP">
       <div className="logoAndtitle">
         <img className="Alef-logo" src={logo} alt="logo" />
-        ألِف
       </div>
       <div className="landinPageHeaderTabs">
         <button

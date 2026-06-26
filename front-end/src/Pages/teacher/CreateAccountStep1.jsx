@@ -2,9 +2,10 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { FaUser, FaUserTag, FaPhone, FaEnvelope, FaLock, FaCheckCircle, FaArrowLeft, FaTimesCircle, FaCalendarAlt } from 'react-icons/fa';
 import '../../styles/CreateAccountStep1.css';
-import logo from '../../assets/Alef-logo.jpg';
+import logo from '../../assets/logo_noBG.png';
 import { registerTutorStep1 } from '../../api/tutorRegistration';
 import { parseValidationErrors, getErrorMessage } from '../../utils/apiErrors';
+import Header from '../../components/common/Header';
 
 export default function CreateAccountStep1() {
   const [firstname, setFirstname] = useState('');
@@ -182,10 +183,7 @@ export default function CreateAccountStep1() {
   return (
     <div className="page-container2 fade-in">
       <header className="steponeheader">
-        <div className="logoAndtitle">
-          <img className="Alef-logo" src={logo} alt="logo" />
-          إنشاء حساب مُعلّم - منصَّة ألِف
-        </div>
+        <Header/>
       </header>
       <div className="content">
         <div className="titleforstep1">
@@ -247,6 +245,7 @@ export default function CreateAccountStep1() {
                 id="tutoremail" 
                 placeholder="user@gmail.com" 
                 required 
+                autoComplete="off"
                 value={tutoremail} 
                 onChange={(e) => setTutoremail(e.target.value)} 
               />
@@ -273,6 +272,7 @@ export default function CreateAccountStep1() {
                 id="gender"
                 required
                 value={gender}
+                autoComplete="new-password"
                 onChange={(e) => setGender(e.target.value)}
               >
                 <option value="" disabled>اختر الجنس</option>
@@ -291,6 +291,7 @@ export default function CreateAccountStep1() {
                 placeholder="كلمة السّر (8 أحرف على الأقل)" 
                 required 
                 value={tutorpassword} 
+                autoComplete="new-password"
                 onChange={(e) => setTutorpassword(e.target.value)} 
                 type="password" 
               />

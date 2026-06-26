@@ -6,6 +6,7 @@ import { useState, useRef } from 'react';
 import CertificatesUpload from '../../components/common/CertificatesUpload'
 import { registerTutorStep4 } from '../../api/tutorRegistration';
 import { getErrorMessage } from '../../utils/apiErrors';
+import Header from '../../components/common/Header';
 
 export default function CreateAccountStep4(){
     const navigate = useNavigate();
@@ -66,10 +67,7 @@ export default function CreateAccountStep4(){
         <div>
             <div className='page-container2'>
                 <header className="steponeheader">
-                    <div className="logoAndtitle">
-                        <img className="Alef-logo" src={logo} alt="logo" />
-                        إنشاء حساب مُعلّم - منصَّة ألِف
-                    </div>
+                    <Header/>
                 </header>
                 <div className='content'>
                     <div className="titleforstep1">
