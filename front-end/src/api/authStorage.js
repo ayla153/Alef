@@ -32,10 +32,19 @@ export function getAccessTokenExpiryMs() {
   return payload.exp * 1000;
 }
 
+export function clearRegistrationTokens() {
+  localStorage.removeItem('student_registration_token');
+  localStorage.removeItem('tutor_registration_token');
+  localStorage.removeItem('registration_type');
+  localStorage.removeItem('studentEmail');
+  localStorage.removeItem('tutorEmail');
+}
+
 export function saveAuthTokens({ access_token, refresh_token }) {
   if (access_token) {
     localStorage.setItem(ACCESS_TOKEN_KEY, access_token);
     localStorage.removeItem(LEGACY_TOKEN_KEY);
+    clearRegistrationTokens();
   }
   if (refresh_token) {
     localStorage.setItem(REFRESH_TOKEN_KEY, refresh_token);

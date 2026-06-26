@@ -30,7 +30,9 @@ export default function Login() {
 
       console.log("LOGIN SUCCESS:", response.data);
 
-      const { access_token, refresh_token } = response.data;
+      const access_token =
+        response.data.access_token ?? response.data.token ?? null;
+      const refresh_token = response.data.refresh_token ?? null;
       saveAuthTokens({ access_token, refresh_token });
 
       // تحويل إلى الصفحة الرئيسية
