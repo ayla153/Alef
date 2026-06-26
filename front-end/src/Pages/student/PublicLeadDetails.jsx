@@ -167,7 +167,7 @@ export default function PublicLeadDetails({ lead }) {
               <span className="material-symbols-outlined pod-spec-icon">payments</span>
               <span className="pod-spec-label">الميزانية المتوقعة</span>
               <span className="pod-spec-value">
-                {lead.expected_fee} <span className="pod-unit">ل.س/ساعة</span>
+                {lead.min_expected_fee} - {lead.max_expected_fee} <span className="pod-unit">ل.س/ساعة</span>
               </span>
             </div>
 
@@ -192,6 +192,22 @@ export default function PublicLeadDetails({ lead }) {
                 <span className="pod-spec-value">
                   {lead.preferred_gender === "male" ? "ذكر" : "أنثى"}
                 </span>
+              </div>
+            )}
+
+            {lead.help_type && (
+              <div className="pod-spec-item">
+                <span className="material-symbols-outlined pod-spec-icon">help_outline</span>
+                <span className="pod-spec-label">نوع المساعدة</span>
+                <span className="pod-spec-value">{lead.help_type}</span>
+              </div>
+            )}
+
+            {lead.weekly_classes && (
+              <div className="pod-spec-item">
+                <span className="material-symbols-outlined pod-spec-icon">calendar_month</span>
+                <span className="pod-spec-label">حصص أسبوعياً</span>
+                <span className="pod-spec-value">{lead.weekly_classes}</span>
               </div>
             )}
           </div>

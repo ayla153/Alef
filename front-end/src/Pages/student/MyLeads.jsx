@@ -315,7 +315,7 @@ export default function MyLeads() {
                       <div className="subject-meta">
                         <div className="meta-item">
                           <span className="material-symbols-outlined">payments</span>
-                          <span>{lead.expected_fee} ل.س / ساعة</span>
+                          <span>{lead.min_expected_fee} - {lead.max_expected_fee} ل.س / ساعة</span>
                         </div>
                         <div className="meta-item">
                           <span className="material-symbols-outlined">
@@ -325,6 +325,18 @@ export default function MyLeads() {
                             {lead.tution_type === "online" ? "أونلاين" : lead.tution_type === "offline" ? "حضوري" : "أونلاين وحضوري"}
                           </span>
                         </div>
+                        {lead.help_type && (
+                          <div className="meta-item">
+                            <span className="material-symbols-outlined">help_outline</span>
+                            <span>{lead.help_type}</span>
+                          </div>
+                        )}
+                        {lead.weekly_classes && (
+                          <div className="meta-item">
+                            <span className="material-symbols-outlined">calendar_month</span>
+                            <span>{lead.weekly_classes} حصص/أسبوع</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

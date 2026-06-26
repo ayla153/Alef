@@ -212,6 +212,34 @@
   pointer-events: none;
 }
 
+/* time input: keep LTR so the native picker works inside RTL pages */
+.createLeadStep2_timeInput {
+  direction: ltr;
+  text-align: left;
+  padding: 0 48px 0 16px;
+  cursor: pointer;
+}
+
+.createLeadStep2_inputWrapper--time .createLeadStep2_timeIcon {
+  left: auto;
+  right: 16px;
+}
+
+.createLeadStep2_timeInput::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.createLeadStep2_timeInput::-webkit-date-and-time-value {
+  text-align: left;
+}
+
 /* suffix text (حصص) */
 .createLeadStep2_inputSuffix {
   position: absolute;
@@ -245,14 +273,54 @@
   padding: 0 4px;
 }
 
-.createLeadStep2_rangeSlider {
-  appearance: none;
-  width: 100%;
+.createLeadStep2_dualSlider {
+  position: relative;
+  height: 32px;
+  margin: 8px 0 4px;
+}
+
+.createLeadStep2_dualSliderTrack {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
   height: 8px;
+  transform: translateY(-50%);
   background-color: #dbeafe;
   border-radius: 9999px;
-  cursor: pointer;
+}
+
+.createLeadStep2_dualSliderRange {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--min-percent) * 1%);
+  width: calc((var(--max-percent) - var(--min-percent)) * 1%);
+  height: 8px;
+  transform: translateY(-50%);
+  background-color: var(--primary);
+  border-radius: 9999px;
+  pointer-events: none;
+}
+
+.createLeadStep2_rangeSlider {
+  appearance: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 32px;
+  margin: 0;
+  background: transparent;
+  pointer-events: none;
   outline: none;
+}
+
+.createLeadStep2_rangeSlider--min {
+  z-index: 3;
+}
+
+.createLeadStep2_rangeSlider--max {
+  z-index: 4;
 }
 
 .createLeadStep2_rangeSlider::-webkit-slider-thumb {
@@ -261,7 +329,10 @@
   height: 20px;
   border-radius: 50%;
   background-color: var(--primary);
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.2);
   cursor: pointer;
+  pointer-events: auto;
   transition: transform 0.1s ease;
 }
 
@@ -270,8 +341,18 @@
   height: 20px;
   border-radius: 50%;
   background-color: var(--primary);
-  border: none;
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.2);
   cursor: pointer;
+  pointer-events: auto;
+}
+
+.createLeadStep2_rangeSlider::-webkit-slider-runnable-track,
+.createLeadStep2_rangeSlider::-moz-range-track {
+  appearance: none;
+  background: transparent;
+  border: none;
+  height: 8px;
 }
 
 .createLeadStep2_rangeSlider::-webkit-slider-thumb:hover,

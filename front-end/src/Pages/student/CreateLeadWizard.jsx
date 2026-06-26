@@ -27,8 +27,13 @@ const CreateLeadWizard = () => {
     preferred_gender: null, // "male" | "female" | null
     foundation_tution: false,
 
+    // Step 1
+    helpType: "",          // نوع المساعدة → help_type
+
     // Step 2
-    expected_fee: 500,     // الميزانية بالأرقام
+    min_expected_fee: 50,
+    max_expected_fee: 500,
+    weeklyClasses: "1",    // حصص أسبوعياً → weekly_classes
 
     // Step 3
     title: "",
@@ -51,9 +56,7 @@ const CreateLeadWizard = () => {
     // request_description: نص الـ textarea في Step3
     // بيتحوّل لـ description عند الإرسال
     request_description: "",
-    // حقول ما بتنبعت للباك (Step 2 — واجهة فقط)
-    weeklyClasses: "",
-    time: "",
+    // حقول واجهة فقط — ما بتنبعت للباك
     location: "",
   });
 
@@ -110,7 +113,11 @@ const CreateLeadWizard = () => {
         ? formData.tution_type
         : mapTutionType(formData.teachingMethod),
 
-      expected_fee: Number(formData.expected_fee) || 0,
+      help_type: formData.helpType?.trim() || "",
+
+      min_expected_fee: Number(formData.min_expected_fee) || 50,
+      max_expected_fee: Number(formData.max_expected_fee) || 0,
+      weekly_classes: Number(formData.weeklyClasses) || 1,
 
       // preferred_gender: بنحوّل من teacherGender إذا ما انحدّد مسبقاً
       preferred_gender: formData.preferred_gender !== undefined && formData.preferred_gender !== ""
@@ -149,6 +156,16 @@ const CreateLeadWizard = () => {
     }
     if (!sharedBody.tution_type) {
       setError("يرجى اختيار طريقة التدريس");
+      setLoading(false);
+      return;
+    }
+    if (!sharedBody.help_type) {
+      setError("يرجى اختيار نوع المساعدة");
+      setLoading(false);
+      return;
+    }
+    if (!sharedBody.weekly_classes || sharedBody.weekly_classes < 1) {
+      setError("يرجى تحديد عدد الحصص الأسبوعية");
       setLoading(false);
       return;
     }

@@ -4,6 +4,8 @@ import StatCard from "../../components/StatCard";
 import TeachersSection from "../../components/TeachersSection";
 import Sidebar from "../../components/Sidebar";
 import api from "../../api/api";
+import { getAuthRole } from "../../api/authStorage";
+import { getPublicTutors } from "../../api/publicTutors";
 
 import "../../styles/sstyle/HomePage.css";
 
@@ -61,9 +63,14 @@ const HomePage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const tutorsPromise = api.get("/tutors/");
-        const leadsPromise = api.get("/leads/me");
-        const favsPromise = api.get("/favorites/my-favorites");
+        const role = getAuthRole();
+        const tutorsPromise = getPublicTutors({ page: 1, page_size: 100 });
+        const leadsPromise =
+          role === "student" ? api.get("/leads/me") : Promise.resolve({ data: [] });
+        const favsPromise =
+          role === "student"
+            ? api.get("/favorites/my-favorites")
+            : Promise.resolve({ data: [] });
 
         const [tutorsRes, leadsRes, favsRes] = await Promise.allSettled([
           tutorsPromise,
@@ -72,7 +79,9 @@ const HomePage = () => {
         ]);
 
         const tutorsData =
-          tutorsRes.status === "fulfilled" ? tutorsRes.value.data : [];
+          tutorsRes.status === "fulfilled"
+            ? (tutorsRes.value.data || []).filter((t) => t.verified === true)
+            : [];
 
         const leadsData =
           leadsRes.status === "fulfilled" ? leadsRes.value.data : [];

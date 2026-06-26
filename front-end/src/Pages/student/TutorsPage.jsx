@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import axios from "axios";
 import api from "../../api/api";
+import { getAuthRole } from "../../api/authStorage";
+import { getPublicTutors } from "../../api/publicTutors";
 
 import Header from "../../components/Header";
 import FiltersBar from "../../components/FiltersBar";
@@ -37,13 +38,20 @@ function TutorsPage() {
   useEffect(() => {
     const fetchTutors = async () => {
       try {
+        const favsPromise =
+          getAuthRole() === "student"
+            ? api.get("/favorites/my-favorites")
+            : Promise.resolve({ data: [] });
+
         const [tutorsRes, favsRes] = await Promise.allSettled([
-          axios.get("http://localhost:8000/tutors"),
-          api.get("/favorites/my-favorites"),
+          getPublicTutors({ page: 1, page_size: 100 }),
+          favsPromise,
         ]);
 
         const tutorsData =
-          tutorsRes.status === "fulfilled" ? tutorsRes.value.data || [] : [];
+          tutorsRes.status === "fulfilled"
+            ? (tutorsRes.value.data || []).filter((t) => t.verified === true)
+            : [];
 
         const favsData =
           favsRes.status === "fulfilled" ? favsRes.value.data || [] : [];

@@ -295,7 +295,7 @@ const CreateLeadStep1 = ({ formData, updateForm, onNext }) => {
                   )}
                 </label>
 
-                {/* نوع المساعدة — واجهة فقط، ما بينبعت للباك */}
+                {/* نوع المساعدة — help_type */}
                 <label className="createLeadStep1_formGroup">
                   <span className="createLeadStep1_formLabel">
                     نوع المساعدة

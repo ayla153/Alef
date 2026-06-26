@@ -84,7 +84,7 @@ export default function PrivateLeadDetails({ lead }) {
                 <div className="pld-meta-row">
                   <div className="pld-meta-item">
                     <span className="material-symbols-outlined">payments</span>
-                    <span>{lead.expected_fee} ل.س / ساعة</span>
+                    <span>{lead.min_expected_fee} - {lead.max_expected_fee} ل.س / ساعة</span>
                   </div>
                   <div className="pld-meta-item pld-highlight-meta">
                     <span className="material-symbols-outlined">
@@ -104,7 +104,7 @@ export default function PrivateLeadDetails({ lead }) {
               <div className="pld-budget-box">
                 <div className="pld-budget-label">الميزانية المتوقعة</div>
                 <div className="pld-budget-amount">
-                  {lead.expected_fee}{" "}
+                  {lead.min_expected_fee} - {lead.max_expected_fee}{" "}
                   <span className="pld-currency">ل.س</span>
                 </div>
               </div>
@@ -260,7 +260,7 @@ export default function PrivateLeadDetails({ lead }) {
                 <div className="pld-meta-row">
                   <div className="pld-meta-item">
                     <span className="material-symbols-outlined">payments</span>
-                    <span>{lead.expected_fee} ل.س / ساعة</span>
+                    <span>{lead.min_expected_fee} - {lead.max_expected_fee} ل.س / ساعة</span>
                   </div>
                   <div className="pld-meta-item pld-highlight-meta">
                     <span className="material-symbols-outlined">
@@ -280,7 +280,7 @@ export default function PrivateLeadDetails({ lead }) {
               <div className="pld-budget-box">
                 <div className="pld-budget-label">الميزانية المتوقعة</div>
                 <div className="pld-budget-amount">
-                  {lead.expected_fee}{" "}
+                  {lead.min_expected_fee} - {lead.max_expected_fee}{" "}
                   <span className="pld-currency">ل.س</span>
                 </div>
               </div>
