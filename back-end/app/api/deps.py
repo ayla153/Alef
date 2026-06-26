@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Tuple
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -88,6 +88,31 @@ def get_current_tutor(
             detail="User no longer exists",
         )
     return tutor
+
+
+def get_current_user_role_id(
+    db: DbSession,
+    payload: Annotated[TokenPayload, Depends(get_token_payload)],
+) -> Tuple[str, int]:
+    if payload.role == "student":
+        user = db.get(Student, payload.sub)
+    elif payload.role == "tutor":
+        user = db.get(Tutor, payload.sub)
+    elif payload.role == "admin":
+        user = db.get(Admin, payload.sub)
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid user role.",
+        )
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User no longer exists",
+        )
+
+    return payload.role, int(payload.sub)
 
 
 def get_verified_tutor(
