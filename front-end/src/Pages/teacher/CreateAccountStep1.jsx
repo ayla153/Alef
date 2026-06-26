@@ -14,6 +14,7 @@ export default function CreateAccountStep1() {
   const [tutorpassword, setTutorpassword] = useState('');
   const [coniformtutorpassword, setConiformtutorpassword] = useState('');
   const [datebirth, setDatebirth] = useState('');
+  const [gender, setGender] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [generalError, setGeneralError] = useState('');
@@ -26,7 +27,8 @@ export default function CreateAccountStep1() {
     tutoremail: '',
     tutorpassword: '',
     coniformtutorpassword: '',
-    datebirth: ''
+    datebirth: '',
+    gender: ''
   });
 
   const navigate = useNavigate();
@@ -41,7 +43,8 @@ export default function CreateAccountStep1() {
       tutoremail: '',
       tutorpassword: '',
       coniformtutorpassword: '',
-      datebirth: ''
+      datebirth: '',
+      gender: '',
     };
 
     // التحقق من الاسم الأول (حد أقصى 20 حرف)
@@ -88,6 +91,11 @@ export default function CreateAccountStep1() {
       isValid = false;
     }
 
+    if (!gender) {
+      newErrors.gender = 'الجنس مطلوب';
+      isValid = false;
+    }
+
     // التحقق من كلمة المرور (8 أحرف على الأقل)
     if (!tutorpassword) {
       newErrors.tutorpassword = 'كلمة المرور مطلوبة';
@@ -124,13 +132,16 @@ export default function CreateAccountStep1() {
         email: tutoremail.trim(),
         password: tutorpassword,
         date_birth: datebirth,
-        phone_number: phonenumber.trim()
+        phone_number: phonenumber.trim(),
+        gender,
       });
 
       console.log('✅ Response from server:', response);
 
       const { registration_token } = response.data;
       localStorage.setItem('tutor_registration_token', registration_token);
+      localStorage.setItem('registration_type', 'tutor');
+      localStorage.setItem('tutorEmail', tutoremail.trim());
 
       navigate('/create-account/step2');
     } catch (error) {
@@ -254,6 +265,21 @@ export default function CreateAccountStep1() {
                 onChange={(e) => setDatebirth(e.target.value)} 
               />
               {errors.datebirth && <span className="error-message">{errors.datebirth}</span>}
+            </div>
+            <div>
+              <label className="toturlabels" htmlFor="gender"><FaUser className="input-icon" /> الجنس</label>
+              <select
+                className={`tutorinput ${errors.gender ? 'error-input' : ''}`}
+                id="gender"
+                required
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+              >
+                <option value="" disabled>اختر الجنس</option>
+                <option value="male">ذكر</option>
+                <option value="female">أنثى</option>
+              </select>
+              {errors.gender && <span className="error-message">{errors.gender}</span>}
             </div>
           </div>
           <div className="tutorinputs">

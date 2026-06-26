@@ -49,12 +49,12 @@ export default function CreateAccountStep4(){
                 certificate_url: certificateUrl
             });
 
-            // هذه هي الخطوة الأخيرة: الباك إند يرجع access_token نهائي وحقيقي للحساب
-            const { access_token } = response.data;
-            localStorage.setItem('access_token', access_token);
-            localStorage.removeItem('tutor_registration_token');
+            localStorage.setItem('registration_type', 'tutor');
+            if (response.data?.email) {
+                localStorage.setItem('tutorEmail', response.data.email);
+            }
 
-            navigate('/dashboard');
+            navigate('/otp');
         } catch (err) {
             setGeneralError(getErrorMessage(err));
         } finally {
@@ -126,7 +126,7 @@ export default function CreateAccountStep4(){
 
                         <div className="tutorbuttons">
                             <button className="movetostep2" onClick={handleNext} disabled={isSubmitting} type="button">
-                                <FaArrowRight className="btn-icon" /> {isSubmitting ? 'جارِ الإرسال...' : 'إنشاء الحساب'}
+                                <FaArrowRight className="btn-icon" /> {isSubmitting ? 'جارِ الإرسال...' : 'متابعة للتحقق'}
                             </button>
                             <button className="cancele" onClick={() => navigate('/create-account/step3')} disabled={isSubmitting} type="button">
                                 <FaArrowLeft className="btn-icon" />
