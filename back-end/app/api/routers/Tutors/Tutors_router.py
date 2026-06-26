@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_tutor, get_current_user_role_id
 from app.database import get_db
 from app.models.tutors import Tutor
-from app.schemas.tutors import CreateTutor, TutorOut, UpdateTutorRequest
+from app.schemas.tutors import CreateTutor, TutorOut, UpdateTutorRequest, TutorStatsOut
 from app.services import tutor_service
 
 router = APIRouter(prefix="/tutors", tags=["Tutors"])
@@ -82,3 +82,11 @@ def update_tutor(tutor_id: int, tutor: UpdateTutorRequest, db: Session = Depends
 @router.delete("/{tutor_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_tutor(tutor_id: int, db: Session = Depends(get_db)):
     tutor_service.delete_tutor(db, tutor_id)
+
+@router.get("/me/stats", response_model=TutorStatsOut)
+def get_my_stats(
+    db: Session = Depends(get_db),
+    current_tutor: Tutor = Depends(get_current_tutor),
+):
+    return tutor_service.get_tutor_dashboard_stats(db, current_tutor.tutor_id)
+ 

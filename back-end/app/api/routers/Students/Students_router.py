@@ -5,7 +5,7 @@ from app.api.deps import get_current_admin, get_current_student
 from app.database import get_db
 from app.models.admins import Admin
 from app.models.students import Student
-from app.schemas.students import CreateStudent, StudentOut, UpdateStudentRequest
+from app.schemas.students import CreateStudent, StudentOut, UpdateStudentRequest, AcceptedRequestsCountOut, RecentRequestOut, RecentRequestsOut
 from app.services import student_service
 
 router = APIRouter(
@@ -74,3 +74,18 @@ def delete_student_endpoint(
     current_admin: Admin = Depends(get_current_admin),
 ):
     student_service.delete_student(db, student_id)
+
+@router.get("/me/accepted-requests-count", response_model=AcceptedRequestsCountOut)
+def get_my_accepted_requests_count(
+    db: Session = Depends(get_db),
+    current_student: Student = Depends(get_current_student),
+):
+    return student_service.get_accepted_requests_count(db, current_student.student_id)
+ 
+ 
+@router.get("/me/recent-requests", response_model=RecentRequestsOut)
+def get_my_recent_requests(
+    db: Session = Depends(get_db),
+    current_student: Student = Depends(get_current_student),
+):
+    return student_service.get_recent_requests(db, current_student.student_id, limit=2)
