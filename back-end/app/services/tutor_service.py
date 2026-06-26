@@ -70,6 +70,7 @@ def create_tutor(db: Session, tutor_data: CreateTutor) -> TutorOut:
         total_experience_years=tutor_data.total_experience_years,
         registered_at=datetime.utcnow(),
         tution_type=tutor_data.tution_type,
+        gender=tutor_data.gender,
         verified=False,
     )
 

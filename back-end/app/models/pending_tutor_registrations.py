@@ -1,11 +1,12 @@
 from datetime import date, datetime
 from typing import Any
 
-from sqlalchemy import Date, Integer, String, TIMESTAMP
+from sqlalchemy import Date, Enum, Integer, String, TIMESTAMP
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
+from app.schemas.enums import enum_values_callable, gender_enum
 
 
 class PendingTutorRegistration(Base):
@@ -18,6 +19,10 @@ class PendingTutorRegistration(Base):
     last_name: Mapped[str] = mapped_column(String(50), nullable=False)
     date_birth: Mapped[date] = mapped_column(Date, nullable=False)
     phone_number: Mapped[str] = mapped_column(String(20), nullable=False)
+    gender: Mapped[gender_enum | None] = mapped_column(
+        Enum(gender_enum, values_callable=enum_values_callable),
+        nullable=True,
+    )
     step2_data: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     step3_data: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     step4_data: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
