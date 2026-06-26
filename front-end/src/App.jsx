@@ -47,7 +47,6 @@ function App() {
         <Route path="/selection" element={<SelectionPage />} />
         <Route path="/register" element={<CreateStudentAccount />} />
         <Route path="/teacher/register" element={<CreateAccountStep1 />} />
-        <Route path="/create-account/step1" element={<CreateAccountStep1 />} />
         <Route path="/create-account/step2" element={<CreateAccountStep2 />} />
         <Route path="/create-account/step3" element={<CreateAccountStep3 />} />
         <Route path="/create-account/step4" element={<CreateAccountStep4 />} />

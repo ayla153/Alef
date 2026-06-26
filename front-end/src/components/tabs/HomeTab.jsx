@@ -1,66 +1,70 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HowitWorkSteps from '../HowitWorkSteps';
-import BesTutors from '../BesTutors';
+import TeacherCard from '../TeacherCard';
 import FAQItem from '../FAQItem';
 import '../../styles/HomeTab.css';
 import studentImage from '../../assets/homePageImage.png';
 
+const BASE_URL = 'http://localhost:8000';
+
+function mapTutorToTeacher(tutor) {
+  const subjects = tutor.tutor_subjects?.map(s => s.subject?.subject_title).filter(Boolean) ?? [];
+
+  const modes = [];
+  if (tutor.tution_type === 'online' || tutor.tution_type === 'both') modes.push('online');
+  if (tutor.tution_type === 'offline' || tutor.tution_type === 'both') modes.push('offline');
+
+  const onlineSubject = tutor.tutor_subjects?.find(s =>
+    tutor.tution_type === 'online' || tutor.tution_type === 'both'
+  );
+  const offlineSubject = tutor.tutor_subjects?.find(s =>
+    tutor.tution_type === 'offline' || tutor.tution_type === 'both'
+  );
+
+  const avgRating = tutor.reviews?.length
+    ? (tutor.reviews.reduce((sum, r) => sum + r.number_of_stars, 0) / tutor.reviews.length).toFixed(1)
+    : 0;
+
+  return {
+    id: tutor.tutor_id,
+    name: `${tutor.first_name} ${tutor.last_name}`,
+    image: tutor.tutor_photo || 'https://via.placeholder.com/80',
+    subtitle: tutor.bio ?? '',
+    stage: tutor.bio ?? '',
+    rating: avgRating,
+    reviews: tutor.reviews?.length ?? 0,
+    experience: tutor.total_experience_years ?? 0,
+    subjects,
+    modes,
+    onlinePrice: onlineSubject?.price_per_hour ?? 0,
+    offlinePrice: offlineSubject?.price_per_hour ?? 0,
+  };
+}
+
 export default function HomeTab({ onViewProfile }) {
   const navigate = useNavigate();
-  const teachers = [
-    {
-      id: 1,
-      name: 'رغد طليمات',
-      image: 'https://randomuser.me/api/portraits/women/1.jpg',
-      subtitle: 'مدرسة رياضيات متخصصة',
-      rating: 4.8,
-      reviews: 120,
-      experience: 5,
-      subjects: ['رياضيات', 'فيزياء'],
-      modes: ['online', 'offline'],
-      onlinePrice: 300,
-      offlinePrice: 400,
-    },
-    {
-      id: 2,
-      name: 'شهد عبارة',
-      image: 'https://randomuser.me/api/portraits/women/2.jpg',
-      subtitle: 'مدرسة لغة إنجليزية',
-      rating: 4.9,
-      reviews: 95,
-      experience: 4,
-      subjects: ['انكليزي'],
-      modes: ['online'],
-      onlinePrice: 250,
-      offlinePrice: 0,
-    },
-    {
-      id: 3,
-      name: 'هدى الطبال',
-      image: 'https://randomuser.me/api/portraits/women/3.jpg',
-      subtitle: 'مدرسة لغة عربية',
-      rating: 4.7,
-      reviews: 88,
-      experience: 6,
-      subjects: ['عربي', 'تربية إسلامية'],
-      modes: ['online', 'offline'],
-      onlinePrice: 280,
-      offlinePrice: 350,
-    },
-    {
-      id: 4,
-      name: 'أيلة الراس',
-      image: 'https://randomuser.me/api/portraits/women/4.jpg',
-      subtitle: 'مدرسة تاريخ',
-      rating: 4.6,
-      reviews: 72,
-      experience: 3,
-      subjects: ['تاريخ', 'جغرافية'],
-      modes: ['online'],
-      onlinePrice: 220,
-      offlinePrice: 0,
-    }
-  ];
+  const [teachers, setTeachers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchTutors = async () => {
+      try {
+        const res = await fetch(`${BASE_URL}/tutors/?page=1&page_size=4`);
+        if (!res.ok) throw new Error('فشل جلب البيانات');
+        const data = await res.json();
+        setTeachers(data.map(mapTutorToTeacher));
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTutors();
+  }, []);
+
   return (
     <>
       <div className="firstsection fade-in">
@@ -68,7 +72,10 @@ export default function HomeTab({ onViewProfile }) {
           <div className="homepageTitle2">
             <div>أتقن أي مادة مع</div>
             <div><span className="besttutor">أفضل المعلمين</span></div>
-            <div className="homepagesubtitle">انضم إلى منصة ألف التعليمية وحقق أهدافك الأكاديمية من خلال دروس خصوصية مع معلمين من اختيارك</div>
+            <div className="homepagesubtitle">
+              انضم إلى منصة ألف التعليمية وحقق أهدافك الأكاديمية من خلال دروس
+              خصوصية مع معلمين من اختيارك
+            </div>
             <div className="homepagebuttons">
               <button className="btn-glow" onClick={() => navigate('/register')}>انضم كطالب</button>
               <button className="btn-glow" onClick={() => navigate('/teacher/register')}>انضم كمعلم</button>
@@ -95,11 +102,16 @@ export default function HomeTab({ onViewProfile }) {
       <div className="section3 fade-in">
         <div className="bestTutors">
           <div>نخبة من المعلمين المتميزين</div>
-          <div className="bestTutorssubtitle">اختر المعلم الأنسب لك من بين مجموعة واسعة من الخبراء في جميع المجالات الدراسية</div>
+          <div className="bestTutorssubtitle">
+            اختر المعلم الأنسب لك من بين مجموعة واسعة من الخبراء في جميع المجالات الدراسية
+          </div>
         </div>
+
         <div className="bestTutorsContainer">
-          {teachers.map((teacher) => (
-            <BesTutors key={teacher.id} teacher={teacher} onViewProfile={onViewProfile} />
+          {loading && <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>جاري التحميل...</p>}
+          {error && <p style={{ textAlign: 'center', color: 'var(--text-danger)' }}>{error}</p>}
+          {!loading && !error && teachers.map(teacher => (
+            <TeacherCard key={teacher.id} teacher={teacher} />
           ))}
         </div>
       </div>
