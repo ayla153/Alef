@@ -1,0 +1,15 @@
+# Editor local history (VS Code extension backups)
+.history/
+
+# Cursor IDE
+.cursor/
+
+# macOS
+.DS_Store
+
+# Local tooling (not part of the app)
+jira-tools/
+
+# Other repo areas — not tracked on the front branch (noise when using one clone)
+back-end/
+docs/
