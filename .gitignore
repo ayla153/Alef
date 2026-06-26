@@ -1,4 +1,24 @@
+# Editor local history (VS Code extension backups)
 .history/
+
+# Cursor IDE
 .cursor/
+
+# macOS
+.DS_Store
+
+# Local tooling (not part of the app)
 jira-tools/
 docs/
+
+# Node / frontend build output
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Python bytecode / cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
