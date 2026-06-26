@@ -210,7 +210,10 @@ def lead_to_out(lead: PostRequirement) -> LeadOut:
         description=lead.description,
         foundation_tution=lead.foundation_tution,
         tution_type=lead.tution_type,
-        expected_fee=lead.expected_fee,
+        help_type=lead.help_type,
+        min_expected_fee=lead.min_expected_fee,
+        max_expected_fee=lead.max_expected_fee,
+        weekly_classes=lead.weekly_classes,
         created_at=lead.created_at,
         expired_at=lead.expired_at,
         preferred_gender=lead.preferred_gender,
@@ -424,7 +427,10 @@ def lead_to_browse_card_out(lead: PostRequirement) -> LeadBrowseCardOut:
         description=lead.description,
         foundation_tution=lead.foundation_tution,
         tution_type=lead.tution_type,
-        expected_fee=lead.expected_fee,
+        help_type=lead.help_type,
+        min_expected_fee=lead.min_expected_fee,
+        max_expected_fee=lead.max_expected_fee,
+        weekly_classes=lead.weekly_classes,
         created_at=lead.created_at,
         preferred_gender=lead.preferred_gender,
         subject_id=lead.subject_id,
@@ -480,7 +486,10 @@ def create_public_lead(db: Session, student: Student, data: CreatePublicLeadIn) 
         description=data.description.strip(),
         foundation_tution=data.foundation_tution,
         tution_type=data.tution_type,
-        expected_fee=data.expected_fee,
+        help_type=data.help_type.strip(),
+        min_expected_fee=data.min_expected_fee,
+        max_expected_fee=data.max_expected_fee,
+        weekly_classes=data.weekly_classes,
         created_at=now,
         expired_at=now + timedelta(days=LEAD_DEFAULT_EXPIRY_DAYS),
         preferred_gender=data.preferred_gender,
@@ -589,7 +598,10 @@ def create_private_lead(db: Session, student: Student, data: CreatePrivateLeadIn
         description=data.description.strip(),
         foundation_tution=data.foundation_tution,
         tution_type=data.tution_type,
-        expected_fee=data.expected_fee,
+        help_type=data.help_type.strip(),
+        min_expected_fee=data.min_expected_fee,
+        max_expected_fee=data.max_expected_fee,
+        weekly_classes=data.weekly_classes,
         created_at=now,
         expired_at=now + timedelta(days=LEAD_DEFAULT_EXPIRY_DAYS),
         preferred_gender=data.preferred_gender,
@@ -677,7 +689,7 @@ def accept_private_contact(
     lead.lead_status = LeadStatusEnum.CLOSED_MATCHED
     lead.closed_at = now
     lead.accepting_applications = False
-    proposed_fee = data.proposed_fee if data.proposed_fee is not None else lead.expected_fee
+    proposed_fee = data.proposed_fee if data.proposed_fee is not None else lead.max_expected_fee
     first_session_note = (data.first_session_note or "Flexible").strip()
     message = (data.message or "أوافق على التواصل").strip()
 

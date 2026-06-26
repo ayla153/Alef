@@ -1,9 +1,9 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_tutor
+from app.api.deps import get_current_tutor, get_current_user_role_id
 from app.database import get_db
 from app.models.tutors import Tutor
 from app.schemas.tutors import CreateTutor, TutorOut, UpdateTutorRequest
@@ -22,7 +22,15 @@ def get_me_tutor(current_tutor: Tutor = Depends(get_current_tutor)):
     return TutorOut.model_validate(current_tutor)
 
 
-@router.get("/{tutor_id}", response_model=TutorOut)
+@router.get(
+    "/{tutor_id}",
+    response_model=TutorOut,
+    summary="Get tutor profile (public)",
+    description=(
+        "Public tutor catalog. No login required. "
+        "Accessible to guests, students, tutors, and admins."
+    ),
+)
 def get_tutor_by_id(tutor_id: int, db: Session = Depends(get_db)):
     tutor = tutor_service.get_tutor_by_id_out(db, tutor_id)
     if not tutor:
@@ -30,13 +38,20 @@ def get_tutor_by_id(tutor_id: int, db: Session = Depends(get_db)):
     return tutor
 
 
-@router.get("/", response_model=List[TutorOut], status_code=status.HTTP_200_OK)
+@router.get(
+    "/",
+    response_model=List[TutorOut],
+    status_code=status.HTTP_200_OK,
+    summary="List tutors",
+    description="Tutor catalog. Requires login as a student, tutor, or admin.",
+)
 def get_all_tutors(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
     subject_ids: Optional[List[int]] = Query(default=None),
     stages: Optional[List[str]] = Query(default=None),
     db: Session = Depends(get_db),
+    _current_user: Tuple[str, int] = Depends(get_current_user_role_id),
 ):
     return tutor_service.get_all_tutors(db, page, page_size, subject_ids, stages)
 

@@ -17,10 +17,23 @@ def _cors_origins_from_env() -> list[str]:
     ]
 
 
+def _email_dev_log_otp_enabled() -> bool:
+    raw = os.getenv("EMAIL_DEV_LOG_OTP", "").strip().lower()
+    if raw in ("1", "true", "yes"):
+        return True
+    if raw in ("0", "false", "no"):
+        return False
+    # Local dev default: log OTP to console when SMTP is not configured.
+    smtp_host = os.getenv("SMTP_HOST", "").strip()
+    smtp_from = os.getenv("SMTP_FROM_EMAIL", "").strip()
+    return not (smtp_host and smtp_from)
+
+
 class Settings:
     JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "")
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+    REFRESH_TOKEN_EXPIRE_DAYS: int = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
     REGISTRATION_TOKEN_EXPIRE_MINUTES: int = int(
         os.getenv("REGISTRATION_TOKEN_EXPIRE_MINUTES", "10080")
     )  # default 7 days
@@ -31,6 +44,9 @@ class Settings:
     OTP_MAX_ATTEMPTS: int = int(os.getenv("OTP_MAX_ATTEMPTS", "5"))
     OTP_SEND_COOLDOWN_SECONDS: int = int(os.getenv("OTP_SEND_COOLDOWN_SECONDS", "60"))
     OTP_VERIFY_LOCKOUT_MINUTES: int = int(os.getenv("OTP_VERIFY_LOCKOUT_MINUTES", "15"))
+    PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = int(
+        os.getenv("PASSWORD_RESET_TOKEN_EXPIRE_MINUTES", "15")
+    )
 
     SMTP_HOST: str = os.getenv("SMTP_HOST", "")
     SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
@@ -38,8 +54,16 @@ class Settings:
     SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
     SMTP_FROM_EMAIL: str = os.getenv("SMTP_FROM_EMAIL", "")
     SMTP_USE_TLS: bool = os.getenv("SMTP_USE_TLS", "true").lower() in ("1", "true", "yes")
-    EMAIL_DEV_LOG_OTP: bool = os.getenv("EMAIL_DEV_LOG_OTP", "false").lower() in ("1", "true", "yes")
+    EMAIL_DEV_LOG_OTP: bool = _email_dev_log_otp_enabled()
     PENDING_REGISTRATION_EXPIRE_HOURS: int = int(os.getenv("PENDING_REGISTRATION_EXPIRE_HOURS", "24"))
 
 
 settings = Settings()
+
+
+def smtp_is_configured() -> bool:
+    return bool(settings.SMTP_HOST and settings.SMTP_FROM_EMAIL)
+
+
+def dev_otp_exposed() -> bool:
+    return settings.EMAIL_DEV_LOG_OTP or not smtp_is_configured()

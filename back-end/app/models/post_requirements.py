@@ -25,7 +25,10 @@ class PostRequirement(Base):
         Enum(TuitionTypeEnum, values_callable=enum_values_callable),
         nullable=False,
     )
-    expected_fee: Mapped[Float] = mapped_column(Float, nullable=False)
+    help_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    min_expected_fee: Mapped[Float] = mapped_column(Float, nullable=False)
+    max_expected_fee: Mapped[Float] = mapped_column(Float, nullable=False)
+    weekly_classes: Mapped[int] = mapped_column(Integer, nullable=False)
     created_at: Mapped[TIMESTAMP] = mapped_column(TIMESTAMP, nullable=False)
     expired_at: Mapped[TIMESTAMP] = mapped_column(TIMESTAMP, nullable=False)
     preferred_gender: Mapped[Optional[gender_enum]] = mapped_column(
