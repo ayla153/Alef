@@ -13,9 +13,18 @@ export const registerTutorStep2 = (payload) =>
 export const registerTutorStep3 = (payload) =>
   apiClient.post('/auth/tutor/register/step-3', payload);
 
-// ===== الخطوة 4: النبذة + الشهادات =====
+// ===== الخطوة 4: حفظ النبذة + الشهادات =====
 export const registerTutorStep4 = (payload) =>
-  apiClient.post('/auth/tutor/register/step-4', payload);
+  apiClient.post('/auth/tutor/register/step-4/save', payload);
+
+export const sendTutorRegistrationOtp = () =>
+  apiClient.post('/auth/tutor/register/step-4/send-otp');
+
+export const confirmTutorRegistration = (otp) =>
+  apiClient.post('/auth/tutor/register/step-4/confirm', { otp });
+
+export const cancelTutorRegistration = () =>
+  apiClient.post('/auth/tutor/register/cancel');
 
 // ===== جلب قائمة المواد =====
 export const getSubjects = () => apiClient.get('/subjects/');
