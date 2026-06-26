@@ -33,7 +33,10 @@ class CreatePrivateLeadIn(BaseModel):
     description: str = Field(..., min_length=1, max_length=500)
     foundation_tution: bool = False
     tution_type: TuitionTypeEnum
-    expected_fee: float = Field(..., ge=0)
+    help_type: str = Field(..., min_length=1, max_length=100)
+    min_expected_fee: float = Field(..., ge=0)
+    max_expected_fee: float = Field(..., ge=0)
+    weekly_classes: int = Field(..., ge=1, le=7)
     preferred_gender: Optional[gender_enum] = None
     subject_id: int = Field(..., gt=0)
     level_id: int = Field(..., gt=0)
@@ -71,7 +74,10 @@ class CreatePublicLeadIn(BaseModel):
     description: str = Field(..., min_length=1, max_length=500)
     foundation_tution: bool = False
     tution_type: TuitionTypeEnum
-    expected_fee: float = Field(..., ge=0)
+    help_type: str = Field(..., min_length=1, max_length=100)
+    min_expected_fee: float = Field(..., ge=0)
+    max_expected_fee: float = Field(..., ge=0)
+    weekly_classes: int = Field(..., ge=1, le=7)
     preferred_gender: Optional[gender_enum] = None
     subject_id: int = Field(..., gt=0)
     level_id: int = Field(..., gt=0)
@@ -84,7 +90,10 @@ class CreateLeadIn(BaseModel):
     description: str = Field(..., min_length=1, max_length=500)
     foundation_tution: bool = False
     tution_type: TuitionTypeEnum
-    expected_fee: float = Field(..., ge=0)
+    help_type: str = Field(..., min_length=1, max_length=100)
+    min_expected_fee: float = Field(..., ge=0)
+    max_expected_fee: float = Field(..., ge=0)
+    weekly_classes: int = Field(..., ge=1, le=7)
     preferred_gender: Optional[gender_enum] = None
     subject_id: int = Field(..., gt=0)
     level_id: int = Field(..., gt=0)
@@ -135,7 +144,10 @@ class LeadOut(BaseModel):
     description: str
     foundation_tution: bool
     tution_type: TuitionTypeEnum
-    expected_fee: float
+    help_type: str
+    min_expected_fee: float
+    max_expected_fee: float
+    weekly_classes: int
     created_at: datetime
     expired_at: datetime
     preferred_gender: Optional[gender_enum] = None
@@ -198,7 +210,10 @@ class LeadBrowseCardOut(BaseModel):
     description: str
     foundation_tution: bool
     tution_type: TuitionTypeEnum
-    expected_fee: float
+    help_type: str
+    min_expected_fee: float
+    max_expected_fee: float
+    weekly_classes: int
     created_at: datetime
     preferred_gender: Optional[gender_enum] = None
     subject_id: int

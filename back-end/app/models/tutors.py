@@ -3,7 +3,7 @@ from app.database import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING, Optional, List
 from datetime import datetime, date
-from app.schemas.enums import TuitionTypeEnum, enum_values_callable
+from app.schemas.enums import TuitionTypeEnum, enum_values_callable, gender_enum
 
 if TYPE_CHECKING:
     from app.models.addresses import Address
@@ -34,6 +34,10 @@ class Tutor(Base):
     )
     verified: Mapped[bool] = mapped_column(nullable=False, default=False)
     email_verified: Mapped[bool] = mapped_column(nullable=False, default=False)
+    gender: Mapped[Optional[gender_enum]] = mapped_column(
+        Enum(gender_enum, values_callable=enum_values_callable),
+        nullable=True,
+    )
 
     #relationships
     favorites : Mapped[List["Favorite"]] = relationship("Favorite", back_populates="tutor", cascade="all, delete-orphan")

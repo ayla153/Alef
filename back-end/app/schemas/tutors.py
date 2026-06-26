@@ -6,7 +6,7 @@ import re
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
-from app.schemas.enums import TuitionTypeEnum
+from app.schemas.enums import TuitionTypeEnum, gender_enum
 from app.schemas.reviews import ReviewOut
 from app.api.routers.Addresses.Address_out import AddressOut
 from app.api.routers.Tutor_Subjects.Tutor_Subjects_out import TutorSubjectsOut
@@ -64,6 +64,10 @@ class CreateTutor(BaseModel):
     tution_type: TuitionTypeEnum = Field(
         ...,
         description="Tuition type (e.g., online, offline, both)",
+    )
+    gender: gender_enum = Field(
+        ...,
+        description="Tutor gender (male or female)",
     )
 
     @field_validator('first_name', 'last_name')
@@ -261,6 +265,7 @@ class TutorOut(BaseModel):
     registered_at: datetime
     tution_type: TuitionTypeEnum
     verified: bool
+    gender: Optional[gender_enum] = None
     reviews: Optional[List[ReviewOut]] = None
     Address: Optional[AddressOut] = None
     tutor_subjects: Optional[List[TutorSubjectsOut]] = None

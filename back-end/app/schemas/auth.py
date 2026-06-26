@@ -2,12 +2,17 @@ from datetime import datetime, date
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
-from app.schemas.enums import TuitionTypeEnum, student_grade_enum
+from app.schemas.enums import TuitionTypeEnum, gender_enum, student_grade_enum
 
 
 class Token(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str = "bearer"
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
 
 
 class LoginRequest(BaseModel):
@@ -79,6 +84,7 @@ class TutorRegisterStep1(BaseModel):
     password: str = Field(..., min_length=8)
     date_birth: date
     phone_number: str = Field(..., max_length=20)
+    gender: gender_enum
 
     @field_validator("password")
     @classmethod
