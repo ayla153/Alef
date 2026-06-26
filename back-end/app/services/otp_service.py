@@ -54,6 +54,15 @@ def _email_exists_for_role(db: Session, email: str, role: AuthUserRoleEnum) -> b
     return db.scalar(select(Tutor.tutor_id).where(Tutor.email == normalized)) is not None
 
 
+def resolve_auth_role_for_email(db: Session, email: str) -> AuthUserRoleEnum | None:
+    normalized = _normalize_email(email)
+    if db.scalar(select(Student.student_id).where(Student.email == normalized)) is not None:
+        return AuthUserRoleEnum.STUDENT
+    if db.scalar(select(Tutor.tutor_id).where(Tutor.email == normalized)) is not None:
+        return AuthUserRoleEnum.TUTOR
+    return None
+
+
 def _pending_tutor_email_taken(
     db: Session, email: str, exclude_pending_id: int | None = None
 ) -> bool:
@@ -148,12 +157,21 @@ def send_registration_completion_otp(db: Session, email: str, role: AuthUserRole
     _create_and_send_otp(db, normalized, OtpPurposeEnum.REGISTRATION, role)
 
 
-def send_password_reset_otp(db: Session, email: str, role: AuthUserRoleEnum) -> None:
+def send_password_reset_otp(db: Session, email: str, role: AuthUserRoleEnum) -> str | None:
     normalized = _normalize_email(email)
     if not _email_exists_for_role(db, normalized, role):
-        return
+        return None
 
-    _create_and_send_otp(db, normalized, OtpPurposeEnum.PASSWORD_RESET, role)
+    return _create_and_send_otp(db, normalized, OtpPurposeEnum.PASSWORD_RESET, role)
+
+
+def send_password_reset_otp_for_email(db: Session, email: str) -> str | None:
+    normalized = _normalize_email(email)
+    role = resolve_auth_role_for_email(db, normalized)
+    if role is None:
+        return None
+
+    return _create_and_send_otp(db, normalized, OtpPurposeEnum.PASSWORD_RESET, role)
 
 
 def verify_otp(
@@ -207,7 +225,7 @@ def _create_and_send_otp(
     email: str,
     purpose: OtpPurposeEnum,
     role: AuthUserRoleEnum,
-) -> None:
+) -> str:
     _check_otp_lockout(db, email, purpose, role)
     _check_send_cooldown(db, email, purpose, role)
 
@@ -242,3 +260,5 @@ def _create_and_send_otp(
         db.execute(delete(EmailOtp).where(EmailOtp.otp_id == otp.otp_id))
         db.commit()
         raise OtpError(str(exc), "email_delivery_failed") from exc
+
+    return code

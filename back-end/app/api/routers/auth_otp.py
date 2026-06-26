@@ -7,20 +7,28 @@ from app.models.pending_student_registrations import PendingStudentRegistration
 from app.models.pending_tutor_registrations import PendingTutorRegistration
 from app.schemas.auth import Token, TutorRegisterStep4
 from app.schemas.enums import AuthUserRoleEnum, OtpPurposeEnum
+from jose import JWTError
+
 from app.schemas.otp import (
     OtpEmailResponse,
     OtpMessageResponse,
     OtpSendRequest,
     OtpVerifyOnly,
+    PasswordResetComplete,
     PasswordResetConfirm,
+    PasswordResetVerify,
+    PasswordResetVerifyResponse,
 )
 from app.services import auth_service
 from app.services.auth_service import AuthError
 from app.services import pending_student_registration_service as pending_student_service
 from app.services import pending_tutor_registration_service as pending_service
+from app.core.config import dev_otp_exposed
+from app.core.security import create_password_reset_token, decode_password_reset_token
 from app.services.otp_service import (
     OtpError,
-    send_password_reset_otp,
+    resolve_auth_role_for_email,
+    send_password_reset_otp_for_email,
     send_pending_student_registration_otp,
     send_pending_tutor_registration_otp,
     verify_otp,
@@ -56,6 +64,98 @@ def _http_for_auth_error(e: AuthError) -> HTTPException:
 router = APIRouter(tags=["auth-otp"])
 
 _OTP_SENT_MESSAGE = "If this email is eligible, a verification code has been sent."
+
+
+def _password_reset_request_response(db: DbSession, email: str) -> OtpMessageResponse:
+    try:
+        otp_code = send_password_reset_otp_for_email(db, email)
+    except OtpError as e:
+        raise _http_for_otp_error(e) from e
+    return OtpMessageResponse(
+        message=_OTP_SENT_MESSAGE,
+        dev_otp=otp_code if dev_otp_exposed() and otp_code else None,
+    )
+
+
+def _password_reset_verify(
+    db: DbSession, body: PasswordResetVerify
+) -> PasswordResetVerifyResponse:
+    email = str(body.email)
+    try:
+        role = resolve_auth_role_for_email(db, email)
+        if role is None:
+            raise AuthError("Account not found", "account_not_found")
+        verify_otp(
+            db,
+            email,
+            body.otp,
+            OtpPurposeEnum.PASSWORD_RESET,
+            role,
+        )
+        token = create_password_reset_token(email)
+    except OtpError as e:
+        raise _http_for_otp_error(e) from e
+    except AuthError as e:
+        raise _http_for_auth_error(e) from e
+    return PasswordResetVerifyResponse(
+        message="Verification code accepted",
+        password_reset_token=token,
+    )
+
+
+def _password_reset_complete(db: DbSession, body: PasswordResetComplete) -> OtpMessageResponse:
+    try:
+        email = decode_password_reset_token(body.password_reset_token)
+        auth_service.reset_password_for_email(db, email, body.new_password)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired password reset session. Please verify the code again.",
+        ) from e
+    except JWTError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired password reset session. Please verify the code again.",
+        ) from e
+    except AuthError as e:
+        raise _http_for_auth_error(e) from e
+    return OtpMessageResponse(message="Password updated successfully")
+
+
+def _password_reset_confirm(db: DbSession, body: PasswordResetConfirm) -> OtpMessageResponse:
+    email = str(body.email)
+    try:
+        role = resolve_auth_role_for_email(db, email)
+        if role is None:
+            raise AuthError("Account not found", "account_not_found")
+        verify_otp(
+            db,
+            email,
+            body.otp,
+            OtpPurposeEnum.PASSWORD_RESET,
+            role,
+        )
+        auth_service.reset_password_for_email(db, email, body.new_password)
+    except OtpError as e:
+        raise _http_for_otp_error(e) from e
+    except AuthError as e:
+        raise _http_for_auth_error(e) from e
+    return OtpMessageResponse(message="Password updated successfully")
+
+
+@router.post("/password-reset/request", response_model=OtpMessageResponse)
+def password_reset_request(db: DbSession, body: OtpSendRequest) -> OtpMessageResponse:
+    return _password_reset_request_response(db, str(body.email))
+
+
+@router.post("/password-reset/verify", response_model=PasswordResetVerifyResponse)
+def password_reset_verify(db: DbSession, body: PasswordResetVerify) -> PasswordResetVerifyResponse:
+    return _password_reset_verify(db, body)
+
+
+@router.post("/password-reset/confirm", response_model=OtpMessageResponse)
+def password_reset_confirm(db: DbSession, body: PasswordResetComplete) -> OtpMessageResponse:
+    return _password_reset_complete(db, body)
 
 
 @router.post("/student/register/send-otp", response_model=OtpEmailResponse)
@@ -97,38 +197,17 @@ def student_register_confirm(
 
 @router.post("/student/password-reset/request", response_model=OtpMessageResponse)
 def student_password_reset_request(db: DbSession, body: OtpSendRequest) -> OtpMessageResponse:
-    try:
-        send_password_reset_otp(db, str(body.email), AuthUserRoleEnum.STUDENT)
-    except OtpError as e:
-        raise _http_for_otp_error(e) from e
-    return OtpMessageResponse(message=_OTP_SENT_MESSAGE)
+    return _password_reset_request_response(db, str(body.email))
 
 
 @router.post("/student/password-reset/confirm", response_model=OtpMessageResponse)
 def student_password_reset_confirm(db: DbSession, body: PasswordResetConfirm) -> OtpMessageResponse:
-    try:
-        verify_otp(
-            db,
-            str(body.email),
-            body.otp,
-            OtpPurposeEnum.PASSWORD_RESET,
-            AuthUserRoleEnum.STUDENT,
-        )
-        auth_service.reset_student_password(db, str(body.email), body.new_password)
-    except OtpError as e:
-        raise _http_for_otp_error(e) from e
-    except AuthError as e:
-        raise _http_for_auth_error(e) from e
-    return OtpMessageResponse(message="Password updated successfully")
+    return _password_reset_confirm(db, body)
 
 
 @router.post("/tutor/password-reset/request", response_model=OtpMessageResponse)
 def tutor_password_reset_request(db: DbSession, body: OtpSendRequest) -> OtpMessageResponse:
-    try:
-        send_password_reset_otp(db, str(body.email), AuthUserRoleEnum.TUTOR)
-    except OtpError as e:
-        raise _http_for_otp_error(e) from e
-    return OtpMessageResponse(message=_OTP_SENT_MESSAGE)
+    return _password_reset_request_response(db, str(body.email))
 
 
 @router.post("/tutor/register/step-4/save", response_model=OtpEmailResponse)
@@ -186,17 +265,4 @@ def tutor_register_step_4_confirm(
 
 @router.post("/tutor/password-reset/confirm", response_model=OtpMessageResponse)
 def tutor_password_reset_confirm(db: DbSession, body: PasswordResetConfirm) -> OtpMessageResponse:
-    try:
-        verify_otp(
-            db,
-            str(body.email),
-            body.otp,
-            OtpPurposeEnum.PASSWORD_RESET,
-            AuthUserRoleEnum.TUTOR,
-        )
-        auth_service.reset_tutor_password(db, str(body.email), body.new_password)
-    except OtpError as e:
-        raise _http_for_otp_error(e) from e
-    except AuthError as e:
-        raise _http_for_auth_error(e) from e
-    return OtpMessageResponse(message="Password updated successfully")
+    return _password_reset_confirm(db, body)

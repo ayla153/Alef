@@ -3,7 +3,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from app.core.config import settings
+from app.core.config import dev_otp_exposed, settings
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +38,20 @@ def send_email(to_email: str, subject: str, body: str) -> None:
         raise EmailDeliveryError("Failed to send email") from exc
     
     
+def _log_dev_otp(to_email: str, otp_code: str, purpose_label: str) -> None:
+    logger.warning(
+        "OTP email for %s (%s): %s",
+        to_email,
+        purpose_label,
+        otp_code,
+    )
+    if dev_otp_exposed():
+        print(
+            f"\n>>> [ALEF DEV OTP] {to_email} ({purpose_label}): {otp_code} <<<\n",
+            flush=True,
+        )
+
+
 def send_otp_email(to_email: str, otp_code: str, purpose_label: str) -> None:
     subject = f"Alef — your {purpose_label} code"
     body = (
@@ -46,13 +60,8 @@ def send_otp_email(to_email: str, otp_code: str, purpose_label: str) -> None:
         "If you did not request this, you can ignore this email."
     )
 
-    if settings.EMAIL_DEV_LOG_OTP or not _smtp_configured():
-        logger.warning(
-            "OTP email for %s (%s): %s",
-            to_email,
-            purpose_label,
-            otp_code,
-        )
+    if dev_otp_exposed() or not _smtp_configured():
+        _log_dev_otp(to_email, otp_code, purpose_label)
         if not _smtp_configured():
             return
 

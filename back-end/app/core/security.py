@@ -51,3 +51,28 @@ def create_refresh_token(
 
 def decode_access_token(token: str) -> dict[str, Any]:
     return jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+
+
+PASSWORD_RESET_TOKEN_ROLE = "password_reset"
+
+
+def create_password_reset_token(email: str) -> str:
+    expires_delta = timedelta(minutes=settings.PASSWORD_RESET_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(timezone.utc) + expires_delta
+    to_encode: dict[str, Any] = {
+        "sub": email.strip().lower(),
+        "role": PASSWORD_RESET_TOKEN_ROLE,
+        "exp": expire,
+        "typ": "password_reset",
+    }
+    return jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+
+
+def decode_password_reset_token(token: str) -> str:
+    payload = decode_access_token(token)
+    if payload.get("typ") != "password_reset":
+        raise ValueError("Invalid password reset token")
+    sub = payload.get("sub")
+    if sub is None:
+        raise ValueError("Invalid password reset token payload")
+    return str(sub)
