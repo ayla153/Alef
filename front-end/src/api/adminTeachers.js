@@ -1,0 +1,20 @@
+import apiClient from './axiosClient';
+
+// جلب كل المعلمين (مع دعم Pagination والفلاتر الاختيارية)
+// ملاحظة: لا يوجد فلتر "verified" بالباك إند، لذلك نجلب الجميع ونفلتر بالفرونت
+export const getAllTutors = ({ page = 1, page_size = 100, subject_ids, stages } = {}) =>
+  apiClient.get('/tutors/', {
+    params: { page, page_size, subject_ids, stages }
+  });
+
+// جلب بيانات معلّم واحد بالتفصيل
+export const getTutorById = (tutorId) => apiClient.get(`/tutors/${tutorId}`);
+
+// حذف معلّم نهائياً
+export const deleteTutor = (tutorId) => apiClient.delete(`/tutors/${tutorId}`);
+
+// توثيق/إلغاء توثيق معلّم (يُستخدم عادة في تبويب "المعلمين قيد المراجعة")
+export const verifyTutor = (tutorId, verified) =>
+  apiClient.put(`/admins/tutors/${tutorId}/verify`, null, {
+    params: { verified }
+  });

@@ -2,40 +2,63 @@ import React, { useState } from "react";
 import "../../styles/sstyle/CreateLeadStep2.css";
 import Header from "../../components/Header";
 
+const SLIDER_MIN = 50;
+const SLIDER_MAX = 1000;
+const SLIDER_STEP = 10;
+
 const CreateLeadStep2 = ({ formData, updateForm, onNext, onBack }) => {
-  const [budgetValue, setBudgetValue] = useState(500);
+  const [minBudget, setMinBudget] = useState(
+    formData.min_expected_fee ?? SLIDER_MIN,
+  );
+  const [maxBudget, setMaxBudget] = useState(
+    formData.max_expected_fee ?? 500,
+  );
   const [errors, setErrors] = useState({});
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const minPercent =
+    ((minBudget - SLIDER_MIN) / (SLIDER_MAX - SLIDER_MIN)) * 100;
+  const maxPercent =
+    ((maxBudget - SLIDER_MIN) / (SLIDER_MAX - SLIDER_MIN)) * 100;
 
+  const syncBudget = (min, max) => {
+    const nextMin = Math.max(SLIDER_MIN, Math.min(min, SLIDER_MAX));
+    const nextMax = Math.max(SLIDER_MIN, Math.min(max, SLIDER_MAX));
+    const safeMin = Math.min(nextMin, nextMax);
+    const safeMax = Math.max(nextMin, nextMax);
+
+    setMinBudget(safeMin);
+    setMaxBudget(safeMax);
     updateForm({
-      [name]: value,
-    });
-
-    setErrors({
-      ...errors,
-      [name]: "",
+      min_expected_fee: safeMin,
+      max_expected_fee: safeMax,
     });
   };
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    updateForm({ [name]: value });
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+  };
+
   const validateForm = () => {
-    let newErrors = {};
+    const newErrors = {};
+    const weekly = Number(formData.weeklyClasses);
 
-    if (!formData.weeklyClasses) {
-      newErrors.weeklyClasses = "الرجاء إدخال عدد الحصص الأسبوعية";
-    }
-
-    if (!formData.time) {
-      newErrors.time = "الرجاء اختيار الوقت المناسب";
+    if (!weekly || weekly < 1 || weekly > 7) {
+      newErrors.weeklyClasses = "الرجاء تحديد عدد الحصص (1-7)";
     }
 
     setErrors(newErrors);
-
     return Object.keys(newErrors).length === 0;
   };
 
   const handleNext = () => {
+    updateForm({
+      weeklyClasses: formData.weeklyClasses || "1",
+      min_expected_fee: minBudget,
+      max_expected_fee: maxBudget,
+    });
+
     if (validateForm()) {
       onNext();
     }
@@ -45,10 +68,8 @@ const CreateLeadStep2 = ({ formData, updateForm, onNext, onBack }) => {
     <div className="createLeadStep2_appContainer" dir="rtl">
       <Header />
 
-      {/* Main Content */}
       <main className="createLeadStep2_mainContent">
         <div className="createLeadStep2_contentWrapper">
-          {/* Page Header & Progress */}
           <div className="createLeadStep2_pageHeader">
             <div className="createLeadStep2_pageTitleGroup">
               <h2 className="createLeadStep2_pageTitle">
@@ -72,7 +93,6 @@ const CreateLeadStep2 = ({ formData, updateForm, onNext, onBack }) => {
             </div>
           </div>
 
-          {/* Form Card */}
           <div className="createLeadStep2_formCard">
             <div className="createLeadStep2_formSection">
               <h3 className="createLeadStep2_sectionTitle">
@@ -83,7 +103,6 @@ const CreateLeadStep2 = ({ formData, updateForm, onNext, onBack }) => {
               </h3>
 
               <div className="createLeadStep2_formGrid">
-                {/* Field 1 */}
                 <label className="createLeadStep2_formGroup">
                   <span className="createLeadStep2_formLabel">
                     كم حصة تحتاج أسبوعياً؟
@@ -94,9 +113,8 @@ const CreateLeadStep2 = ({ formData, updateForm, onNext, onBack }) => {
                       type="number"
                       min="1"
                       max="7"
-                      defaultValue="1"
                       name="weeklyClasses"
-                      value={formData.weeklyClasses}
+                      value={formData.weeklyClasses || "1"}
                       onChange={handleChange}
                       className="createLeadStep2_formControl"
                     />
@@ -110,33 +128,30 @@ const CreateLeadStep2 = ({ formData, updateForm, onNext, onBack }) => {
                   )}
                 </label>
 
-                {/* Field 2 */}
+                {/* الوقت المناسب — معطّل مؤقتاً (لا يُرسل للباك) */}
+                {/*
                 <label className="createLeadStep2_formGroup">
                   <span className="createLeadStep2_formLabel">
                     الوقت المناسب
                   </span>
 
-                  <div className="createLeadStep2_inputWrapper">
+                  <div className="createLeadStep2_inputWrapper createLeadStep2_inputWrapper--time">
                     <input
                       type="time"
                       name="time"
-                      value={formData.time}
+                      value={formData.time || ""}
                       onChange={handleChange}
-                      className="createLeadStep2_formControl"
+                      className="createLeadStep2_formControl createLeadStep2_timeInput"
+                      dir="ltr"
+                      step="900"
                     />
-                    <span className="material-symbols-outlined createLeadStep2_inputIcon">
+                    <span className="material-symbols-outlined createLeadStep2_inputIcon createLeadStep2_timeIcon">
                       schedule
                     </span>
                   </div>
-
-                  {errors.time && (
-                    <span className="createLeadStep2_errorText">
-                      {errors.time}
-                    </span>
-                  )}
                 </label>
+                */}
 
-                {/* Field 3 (بدون validation حسب طلبك) */}
                 <div className="createLeadStep2_formGroup createLeadStep2_fullWidth createLeadStep2_budgetGroup">
                   <div className="createLeadStep2_budgetHeader">
                     <span className="createLeadStep2_formLabel">
@@ -144,37 +159,57 @@ const CreateLeadStep2 = ({ formData, updateForm, onNext, onBack }) => {
                     </span>
 
                     <span className="createLeadStep2_budgetValue">
-                      50 - {budgetValue} ل.س
+                      {minBudget} - {maxBudget} ل.س
                     </span>
                   </div>
 
                   <div className="createLeadStep2_sliderWrapper">
-                    <input
-                      type="range"
-                      min="100"
-                      max="1000"
-                      step="10"
-                      value={budgetValue}
-                      onChange={(e) => {
-                        setBudgetValue(e.target.value);
-
-                        updateForm({
-                          budget: e.target.value,
-                        });
+                    <div
+                      className="createLeadStep2_dualSlider"
+                      style={{
+                        "--min-percent": minPercent,
+                        "--max-percent": maxPercent,
                       }}
-                      className="createLeadStep2_rangeSlider"
-                    />
+                    >
+                      <div className="createLeadStep2_dualSliderTrack" />
+                      <div className="createLeadStep2_dualSliderRange" />
+
+                      <input
+                        type="range"
+                        min={SLIDER_MIN}
+                        max={SLIDER_MAX}
+                        step={SLIDER_STEP}
+                        value={minBudget}
+                        onChange={(e) =>
+                          syncBudget(Number(e.target.value), maxBudget)
+                        }
+                        className="createLeadStep2_rangeSlider createLeadStep2_rangeSlider--min"
+                        aria-label="الحد الأدنى للميزانية"
+                      />
+
+                      <input
+                        type="range"
+                        min={SLIDER_MIN}
+                        max={SLIDER_MAX}
+                        step={SLIDER_STEP}
+                        value={maxBudget}
+                        onChange={(e) =>
+                          syncBudget(minBudget, Number(e.target.value))
+                        }
+                        className="createLeadStep2_rangeSlider createLeadStep2_rangeSlider--max"
+                        aria-label="الحد الأعلى للميزانية"
+                      />
+                    </div>
 
                     <div className="createLeadStep2_sliderLabels">
-                      <span>100 ل.س</span>
-                      <span>1000 ل.س</span>
+                      <span>{SLIDER_MIN} ل.س</span>
+                      <span>{SLIDER_MAX} ل.س</span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Actions */}
             <div className="createLeadStep2_formActions">
               <button className="createLeadStep2_btnCancel" onClick={onBack}>
                 السابق

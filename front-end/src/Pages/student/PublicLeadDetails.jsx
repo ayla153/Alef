@@ -2,59 +2,119 @@ import React from "react";
 import "../../styles/sstyle/PublicLeadDetails.css";
 import Header from "../../components/Header";
 import { useNavigate } from "react-router-dom";
+import api from "../../api/api.js";
 
-export default function PublicOrderDetails({ lead }) {
-  if (!lead) {
-    return <div>لا توجد بيانات للعرض</div>;
-  }
+export default function PublicLeadDetails({ lead }) {
   const navigate = useNavigate();
-  const [acceptedOfferId, setAcceptedOfferId] = React.useState(null);
-  const [offersState, setOffersState] = React.useState(lead.offers || []);
-  const [orderStatus, setOrderStatus] = React.useState(lead.status);
+
+  const [applicationsState, setApplicationsState] = React.useState(
+    lead.applications || []
+  );
+  const [leadStatus, setLeadStatus] = React.useState(lead.lead_status);
   const [showCancelModal, setShowCancelModal] = React.useState(false);
-
-  const isPending = lead.status === "pending";
-  const isClosed = orderStatus === "closed";
-
-  const offers = offersState;
-
-  const isFull = offersState.length >= 5;
+  const [actionLoading, setActionLoading] = React.useState(false);
+  const [actionError, setActionError] = React.useState(null);
 
   React.useEffect(() => {
-    setOffersState(lead.offers || []);
+    setApplicationsState(lead.applications || []);
+    setLeadStatus(lead.lead_status);
   }, [lead]);
 
-  const summary = lead.summary || {
-    receivedCount: offers.length,
-    totalExpected: offers.length,
+  if (!lead) return <div>لا توجد بيانات للعرض</div>;
+
+  const isClosed = ["closed_shortlist", "closed_matched", "closed_empty", "closed_expired"].includes(leadStatus);
+  const isPending = leadStatus === "open" && applicationsState.filter(a => a.application_status === "pending").length === 0;
+
+  // رفض عرض واحد — PATCH /leads/{id}/offers/{offer_id}/reject
+  const handleRejectOffer = async (offerId) => {
+    try {
+      setActionLoading(true);
+      setActionError(null);
+      const { data: updated } = await api.patch(
+        `/leads/${lead.post_requirements_id}/offers/${offerId}/reject`
+      );
+      setApplicationsState(updated.applications || []);
+    } catch (err) {
+      setActionError(err.response?.data?.detail || "فشل رفض العرض");
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  console.log("STATUS =", lead.status);
-  console.log("OFFERS =", lead.offers);
-
-  const handleRejectOffer = (offerId) => {
-    setOffersState((prev) => prev.filter((offer) => offer.id !== offerId));
+  // إغلاق الطلب — POST /leads/{id}/close (بدون body للعام)
+  // بيرجع LeadOut محدّث
+  const handleCloseOrder = async () => {
+    try {
+      setActionLoading(true);
+      setActionError(null);
+      const { data: updated } = await api.post(
+        `/leads/${lead.post_requirements_id}/close`
+      );
+      // نحدّث الـ state بالبيانات الجديدة من الباك
+      setLeadStatus(updated.lead_status);
+      setApplicationsState(updated.applications || []);
+      return updated;
+    } catch (err) {
+      const msg = err.response?.data?.detail || "فشل إغلاق الطلب";
+      // 409 = الطلب مغلق مسبقاً — نعامله كنجاح ونروح لطلباتي
+      if (err.response?.status === 409) {
+        navigate("/MyLeads");
+        return;
+      }
+      setActionError(msg);
+      throw err;
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  const handleCloseOrder = () => {
-    setOrderStatus("closed");
-  };
-
-  const handleCancelOrder = () => {
-    setOrderStatus("cancelled");
+  // إلغاء الطلب = إغلاق بدون عروض (غير مهتم) ثم navigate
+  const handleCancelOrder = async () => {
     setShowCancelModal(false);
-
-    // 👇 هون مكانها
-    setTimeout(() => {
+    try {
+      await handleCloseOrder();
+      // بعد الإغلاق الناجح نروح لطلباتي
       navigate("/MyLeads");
-    }, 500);
+    } catch {
+      // الخطأ بيظهر بـ actionError
+    }
   };
+
+  // حساب وقت الانتهاء
+  const daysLeft = lead.expired_at
+    ? Math.max(
+        0,
+        Math.ceil(
+          (new Date(lead.expired_at) - new Date()) / (1000 * 60 * 60 * 24)
+        )
+      )
+    : null;
 
   return (
     <div className="pld-app">
       <Header />
 
       <main className="pld-main-content">
+
+        {/* رسالة الخطأ */}
+        {actionError && (
+          <div
+            style={{
+              background: "#fee2e2",
+              color: "#dc2626",
+              padding: "12px 16px",
+              borderRadius: "8px",
+              margin: "0 0 16px",
+              textAlign: "center",
+              fontWeight: "bold",
+            }}
+            dir="rtl"
+          >
+            {actionError}
+          </div>
+        )}
+
+        {/* HEADER CARD */}
         <section className="pld-card pld-header-card">
           <div className="pld-header-info">
             <div className="pld-badges-row">
@@ -63,62 +123,97 @@ export default function PublicOrderDetails({ lead }) {
               {isPending ? (
                 <span className="pod-badge pod-badge-pending">
                   <span className="material-symbols-outlined">pending</span>
-                  قيد الانتظار
+                  بانتظار العروض
+                </span>
+              ) : isClosed ? (
+                <span className="pld-badge-status pld-bg-gray">
+                  <span className="material-symbols-outlined">lock</span>
+                  {leadStatus === "closed_shortlist"
+                    ? "مغلق — قائمة العروض"
+                    : leadStatus === "closed_empty"
+                    ? "مغلق — بدون عروض"
+                    : leadStatus === "closed_expired"
+                    ? "منتهي تلقائياً"
+                    : "مغلق"}
                 </span>
               ) : (
                 <span className="pld-badge-status pld-bg-success">
-                  <span className="material-symbols-outlined">
-                    check_circle
-                  </span>
+                  <span className="material-symbols-outlined">check_circle</span>
                   مفتوح
                 </span>
               )}
             </div>
-            <span className="pod-order-id">رقم الطلب: #{lead.id}</span>
+
+            <span className="pod-order-id">
+              رقم الطلب: #{lead.post_requirements_id}
+            </span>
           </div>
 
           <div className="pod-header-title-zone">
-            <h1 className="pld-main-title">{lead.subject}</h1>
-            <p className="pod-creation-date">تم الإنشاء في {lead.createdAt}</p>
+            <h1 className="pld-main-title">{lead.title}</h1>
+            <p className="pod-creation-date">
+              تم الإنشاء في{" "}
+              {new Date(lead.created_at).toLocaleDateString("ar-SA")}
+            </p>
+            {daysLeft !== null && !isClosed && (
+              <p style={{ color: daysLeft <= 2 ? "#dc2626" : "#6b7280", fontSize: "13px" }}>
+                ينتهي خلال {daysLeft} يوم
+              </p>
+            )}
           </div>
 
           <div className="pld-meta-row">
             <div className="pod-spec-item">
-              <span className="material-symbols-outlined pod-spec-icon">
-                payments
-              </span>
+              <span className="material-symbols-outlined pod-spec-icon">payments</span>
               <span className="pod-spec-label">الميزانية المتوقعة</span>
               <span className="pod-spec-value">
-                {lead.budget} <span className="pod-unit">/ساعة</span>
+                {lead.min_expected_fee} - {lead.max_expected_fee} <span className="pod-unit">ل.س/ساعة</span>
               </span>
             </div>
 
             <div className="pod-spec-item">
               <span className="material-symbols-outlined pod-spec-icon">
-                school
+                {lead.tution_type === "online" ? "wifi" : lead.tution_type === "offline" ? "person_pin" : "devices"}
               </span>
-              <span className="pod-spec-label">المستوى الدراسي</span>
-              <span className="pod-spec-value">{lead.level}</span>
+              <span className="pod-spec-label">نوع التدريس</span>
+              <span className="pod-spec-value">
+                {lead.tution_type === "online"
+                  ? "أونلاين"
+                  : lead.tution_type === "offline"
+                  ? "حضوري"
+                  : "أونلاين وحضوري"}
+              </span>
             </div>
 
-            <div className="pod-spec-item">
-              <span className="material-symbols-outlined pod-spec-icon">
-                schedule
-              </span>
-              <span className="pod-spec-label">توقيت الحصة</span>
-              <span className="pod-spec-value">{lead.timing}</span>
-            </div>
+            {lead.preferred_gender && (
+              <div className="pod-spec-item">
+                <span className="material-symbols-outlined pod-spec-icon">person</span>
+                <span className="pod-spec-label">جنس المعلم المفضل</span>
+                <span className="pod-spec-value">
+                  {lead.preferred_gender === "male" ? "ذكر" : "أنثى"}
+                </span>
+              </div>
+            )}
 
-            <div className="pod-spec-item">
-              <span className="material-symbols-outlined pod-spec-icon">
-                timer
-              </span>
-              <span className="pod-spec-label">المدة</span>
-              <span className="pod-spec-value">{lead.duration}</span>
-            </div>
+            {lead.help_type && (
+              <div className="pod-spec-item">
+                <span className="material-symbols-outlined pod-spec-icon">help_outline</span>
+                <span className="pod-spec-label">نوع المساعدة</span>
+                <span className="pod-spec-value">{lead.help_type}</span>
+              </div>
+            )}
+
+            {lead.weekly_classes && (
+              <div className="pod-spec-item">
+                <span className="material-symbols-outlined pod-spec-icon">calendar_month</span>
+                <span className="pod-spec-label">حصص أسبوعياً</span>
+                <span className="pod-spec-value">{lead.weekly_classes}</span>
+              </div>
+            )}
           </div>
         </section>
 
+        {/* حالة الانتظار */}
         {isPending ? (
           <section className="pld-card pld-search-status-card pod-waiting-section">
             <div className="pod-top-gradient-line"></div>
@@ -126,24 +221,13 @@ export default function PublicOrderDetails({ lead }) {
               <div className="pod-radar-pulse"></div>
               <div className="pod-radar-bg"></div>
               <div className="pod-radar-core">
-                <span className="material-symbols-outlined pod-icon-radar">
-                  radar
-                </span>
-              </div>
-              <div className="pod-sub-icon pod-icon-search">
-                <span className="material-symbols-outlined">person_search</span>
-              </div>
-              <div className="pod-sub-icon pod-icon-check">
-                <span className="material-symbols-outlined">check_circle</span>
+                <span className="material-symbols-outlined pod-icon-radar">radar</span>
               </div>
             </div>
-
             <h2 className="pod-section-title">بانتظار عروض المعلمين</h2>
             <p className="pod-section-desc">
-              طلبك متاح الآن للمعلمين المتميزين على المنصة. ستتلقى إشعارات فور
-              تقديم أحد المعلمين عرضاً لطلبك.
+              طلبك متاح الآن للمعلمين. يمكنك استلام حتى {lead.max_applications} عروض خلال 10 أيام.
             </p>
-
             <div className="pod-loading-dots">
               <div className="pod-dot"></div>
               <div className="pod-dot"></div>
@@ -151,111 +235,96 @@ export default function PublicOrderDetails({ lead }) {
             </div>
           </section>
         ) : (
+          /* العروض */
           <section className="pld-card">
             <div className="pod-offers-header">
               <h2 className="pod-offers-title">عروض المعلمين</h2>
               <span className="pod-offers-count">
-                {offers.length} من {summary.totalExpected}
+                {applicationsState.length} من {lead.max_applications}
               </span>
             </div>
+
             {!isClosed && (
               <div className="pod-warning-message">
-                ⚠️ لا يمكن قبول أي عرض إلا بعد إغلاق الطلب من قِبل الطالب
+                ⚠️ أغلق الطلب لكشف أرقام المعلمين والتواصل معهم
               </div>
             )}
 
             <div className="pod-offers-list">
-              {offers.map((offer) => (
-                <div
-                  key={offer.id}
-                  className={`pld-card ${
-                    acceptedOfferId === offer.id ? "pod-accepted" : ""
-                  }`}
-                >
+              {applicationsState.map((app) => (
+                <div key={app.lead_application_id} className="pld-card">
                   <div className="pod-teacher-flex">
-                    <div className="pod-teacher-avatar">
-                      <img src={offer.avatar} alt={offer.name} />
-                    </div>
-
-                    <div className="pod-teacher-info">
+                    <div className="pod-teacher-info" style={{ width: "100%" }}>
                       <div className="pod-teacher-header-row">
                         <div>
-                          <h3 className="pod-teacher-name">{offer.name}</h3>
+                          <h3 className="pod-teacher-name">
+                            {app.tutor_first_name || `معلم #${app.tutor_id}`}
+                          </h3>
 
-                          {acceptedOfferId === offer.id && (
-                            <span className="pod-accepted-badge">
-                              <span className="material-symbols-outlined">
-                                check_circle
-                              </span>
-                              تم القبول
-                            </span>
-                          )}
-
-                          <div className="pod-rating-row">
-                            <span className="material-symbols-outlined pod-star-icon">
-                              star
-                            </span>
-                            <span className="pod-rating-score">
-                              {offer.rating}
-                            </span>
-                            <span className="pod-rating-count">
-                              ({offer.reviewsCount} تقييم)
-                            </span>
+                          <div className="pod-price-zone">
+                            <span className="pod-price-value">{app.proposed_fee}</span>
+                            <span className="pod-price-unit"> ل.س/ساعة</span>
                           </div>
-                        </div>
-
-                        <div className="pod-price-zone">
-                          <span className="pod-price-value">{offer.price}</span>
-                          <span className="pod-price-unit">/ساعة</span>
                         </div>
                       </div>
 
-                      <p className="pod-teacher-bio">{offer.bio}</p>
+                      {app.message && (
+                        <p className="pod-teacher-bio">{app.message}</p>
+                      )}
 
-                      {acceptedOfferId === offer.id ? (
+                      {app.first_session_note && (
+                        <p style={{ fontSize: "13px", color: "#6b7280" }}>
+                          ملاحظة الجلسة الأولى: {app.first_session_note}
+                        </p>
+                      )}
+
+                      {/* رقم المعلم — يظهر فقط بعد الإغلاق من الباك */}
+                      {app.tutor_phone_number ? (
                         <div className="pod-contact-zone">
                           <div className="pod-contact-method">
                             <div className="pod-contact-icon-bg">
-                              <span className="material-symbols-outlined">
-                                call
-                              </span>
+                              <span className="material-symbols-outlined">call</span>
                             </div>
                             <div>
                               <p className="pod-contact-label">رقم التواصل</p>
                               <p className="pod-contact-number" dir="ltr">
-                                {offer.contact?.phone}
+                                {app.tutor_phone_number}
                               </p>
                             </div>
                           </div>
-
-                          <div className="pod-contact-actions">
-                            <button className="pod-btn pod-btn-secondary">
-                              عرض الملف الشخصي
-                            </button>
-                          </div>
                         </div>
                       ) : (
+                        !isClosed && (
+                          <p style={{ fontSize: "12px", color: "#9ca3af", marginTop: "8px" }}>
+                            سيظهر رقم التواصل بعد إغلاق الطلب
+                          </p>
+                        )
+                      )}
+
+                      {/* أزرار الإجراءات */}
+                      {app.application_status === "pending" && !isClosed && (
                         <div className="pod-action-buttons-row">
                           <button
-                            className="pod-btn pod-btn-primary"
-                            disabled={!isClosed}
-                            title={!isClosed ? "يجب إغلاق الطلب أولاً" : ""}
-                            onClick={() => setAcceptedOfferId(offer.id)}
-                          >
-                            قبول العرض
-                          </button>
-
-                          <button
                             className="pod-btn pod-btn-danger"
-                            onClick={() => handleRejectOffer(offer.id)}
+                            disabled={actionLoading}
+                            onClick={() => handleRejectOffer(app.lead_application_id)}
                           >
                             رفض العرض
                           </button>
 
-                          <button className="pod-btn pod-btn-secondary">
+                          <button
+                            className="pod-btn pod-btn-secondary"
+                            onClick={() => navigate(`/tutor/${app.tutor_id}`)}
+                          >
                             عرض الملف الشخصي
                           </button>
                         </div>
+                      )}
+
+                      {app.application_status === "rejected" && (
+                        <span style={{ color: "#dc2626", fontSize: "13px" }}>
+                          تم رفض هذا العرض
+                        </span>
                       )}
                     </div>
                   </div>
@@ -265,15 +334,21 @@ export default function PublicOrderDetails({ lead }) {
           </section>
         )}
 
+        {/* معلومات إضافية */}
         <section className="pld-session-info-bar">
           <div className="pld-info-block">
             <div className="pld-block-icon">
               <span className="material-symbols-outlined">laptop_mac</span>
             </div>
-
             <div>
-              <div className="pld-block-label">نوع الحصة ونظامها</div>
-              <div className="pld-block-value">{lead.typeAndSystem}</div>
+              <div className="pld-block-label">نوع الحصة</div>
+              <div className="pld-block-value">
+                {lead.tution_type === "online"
+                  ? "أونلاين عبر المنصة"
+                  : lead.tution_type === "offline"
+                  ? "حضوري"
+                  : "أونلاين وحضوري"}
+              </div>
             </div>
           </div>
 
@@ -283,49 +358,50 @@ export default function PublicOrderDetails({ lead }) {
             <div className="pld-block-icon">
               <span className="material-symbols-outlined">update</span>
             </div>
-
             <div>
-              <div className="pld-block-label">تاريخ الاستجابة المتوقع</div>
-              <div className="pld-block-value">{lead.expectedResponseTime}</div>
+              <div className="pld-block-label">ينتهي في</div>
+              <div className="pld-block-value">
+                {lead.expired_at
+                  ? new Date(lead.expired_at).toLocaleDateString("ar-SA")
+                  : "—"}
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="pld-card pld-contact-section">
-          <div className="pld-footer-actions">
-            <button
-              className="pld-btn-secondary pld-text-danger"
-              onClick={() => setShowCancelModal(true)}
-            >
-              <span className="material-symbols-outlined">cancel</span>
-              إلغاء الطلب
-            </button>
-
-            <button className="pld-btn-secondary">
-              <span className="material-symbols-outlined">edit</span>
-              تعديل الطلب
-            </button>
-
-            {orderStatus !== "pending" && (
-              <button className="pld-btn-secondary" onClick={handleCloseOrder}>
-                <span className="material-symbols-outlined">lock</span>
-                إغلاق الطلب
+        {/* أزرار الإجراءات — تختفي بعد الإغلاق */}
+        {!isClosed && (
+          <section className="pld-card pld-contact-section">
+            <div className="pld-footer-actions">
+              <button
+                className="pld-btn-secondary pld-text-danger"
+                disabled={actionLoading}
+                onClick={() => setShowCancelModal(true)}
+              >
+                <span className="material-symbols-outlined">cancel</span>
+                {actionLoading ? "جاري الإلغاء..." : "إلغاء الطلب"}
               </button>
-            )}
-          </div>
-        </section>
+
+              {applicationsState.filter(a => a.application_status === "pending").length > 0 && (
+                <button
+                  className="pld-btn-secondary"
+                  disabled={actionLoading}
+                  onClick={handleCloseOrder}
+                >
+                  <span className="material-symbols-outlined">lock</span>
+                  {actionLoading ? "جاري الإغلاق..." : "إغلاق الطلب وكشف الأرقام"}
+                </button>
+              )}
+            </div>
+          </section>
+        )}
       </main>
 
       {showCancelModal && (
         <div className="pod-modal-overlay">
           <div className="pod-modal">
             <h3>تأكيد إلغاء الطلب</h3>
-
-            <p>
-              هل أنت متأكد أنك تريد إلغاء هذا الطلب؟ لا يمكن التراجع بعد
-              الإلغاء.
-            </p>
-
+            <p>هل أنت متأكد؟ لا يمكن التراجع بعد الإلغاء.</p>
             <div className="pod-modal-actions">
               <button
                 className="pod-btn pod-btn-secondary"
@@ -333,9 +409,9 @@ export default function PublicOrderDetails({ lead }) {
               >
                 تراجع
               </button>
-
               <button
                 className="pod-btn pod-btn-danger"
+                disabled={actionLoading}
                 onClick={handleCancelOrder}
               >
                 تأكيد الإلغاء

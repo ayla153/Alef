@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import api from "../../api/api";
 import { useNavigate, Link } from "react-router-dom";
+import { registerStudent } from "../../api/studentRegistration";
+import { getErrorMessage } from "../../utils/apiErrors";
 
 import {
   FaUser,
@@ -127,25 +128,26 @@ export default function CreateStudentAccount() {
     try {
       setLoading(true);
 
-      const formattedDate = new Date(birthdate).toISOString();
-
       const studentData = {
         first_name: firstname.trim(),
         last_name: lastname.trim(),
         email: studentEmail.trim(),
         password: studentPassword,
-        date_birth: formattedDate,
+        date_birth: birthdate,
         phone_number: phonenumber.trim(),
         grade_level: gradeMap[grade],
       };
 
-      const response = await api.post("/auth/student/register", studentData);
+      const response = await registerStudent(studentData);
+      const { registration_token } = response.data;
 
-      localStorage.setItem("studentEmail", studentEmail);
+      localStorage.setItem("student_registration_token", registration_token);
+      localStorage.setItem("registration_type", "student");
+      localStorage.setItem("studentEmail", studentEmail.trim());
       navigate("/otp");
     } catch (error) {
       setErrors({
-        server: error.response?.data?.message || "حدث خطأ أثناء إنشاء الحساب",
+        server: getErrorMessage(error),
       });
     } finally {
       setLoading(false);
@@ -164,7 +166,7 @@ export default function CreateStudentAccount() {
           </p>
         </div>
 
-        <form className="create-student-account__form">
+        <form className="create-student-account__form" autoComplete="off" >
           {/* الاسم */}
           <div className="create-student-account__inputs-row">
             <div>
@@ -291,6 +293,7 @@ export default function CreateStudentAccount() {
                 className="create-student-account__input"
                 value={studentEmail}
                 placeholder="user@gmail.com"
+                autoComplete="off"
                 onChange={(e) => setStudentEmail(e.target.value)}
               />
               {errors.email && (
@@ -312,6 +315,7 @@ export default function CreateStudentAccount() {
                 className="create-student-account__input"
                 value={studentPassword}
                 placeholder="كلمة السّر"
+                autoComplete="new-password"
                 onChange={(e) => setStudentPassword(e.target.value)}
               />
               {errors.password && (
@@ -332,6 +336,7 @@ export default function CreateStudentAccount() {
                 className="create-student-account__input"
                 value={confirmStudentPassword}
                 placeholder="تأكيد كلمة السّر"
+                autoComplete="new-password"
                 onChange={(e) => setConfirmStudentPassword(e.target.value)}
               />
               {errors.confirm && (

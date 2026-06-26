@@ -185,6 +185,54 @@
   transform: translateY(-1px);
 }
 
+.edit-profile-btn {
+  padding: 0.6rem 1.5rem;
+  border-radius: 40px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: 2px solid #3b82f6;
+  background: white;
+  color: #2563eb;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.edit-profile-btn:hover {
+  background: #eff6ff;
+  transform: translateY(-2px);
+}
+
+.profile-view-value {
+  padding: 0.65rem 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  color: #1e293b;
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.profile-view-inline {
+  color: #475569;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.profile-view-bio {
+  margin: 0;
+  padding: 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  color: #334155;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
 /* الشبكة – الشريط الجانبي والمحتوى الرئيسي */
 .profile-grid {
   display: grid;

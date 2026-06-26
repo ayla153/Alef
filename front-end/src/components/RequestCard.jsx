@@ -1,6 +1,5 @@
-// src/components/tabs/RequestCard.jsx
 import React from 'react';
-import { FaBook, FaGraduationCap, FaLaptop, FaChalkboardTeacher, FaMoneyBillWave, FaGlobe, FaEnvelope, FaPaperPlane, FaUser } from 'react-icons/fa';
+import { FaUserGraduate, FaBook, FaClock, FaMapMarkerAlt, FaMale, FaRegFileAlt, FaCalendarAlt } from 'react-icons/fa';
 import '../styles/RequestCard.css';
 
 export default function RequestCard({ request }) {
@@ -18,93 +17,66 @@ export default function RequestCard({ request }) {
     status,
     requestType,
     targetTutor,
-    deadline,
+    deadline
   } = request;
 
-  const getStatusBadge = () => {
-    if (status === 'open') return <span className="status-badge open">مفتوح</span>;
-    if (status === 'slots_full') return <span className="status-badge slots-full">العروض ممتلئة</span>;
-    return null;
-  };
+  const genderLabel = genderPreference === 'male' ? 'Male'
+    : genderPreference === 'female' ? 'Female'
+    : 'Not specified';
 
-  const handleSendRequest = () => {
-    alert(`سيتم إرسال طلب تدريس للمادة: ${subject} من الطالب: ${studentName}`);
-  };
+  const statusLabel = status === 'open' ? 'Open' : 'Full';
+  const statusClass = status === 'open' ? 'open' : 'slots-full';
+  const requestTypeLabel = requestType === 'public' ? 'Public' : 'Private';
 
   return (
     <div className="request-card">
       <div className="card-header">
         <div className="student-info">
-          <FaUser className="student-icon" />
+          <FaUserGraduate className="student-icon" />
           <h3>{studentName}</h3>
         </div>
-        {getStatusBadge()}
+        <span className={`status-badge ${statusClass}`}>{statusLabel}</span>
       </div>
 
       <div className="subject-row">
         <FaBook className="subject-icon" />
-        <span className="subject-name">{subject}</span>
-      </div>
-
-      {/* ✅ قسم وصف الطلب (منقول إلى الأعلى ومُبرَز) */}
-      <div className="description-highlight">
-        <p>{description}</p>
+        <span className="subject-name">{subject} - {level}</span>
       </div>
 
       <div className="quick-info">
-        <div className="info-chip">
-          <FaGraduationCap />
-          <span>{level}</span>
-        </div>
-        <div className="info-chip">
-          {teachingMethod === 'online' ? <FaLaptop /> : <FaChalkboardTeacher />}
-          <span>{teachingMethod === 'online' ? 'أونلاين' : 'حضوري'}</span>
-        </div>
-        {requestType === 'private' && targetTutor ? (
-          <div className="info-chip private">
-            <FaEnvelope />
-            <span>مرسل إلى: {targetTutor}</span>
-          </div>
-        ) : (
-          <div className="info-chip public">
-            <FaGlobe />
-            <span>طلب عام</span>
-          </div>
-        )}
+        <span className={`info-chip ${requestType}`}><FaRegFileAlt /> {requestTypeLabel}</span>
+        <span className="info-chip"><FaClock /> {teachingMethod === 'online' ? 'Online' : teachingMethod === 'offline' ? 'Offline' : 'Not specified'}</span>
+        <span className="info-chip"><FaMapMarkerAlt /> {suitableTime || 'Not specified'}</span>
+        <span className="info-chip"><FaMale /> {genderLabel}</span>
       </div>
 
       <div className="details-grid">
         <div className="detail-item">
-          <span className="detail-label">نوع المساعدة</span>
-          <span className="detail-value">{helpType}</span>
-        </div>
-        {genderPreference && (
-          <div className="detail-item">
-            <span className="detail-label">الجنس المفضل</span>
-            <span className="detail-value">{genderPreference === 'male' ? 'ذكر' : 'أنثى'}</span>
-          </div>
-        )}
-        <div className="detail-item">
-          <span className="detail-label">الحصص أسبوعياً</span>
-          <span className="detail-value">{sessionsPerWeek}</span>
+          <span className="detail-label">Help type</span>
+          <span className="detail-value">{helpType || 'Not specified'}</span>
         </div>
         <div className="detail-item">
-          <span className="detail-label">الوقت المناسب</span>
-          <span className="detail-value">{suitableTime}</span>
+          <span className="detail-label">Sessions</span>
+          <span className="detail-value">{sessionsPerWeek != null ? `${sessionsPerWeek} / week` : 'Not specified'}</span>
         </div>
         <div className="detail-item">
-          <span className="detail-label">الميزانية</span>
-          <span className="detail-value budget">{budget.toLocaleString()} ل.س</span>
+          <span className="detail-label">Preferred time</span>
+          <span className="detail-value">{suitableTime || 'Not specified'}</span>
         </div>
         <div className="detail-item">
-          <span className="detail-label">الموعد النهائي</span>
-          <span className="detail-value">{deadline}</span>
+          <span className="detail-label">Budget</span>
+          <span className="detail-value budget">{budget != null ? `${budget.toLocaleString('en-US')} SYP` : 'Not specified'}</span>
         </div>
       </div>
 
-      <button className="send-request-btn" onClick={handleSendRequest}>
-        <FaPaperPlane /> إرسال طلب تدريس
-      </button>
+      <div className="description-box">
+        <p>{description || 'No additional notes.'}</p>
+      </div>
+
+      <div className="quick-info">
+        <span className="info-chip">Target tutor: {targetTutor || 'Not specified'}</span>
+        <span className="info-chip"><FaCalendarAlt /> {deadline || 'Not specified'}</span>
+      </div>
     </div>
   );
 }

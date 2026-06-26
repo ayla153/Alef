@@ -1,116 +1,216 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "../../components/Header";
 import StatCard from "../../components/StatCard";
 import TeachersSection from "../../components/TeachersSection";
 import Sidebar from "../../components/Sidebar";
+import api from "../../api/api";
+import { getAuthRole } from "../../api/authStorage";
+import { getPublicTutors } from "../../api/publicTutors";
 
 import "../../styles/sstyle/HomePage.css";
 
-const orders = [
-  {
-    icon: "hourglass_top",
-    title: "مدرس كيمياء",
-    date: "منذ يومين",
-    status: "قيد المعالجة",
-    type: "pending",
-  },
-  {
+// نفس الترجمة المستخدمة في TeacherProfile - أسماء المواد بالباك إنجليزية
+// (subject_title محكوم بـ pattern: ^[A-Za-z]+$)
+const subjectArabicNames = {
+  Mathematics: "رياضيات",
+  Physics: "فيزياء",
+  Chemistry: "كيمياء",
+  Biology: "أحياء",
+  English: "لغة إنجليزية",
+  Arabic: "لغة عربية",
+  History: "تاريخ",
+  Geography: "جغرافيا",
+  ComputerScience: "معلوماتية",
+};
+
+const getSubjectArabicName = (englishName) => {
+  if (!englishName) return "غير محدد";
+  return subjectArabicNames[englishName] || englishName;
+};
+
+// صورة افتراضية محلية (SVG كـ data URI) بدل خدمة خارجية مثل dicebear.com
+// تعمل بدون اتصال بالإنترنت ولا تعتمد على أي خدمة خارجية
+const DEFAULT_AVATAR =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+      <rect width="120" height="120" fill="#e5e7eb"/>
+      <circle cx="60" cy="45" r="22" fill="#9ca3af"/>
+      <path d="M20 110 C20 80 100 80 100 110" fill="#9ca3af"/>
+    </svg>
+  `);
+
+const statusMap = {
+  open: { icon: "hourglass_top", status: "قيد المعالجة", type: "pending" },
+  closed_shortlist: {
     icon: "check_circle",
-    title: "مدرس رياضيات",
-    date: "منذ 3 أيام",
     status: "تم القبول",
     type: "accepted",
   },
-  {
-    icon: "cancel",
-    title: "مدرس فيزياء",
-    date: "منذ أسبوع",
-    status: "تم الرفض",
-    type: "rejected",
-  },
-  {
-    icon: "task_alt",
-    title: "مدرس إنجليزي",
-    date: "منذ أسبوعين",
-    status: "مكتمل",
-    type: "completed",
-  },
-];
-
-const teachers = [
-  {
-    name: "هدى الطبال",
-    rating: 4.9,
-    subject: "لغة إنجليزية",
-    experience: 5,
-    modes: ["online", "offline"],
-    price: 150,
-    image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
-  },
-  {
-    name: "هدى الطبال",
-    rating: 4.7,
-    subject: "رياضيات",
-    experience: 8,
-    modes: ["offline"],
-    price: 200,
-    image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ahmed",
-  },
-];
+  closed_matched: { icon: "task_alt", status: "مكتمل", type: "completed" },
+  closed_empty: { icon: "cancel", status: "تم الرفض", type: "rejected" },
+  closed_expired: { icon: "cancel", status: "منتهي", type: "rejected" },
+};
 
 const HomePage = () => {
-  const [savedCount, setSavedCount] = useState(0);
+  const [teachers, setTeachers] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [favCount, setFavCount] = useState(0);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [acceptedCount, setAcceptedCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  const handleToggleFav = (added) => {
-    setSavedCount((prev) => (added ? prev + 1 : prev - 1));
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const role = getAuthRole();
+        const tutorsPromise = getPublicTutors({ page: 1, page_size: 100 });
+        const leadsPromise =
+          role === "student" ? api.get("/leads/me") : Promise.resolve({ data: [] });
+        const favsPromise =
+          role === "student"
+            ? api.get("/favorites/my-favorites")
+            : Promise.resolve({ data: [] });
+
+        const [tutorsRes, leadsRes, favsRes] = await Promise.allSettled([
+          tutorsPromise,
+          leadsPromise,
+          favsPromise,
+        ]);
+
+        const tutorsData =
+          tutorsRes.status === "fulfilled"
+            ? (tutorsRes.value.data || []).filter((t) => t.verified === true)
+            : [];
+
+        const leadsData =
+          leadsRes.status === "fulfilled" ? leadsRes.value.data : [];
+
+        const favsData =
+          favsRes.status === "fulfilled" ? favsRes.value.data : [];
+
+        // نبني خريطة tutor_id -> favorite_id لمعرفة مين محفوظ فعلياً بالباك
+        const favMap = {};
+        favsData.forEach((fav) => {
+          favMap[fav.tutor_id] = fav.favorite_id;
+        });
+
+        setTeachers(
+          tutorsData.map((t) => ({
+            id: t.tutor_id,
+            name: `${t.first_name} ${t.last_name}`,
+            rating: t.reviews?.length
+              ? (
+                  t.reviews.reduce((s, r) => s + r.number_of_stars, 0) /
+                  t.reviews.length
+                ).toFixed(1)
+              : 0,
+            subject: getSubjectArabicName(
+              t.tutor_subjects?.[0]?.subject?.subject_title,
+            ),
+            experience: t.total_experience_years || 0,
+            modes:
+              t.tution_type === "both"
+                ? ["online", "offline"]
+                : [t.tution_type],
+            price: t.tutor_subjects?.[0]?.price_per_hour || 0,
+            image: t.tutor_photo || DEFAULT_AVATAR,
+            isFavorite: favMap[t.tutor_id] !== undefined,
+            favoriteId: favMap[t.tutor_id] ?? null,
+          })),
+        );
+
+        setFavCount(favsData.length);
+        setPendingCount(
+          leadsData.filter((l) => l.lead_status === "open").length,
+        );
+        setAcceptedCount(
+          leadsData.filter(
+            (l) =>
+              l.lead_status === "closed_shortlist" ||
+              l.lead_status === "closed_matched",
+          ).length,
+        );
+      } catch (err) {
+        console.error("General error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // عند تغيّر حالة المفضلة من داخل أي كرت، نحدّث العداد وحالة المعلم نفسه
+  // بهذه القائمة المحلية، عشان يضل البوكمارك ملوّن صحيح حتى لو ظهر نفس المعلم
+  // بأكثر من مكان بالصفحة
+  const handleFavoriteChange = (tutorId, isFav, favoriteId) => {
+    setFavCount((prev) => (isFav ? prev + 1 : prev - 1));
+    setTeachers((prev) =>
+      prev.map((t) =>
+        t.id === tutorId
+          ? { ...t, isFavorite: isFav, favoriteId: isFav ? favoriteId : null }
+          : t,
+      ),
+    );
   };
+
+  if (loading)
+    return (
+      <div className="page-container">
+        <Header />
+        <p style={{ textAlign: "center", marginTop: "2rem" }}>
+          جاري التحميل...
+        </p>
+      </div>
+    );
 
   return (
     <>
-    <div className="page-container fade-in">
-      <Header/>
-      <div className="homePage">
-        <div className="home-container">
-          <div className="home-pageHeader">
-            <h1>أهلاً بك ! 👋</h1>
-            <p>استكشف أفضل المدرسين وابدأ رحلتك التعليمية اليوم.</p>
-          </div>
+      <div className="page-container fade-in">
+        <Header />
+        <div className="homePage">
+          <div className="home-container">
+            <div className="home-pageHeader">
+              <h1>أهلاً بك ! 👋</h1>
+              <p>استكشف أفضل المدرسين وابدأ رحلتك التعليمية اليوم.</p>
+            </div>
 
-          <div className="home-statsContainer">
-            <StatCard
-              number={savedCount}
-              label="مدرسون محفوظون"
-              icon="bookmark"
-              bg="blue"
-            />
-            <StatCard
-              number={0}
-              label="طلبات معلقة"
-              icon="hourglass_top"
-              bg="orange"
-            />
-            <StatCard
-              number={0}
-              label="طلبات مقبولة"
-              icon="check_circle"
-              bg="green"
-            />
-          </div>
-
-          <div className="dashboardGrid">
-            <section className="mainColumn">
-              <TeachersSection
-                teachers={teachers.map((t) => ({
-                  ...t,
-                  onToggleFav: handleToggleFav,
-                }))}
+            <div className="home-statsContainer">
+              <StatCard
+                number={favCount}
+                label="مدرسون محفوظون"
+                icon="bookmark"
+                bg="blue"
               />
-            </section>
+              <StatCard
+                number={pendingCount}
+                label="طلبات معلقة"
+                icon="hourglass_top"
+                bg="orange"
+              />
+              <StatCard
+                number={acceptedCount}
+                label="طلبات مقبولة"
+                icon="check_circle"
+                bg="green"
+              />
+            </div>
 
-            <Sidebar orders={orders} />
+            <div className="dashboardGrid">
+              <section className="mainColumn">
+                <TeachersSection
+                  teachers={teachers.map((t) => ({
+                    ...t,
+                    onFavoriteChange: (isFav, favoriteId) =>
+                      handleFavoriteChange(t.id, isFav, favoriteId),
+                  }))}
+                />
+              </section>
+              <Sidebar orders={orders} />
+            </div>
           </div>
         </div>
-      </div>
       </div>
     </>
   );
