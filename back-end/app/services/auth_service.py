@@ -170,7 +170,7 @@ def tokens_for_admin(admin: Admin) -> Token:
     )
 
 
-def refresh_auth_tokens(refresh_token: str) -> Token:
+def refresh_auth_tokens(db: Session, refresh_token: str) -> Token:
     try:
         claims = decode_access_token(refresh_token)
     except JWTError as exc:
@@ -183,6 +183,11 @@ def refresh_auth_tokens(refresh_token: str) -> Token:
     subject = claims.get("sub")
     if role not in {"student", "tutor", "admin"} or subject is None:
         raise AuthError("Invalid or expired refresh token", "invalid_refresh_token")
+
+    if role == "tutor":
+        tutor = db.get(Tutor, int(subject))
+        if not tutor or tutor.is_banned:
+            raise AuthError("تم حظر حسابك. تواصل مع الإدارة.", "account_banned")
 
     return Token(
         access_token=create_access_token(str(subject), role),

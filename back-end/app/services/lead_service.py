@@ -14,6 +14,7 @@ from app.models.subjects import Subject
 from app.models.tutor_subjects import TutorSubject
 from app.models.tutors import Tutor
 from app.services import notification_service
+from app.services.tutor_service import assert_tutor_active, assert_tutor_marketplace_visible
 from app.schemas.enums import LeadApplicationStatusEnum, LeadStatusEnum, NotificationType
 from app.schemas.notifications import CreateNotification
 from app.schemas.leads import (
@@ -85,6 +86,19 @@ def _queue_notification(db: Session, data: CreateNotification) -> None:
         loop.create_task(notification_service.notify_user(db, data))
     except RuntimeError:
         asyncio.run(notification_service.notify_user(db, data))
+
+
+def assert_lead_references_valid(db: Session, lead: PostRequirement) -> None:
+    if lead.subject_id is None or db.get(Subject, lead.subject_id) is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="هذا الطلب غير مرتبط بمادة صالحة. أنشئ طلباً جديداً أو أعد ربط المادة.",
+        )
+    if lead.level_id is None or db.get(Level, lead.level_id) is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="هذا الطلب غير مرتبط بمرحلة دراسية صالحة. أنشئ طلباً جديداً أو أعد ربط المرحلة.",
+        )
 
 
 def assert_lead_is_open(lead: PostRequirement) -> None:
@@ -335,10 +349,12 @@ def submit_offer(
     tutor: Tutor,
     data: OfferIn,
 ) -> LeadApplicationOut:
+    assert_tutor_active(tutor)
     lead = get_lead_by_id(db, lead_id)
     if not lead:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead not found.")
 
+    assert_lead_references_valid(db, lead)
     assert_lead_is_open(lead)
     if not lead.is_public:
         raise HTTPException(
@@ -524,6 +540,7 @@ def reject_offer(
     student: Student,
 ) -> LeadOut:
     assert_lead_owner(lead, student)
+    assert_lead_references_valid(db, lead)
     assert_lead_is_open(lead)
     if lead.lead_target is not None:
         raise HTTPException(
@@ -568,6 +585,7 @@ def reject_offer(
                 TutorSubject.subject_id == refreshed.subject_id,
                 TutorSubject.level_id == refreshed.level_id,
                 Tutor.verified.is_(True),
+                Tutor.is_banned.is_(False),
                 ~TutorSubject.tutor_id.in_(already_applied_tutor_ids) if already_applied_tutor_ids else True,
             )
             .first()
@@ -588,6 +606,7 @@ def create_private_lead(db: Session, student: Student, data: CreatePrivateLeadIn
     tutor = db.get(Tutor, data.target_tutor_id)
     if tutor is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tutor not found.")
+    assert_tutor_marketplace_visible(tutor)
 
     check_max_active_private_leads(db, student.student_id)
 
@@ -664,6 +683,7 @@ def accept_private_contact(
     lead = get_lead_by_id(db, lead_id)
     if not lead:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead not found.")
+    assert_lead_references_valid(db, lead)
     assert_lead_is_open(lead)
     if lead.lead_target is None or lead.lead_target.tutor_id != tutor.tutor_id:
         raise HTTPException(
@@ -732,6 +752,7 @@ def close_lead_private(
     body: ClosePrivateLeadIn,
 ) -> LeadOut:
     assert_lead_owner(lead, student)
+    assert_lead_references_valid(db, lead)
     assert_lead_is_open(lead)
     if lead.lead_target is None:
         raise HTTPException(
@@ -787,6 +808,7 @@ def close_lead_public_for_student(
 
 
 def close_lead_public(db: Session, lead: PostRequirement) -> LeadOut:
+    assert_lead_references_valid(db, lead)
     assert_lead_is_open(lead)
     # Private leads are identified by lead_target; they use close_lead_private (SCRUM-62), not shortlist close.
     if lead.lead_target is not None:

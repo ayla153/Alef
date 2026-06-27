@@ -34,6 +34,8 @@ class Tutor(Base):
     )
     verified: Mapped[bool] = mapped_column(nullable=False, default=False)
     email_verified: Mapped[bool] = mapped_column(nullable=False, default=False)
+    is_banned: Mapped[bool] = mapped_column(nullable=False, default=False)
+    banned_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP, nullable=True)
     gender: Mapped[Optional[gender_enum]] = mapped_column(
         Enum(gender_enum, values_callable=enum_values_callable),
         nullable=True,

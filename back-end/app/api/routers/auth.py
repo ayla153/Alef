@@ -72,7 +72,7 @@ def login_student(db: DbSession, body: LoginRequest) -> Token:
     if not student:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password",
+            detail="البريد الإلكتروني أو كلمة السر غير صحيحة",
         )
     return auth_service.tokens_for_student(student)
 
@@ -83,12 +83,17 @@ def login_tutor(db: DbSession, body: LoginRequest) -> Token:
     if not tutor:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password",
+            detail="البريد الإلكتروني أو كلمة السر غير صحيحة",
         )
     if not tutor.email_verified:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Email verification required. Complete registration with OTP.",
+        )
+    if tutor.is_banned:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="تم حظر حسابك. تواصل مع الإدارة.",
         )
     return auth_service.tokens_for_tutor(tutor)
 
@@ -99,15 +104,15 @@ def login_admin(db: DbSession, body: LoginRequest) -> Token:
     if not admin:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password",
+            detail="البريد الإلكتروني أو كلمة السر غير صحيحة",
         )
     return auth_service.tokens_for_admin(admin)
 
 
 @router.post("/refresh", response_model=Token)
-def refresh_tokens(body: RefreshTokenRequest) -> Token:
+def refresh_tokens(body: RefreshTokenRequest, db: DbSession) -> Token:
     try:
-        return auth_service.refresh_auth_tokens(body.refresh_token)
+        return auth_service.refresh_auth_tokens(db, body.refresh_token)
     except AuthError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
