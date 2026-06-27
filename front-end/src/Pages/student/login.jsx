@@ -63,7 +63,11 @@ export default function Login() {
               <label className="login-label" htmlFor="password">
                 <FaLock className="login-input-icon" /> كلمة السِّر
               </label>
-              <Link to="/otp" className="login-forgot-link">
+              <Link
+                to="/forgot-password"
+                state={{ returnTo: "/login", email }}
+                className="login-forgot-link"
+              >
                 نسيت كلمة المرور؟
               </Link>
             </div>

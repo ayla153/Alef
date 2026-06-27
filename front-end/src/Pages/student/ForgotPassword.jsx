@@ -10,6 +10,7 @@ export default function ForgotPassword() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const returnTo = location.state?.returnTo || "/login";
   const [email, setEmail] = useState(location.state?.email || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -30,7 +31,7 @@ export default function ForgotPassword() {
       setLoading(true);
       const { data } = await requestPasswordReset(trimmedEmail);
 
-      savePasswordResetSession(trimmedEmail);
+      savePasswordResetSession(trimmedEmail, returnTo);
 
       if (data?.dev_otp) {
         setInfo(
@@ -87,7 +88,7 @@ export default function ForgotPassword() {
           </button>
 
           <p className="login-footer-text">
-            <Link to="/login" className="login-signup-link">
+            <Link to={returnTo} className="login-signup-link">
               العودة لتسجيل الدخول
             </Link>
           </p>
