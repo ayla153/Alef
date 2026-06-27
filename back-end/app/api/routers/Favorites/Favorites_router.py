@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_student
+from app.api.deps import get_current_admin, get_current_student
 from app.database import get_db
+from app.models.admins import Admin
 from app.models.students import Student
 from app.schemas.favorites import CreateFavorite, UpdateFavoriteRequest, FavoriteOut
 from app.services import favorite_service
@@ -15,6 +16,7 @@ router = APIRouter(
 @router.get("/", response_model=list[FavoriteOut])
 def list_favorites(
     db: Session = Depends(get_db),
+    _current_admin: Admin = Depends(get_current_admin),
 ):
     return favorite_service.get_all_favorites_out(db)
 
@@ -40,8 +42,14 @@ def get_my_favorites(
 def get_favorites_by_tutor(
     tutor_id: int,
     db: Session = Depends(get_db),
+    current_student: Student = Depends(get_current_student),
 ):
-    return favorite_service.get_favorites_by_tutor_out(db, tutor_id)
+    favorites = favorite_service.get_favorites_by_tutor_out(db, tutor_id)
+    return [
+        favorite
+        for favorite in favorites
+        if favorite.student_id == current_student.student_id
+    ]
 
 
 @router.get("/{favorite_id}", response_model=FavoriteOut)
@@ -53,7 +61,6 @@ def get_favorite_by_id(
     favorite = favorite_service.get_favorite_by_id_out(db, favorite_id)
     if not favorite:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Favorite not found")
-    # Check if the favorite belongs to the current student
     if favorite.student_id != current_student.student_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

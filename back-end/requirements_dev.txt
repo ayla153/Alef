@@ -10,7 +10,6 @@ starlette==0.38.6
 
 # Security
 python-jose
-passlib==1.7.4
 cryptography==43.0.1
 psycopg2-binary==2.9.9
 bcrypt==4.0.1

@@ -1,26 +1,37 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 import re
 import shutil
 
 from fastapi import HTTPException, UploadFile, status
-from passlib.context import CryptContext
-from sqlalchemy import or_
+from sqlalchemy import or_, and_, func
 from sqlalchemy.orm import Session, joinedload, selectinload
 
+from app.core.security import get_password_hash
+from app.models.reviews import Review
+from app.models.lead_applications import LeadApplication
+from app.models.lead_targets import LeadTarget
+from app.models.notifications import Notification
+from app.models.post_requirements import PostRequirement
 from app.models.tutor_subjects import TutorSubject
 from app.models.tutors import Tutor
-from app.schemas.tutors import CreateTutor, TutorOut, UpdateTutorRequest
+from app.schemas.tutors import (
+    CreateTutor,
+    TutorOut,
+    UpdateTutorRequest,
+    WeeklyActivityPoint,
+    RecentActivityItem,
+    RecentActivityOut,
+    TutorRecentRequestOut,
+    TutorRecentRequestsOut,
+    TutorStatsOut,
+)
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+from app.schemas.enums import LeadApplicationStatusEnum, LeadStatusEnum, NotificationType
 
 
 def hash_password(plain_password: str) -> str:
-    return pwd_context.hash(plain_password)
-
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    return get_password_hash(plain_password)
 
 
 def get_tutor_by_email(db: Session, email: str) -> Tutor | None:
@@ -255,3 +266,219 @@ def delete_tutor(db: Session, tutor_id: int) -> None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tutor not found")
     db.delete(tutor)
     db.commit()
+
+
+_DAY_NAMES = {
+    5: "Saturday",
+    6: "Sunday",
+    0: "Monday",
+    1: "Tuesday",
+    2: "Wednesday",
+    3: "Thursday",
+    4: "Friday",
+}
+ 
+# Which notification types count as "recent activity" on the tutor dashboard.
+# Title/body text is NOT duplicated here — it's read directly from the
+# Notification row itself, so it always matches whatever notification_service.py sends.
+_RECENT_ACTIVITY_TYPES = (
+    NotificationType.OFFER_ACCEPTED,
+    NotificationType.OFFER_REJECTED,
+    NotificationType.PRIVATE_LEAD_RECEIVED,
+    NotificationType.PRIVATE_LEAD_ACCEPTED,
+)
+ 
+ 
+def _get_new_requests_count(db: Session, tutor_id: int, since: datetime) -> int:
+    """Public leads matching the tutor's subjects/levels, still open, created in the
+    last 7 days, that this tutor has not already applied to."""
+    subject_level_pairs = db.query(
+        TutorSubject.subject_id, TutorSubject.level_id
+    ).filter(TutorSubject.tutor_id == tutor_id).all()
+ 
+    if not subject_level_pairs:
+        return 0
+ 
+    already_applied_lead_ids = {
+        row[0]
+        for row in db.query(LeadApplication.post_requirements_id)
+        .filter(LeadApplication.tutor_id == tutor_id)
+        .all()
+    }
+ 
+    count = 0
+    for subject_id, level_id in subject_level_pairs:
+        query = db.query(PostRequirement).filter(
+            PostRequirement.subject_id == subject_id,
+            PostRequirement.level_id == level_id,
+            PostRequirement.is_public.is_(True),
+            PostRequirement.lead_status == LeadStatusEnum.OPEN,
+            PostRequirement.created_at >= since,
+        )
+        for lead in query.all():
+            if lead.post_requirements_id not in already_applied_lead_ids:
+                count += 1
+ 
+    return count
+ 
+ 
+def _get_pending_requests_count(db: Session, tutor_id: int) -> int:
+    """This tutor's own offers still pending a student decision (not yet revealed)."""
+    return (
+        db.query(func.count(LeadApplication.lead_application_id))
+        .filter(
+            LeadApplication.tutor_id == tutor_id,
+            LeadApplication.application_status == LeadApplicationStatusEnum.PENDING,
+            LeadApplication.contact_revealed_at.is_(None),
+        )
+        .scalar()
+        or 0
+    )
+ 
+ 
+def _get_accepted_requests_count(db: Session, tutor_id: int) -> int:
+    """This tutor's offers where the student's contact has been revealed —
+    i.e. the offer was effectively accepted."""
+    return (
+        db.query(func.count(LeadApplication.lead_application_id))
+        .filter(
+            LeadApplication.tutor_id == tutor_id,
+            LeadApplication.contact_revealed_at.is_not(None),
+        )
+        .scalar()
+        or 0
+    )
+ 
+ 
+def _get_average_rating(db: Session, tutor_id: int) -> float | None:
+    avg = (
+        db.query(func.avg(Review.number_of_stars))
+        .filter(Review.tutor_id == tutor_id)
+        .scalar()
+    )
+    return round(float(avg), 1) if avg is not None else None
+ 
+ 
+def _get_weekly_activity(db: Session, tutor_id: int, since: datetime) -> list[WeeklyActivityPoint]:
+    """Number of offers this tutor submitted, per day, for the last 7 days."""
+    rows = (
+        db.query(
+            func.date(LeadApplication.created_at).label("day"),
+            func.count(LeadApplication.lead_application_id).label("count"),
+        )
+        .filter(
+            LeadApplication.tutor_id == tutor_id,
+            LeadApplication.created_at >= since,
+        )
+        .group_by(func.date(LeadApplication.created_at))
+        .all()
+    )
+    counts_by_date = {row.day: row.count for row in rows}
+ 
+    today = datetime.utcnow().date()
+    points: list[WeeklyActivityPoint] = []
+    for offset in range(6, -1, -1):
+        day_date = today - timedelta(days=offset)
+        points.append(
+            WeeklyActivityPoint(
+                day=_DAY_NAMES[day_date.weekday()],
+                count=counts_by_date.get(day_date, 0),
+            )
+        )
+    return points
+ 
+ 
+def _resolve_student_name(lead: PostRequirement) -> str | None:
+    if lead.lead_target is not None and lead.student is not None:
+        return f"{lead.student.first_name} {lead.student.last_name}"
+    return None
+
+
+def get_recent_requests(db: Session, tutor_id: int, limit: int = 3) -> TutorRecentRequestsOut:
+    """Last N requests directed at this tutor (private inbox + matching public leads)."""
+    subject_level_pairs = db.query(
+        TutorSubject.subject_id, TutorSubject.level_id
+    ).filter(TutorSubject.tutor_id == tutor_id).all()
+
+    private_filter = PostRequirement.lead_target.has(LeadTarget.tutor_id == tutor_id)
+    public_filters = [
+        and_(
+            PostRequirement.subject_id == subject_id,
+            PostRequirement.level_id == level_id,
+            PostRequirement.is_public.is_(True),
+        )
+        for subject_id, level_id in subject_level_pairs
+    ]
+
+    if public_filters:
+        lead_filter = or_(private_filter, or_(*public_filters))
+    else:
+        lead_filter = private_filter
+
+    leads = (
+        db.query(PostRequirement)
+        .options(
+            joinedload(PostRequirement.subject),
+            joinedload(PostRequirement.level),
+            joinedload(PostRequirement.lead_target),
+            joinedload(PostRequirement.student),
+        )
+        .filter(lead_filter)
+        .order_by(PostRequirement.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+    items = [
+        TutorRecentRequestOut(
+            lead_id=lead.post_requirements_id,
+            title=lead.title,
+            subject=lead.subject.subject_title if lead.subject else "",
+            level=lead.level.level_title if lead.level else "",
+            is_public=lead.is_public,
+            lead_status=lead.lead_status.value,
+            student_name=_resolve_student_name(lead),
+            created_at=lead.created_at,
+        )
+        for lead in leads
+    ]
+    return TutorRecentRequestsOut(items=items)
+
+
+def get_recent_activity(db: Session, tutor_id: int, limit: int = 3) -> RecentActivityOut:
+    return RecentActivityOut(items=_get_recent_activity(db, tutor_id, limit=limit))
+
+
+def _get_recent_activity(db: Session, tutor_id: int, limit: int = 5) -> list[RecentActivityItem]:
+    notifications = (
+        db.query(Notification)
+        .filter(
+            Notification.recipient_type == "tutor",
+            Notification.recipient_id == tutor_id,
+            Notification.notification_type.in_(_RECENT_ACTIVITY_TYPES),
+        )
+        .order_by(Notification.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+    return [
+        RecentActivityItem(
+            type=notification.notification_type.value,
+            text=notification.body,
+            timestamp=notification.created_at,
+        )
+        for notification in notifications
+    ]
+ 
+ 
+def get_tutor_dashboard_stats(db: Session, tutor_id: int) -> TutorStatsOut:
+    since = datetime.utcnow() - timedelta(days=7)
+ 
+    return TutorStatsOut(
+        new_requests=_get_new_requests_count(db, tutor_id, since),
+        pending_requests=_get_pending_requests_count(db, tutor_id),
+        accepted_requests=_get_accepted_requests_count(db, tutor_id),
+        average_rating=_get_average_rating(db, tutor_id),
+        weekly_activity=_get_weekly_activity(db, tutor_id, since),
+        recent_activity=_get_recent_activity(db, tutor_id),
+    )
