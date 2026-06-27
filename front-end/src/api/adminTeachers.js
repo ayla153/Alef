@@ -16,6 +16,9 @@ export const deleteTutor = (tutorId) => apiClient.delete(`/tutors/${tutorId}`);
 // حظر حساب معلّم (soft delete — يختفي من الماركت بليس ويتوقف عن استقبال الطلبات)
 export const banTutor = (tutorId) => apiClient.put(`/admins/tutors/${tutorId}/ban`);
 
+// استرجاع حساب معلّم محظور
+export const restoreTutor = (tutorId) => apiClient.put(`/admins/tutors/${tutorId}/restore`);
+
 // توثيق/إلغاء توثيق معلّم (يُستخدم عادة في تبويب "المعلمين قيد المراجعة")
 export const verifyTutor = (tutorId, verified) =>
   apiClient.put(`/admins/tutors/${tutorId}/verify`, null, {

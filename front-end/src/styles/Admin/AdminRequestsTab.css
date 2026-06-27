@@ -56,7 +56,7 @@
 .pending .stat-icon { color: #f59e0b; }
 .accepted .stat-icon { color: #10b981; }
 .rejected .stat-icon { color: #ef4444; }
-.average .stat-icon { color: #3b82f6; }
+.overdue .stat-icon { color: #8b5cf6; }
 
 .backend-limitation-note {
   background: #fffbeb;

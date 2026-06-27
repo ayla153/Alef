@@ -3,10 +3,17 @@ import { useState, useEffect } from 'react';
 import AdminHeader from './AdminHeader';
 import '../../styles/Admin/AdminDashboard.css';
 import '../../styles/Admin/AdminRequestDetails.css';
-import { getTutorById, verifyTutor, banTutor } from '../../api/adminTeachers';
+import { getTutorById, verifyTutor, banTutor, restoreTutor } from '../../api/adminTeachers';
 import { mapTutorToUI } from '../../api/tutorMapper';
 import { getAdminTutorStatus } from '../../utils/adminTutorStatus';
 import { getErrorMessage } from '../../utils/apiErrors';
+import { FaCheckCircle, FaBan, FaUndo } from 'react-icons/fa';
+
+const STATUS_LABELS = {
+  pending: 'بانتظار التحقق',
+  accepted: 'موثّق',
+  rejected: 'محظور',
+};
 
 export default function AdminRequestDetails() {
   const { id } = useParams();
@@ -52,8 +59,6 @@ export default function AdminRequestDetails() {
   };
 
   const handleReject = async () => {
-    // ⚠️ الباك إند الحالي لا يملك حالة "مرفوض" منفصلة عن الحذف.
-    // الإجراء الوحيد المتاح حالياً هو حذف حساب المعلّم نهائياً.
     const confirmed = window.confirm(
       'حظر الحساب سيُخفيه من الماركت بليس ويمنعه من تقديم العروض واستقبال الطلبات الخاصة. هل تريد المتابعة؟'
     );
@@ -71,23 +76,88 @@ export default function AdminRequestDetails() {
     }
   };
 
+  const handleRestore = async () => {
+    const confirmed = window.confirm(
+      'استرجاع الحساب سيعيد تفعيله على المنصة حسب حالة التوثيق السابقة. هل تريد المتابعة؟'
+    );
+    if (!confirmed) return;
+
+    setIsProcessing(true);
+    setError('');
+    try {
+      await restoreTutor(id);
+      navigate('/admin');
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   if (isLoading) return <div className="loading">جاري التحميل...</div>;
   if (!request) return <div className="loading">{error || 'لم يتم العثور على الحساب'}</div>;
+
+  const fullName = `${request.firstname} ${request.lastname}`;
 
   return (
     <div className="admin-dashboard-container">
       <AdminHeader activeTab="requests" setActiveTab={() => {}} />
-      <div className="admin-content">
-        <button className="back-btn" onClick={() => navigate('/admin')}>
+      <div className="admin-content admin-request-details">
+        <button type="button" className="back-btn" onClick={() => navigate('/admin')}>
           ← العودة لمراجعة الحسابات
         </button>
 
         {error && <div className="error-message">{error}</div>}
 
+        <div className="verification-identity-card">
+          <div className="verification-identity-main">
+            <span className={`verification-status-badge ${request.status}`}>
+              {STATUS_LABELS[request.status] || request.status}
+            </span>
+            <h1 className="verification-title">{fullName}</h1>
+            <p className="verification-subtitle">{request.email}</p>
+          </div>
+
+          <div className="verification-identity-actions">
+            {request.status === 'rejected' ? (
+              <button
+                type="button"
+                className="action-btn-square restore"
+                onClick={handleRestore}
+                disabled={isProcessing}
+              >
+                <FaUndo aria-hidden />
+                <span>{isProcessing ? 'جارِ الاسترجاع...' : 'استرجاع الحساب'}</span>
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="action-btn-square accept"
+                  onClick={handleAccept}
+                  disabled={isProcessing}
+                >
+                  <FaCheckCircle aria-hidden />
+                  <span>{isProcessing ? 'جارِ المعالجة...' : 'توثيق الحساب'}</span>
+                </button>
+                <button
+                  type="button"
+                  className="action-btn-square reject"
+                  onClick={handleReject}
+                  disabled={isProcessing}
+                >
+                  <FaBan aria-hidden />
+                  <span>{isProcessing ? 'جارِ المعالجة...' : 'حظر الحساب'}</span>
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
         <div className="details-card">
           <h2>المعلومات الشخصية</h2>
           <div className="info-row">
-            <span>الاسم الكامل:</span> {request.firstname} {request.lastname}
+            <span>الاسم الكامل:</span> {fullName}
           </div>
           <div className="info-row">
             <span>البريد الإلكتروني:</span> {request.email}
@@ -122,26 +192,12 @@ export default function AdminRequestDetails() {
 
         <div className="details-card">
           <h2>الشهادات والمستندات</h2>
-          {/* ⚠️ الباك إند الحالي لا يرجّع رابط الشهادات ضمن بيانات المعلّم */}
           {request.certificates.length > 0 ? (
             <ul>
               {request.certificates.map((cert, idx) => <li key={idx}>{cert}</li>)}
             </ul>
           ) : (
-            <p>لا توجد بيانات شهادات متاحة من الباك إند حالياً</p>
-          )}
-        </div>
-
-        <div className="action-buttons">
-          {request.status !== 'rejected' && (
-            <>
-              <button className="accept-btn" onClick={handleAccept} disabled={isProcessing}>
-                {isProcessing ? 'جارِ المعالجة...' : 'توثيق الحساب'}
-              </button>
-              <button className="reject-btn" onClick={handleReject} disabled={isProcessing}>
-                {isProcessing ? 'جارِ المعالجة...' : 'حظر الحساب'}
-              </button>
-            </>
+            <p className="details-empty">لا توجد بيانات شهادات متاحة حالياً</p>
           )}
         </div>
       </div>

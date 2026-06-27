@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/Admin/AdminRequestsTab.css';
-import { FaEnvelope, FaCheckCircle, FaTimesCircle, FaChartLine, FaClipboardCheck } from 'react-icons/fa';
+import { FaEnvelope, FaCheckCircle, FaTimesCircle, FaClock, FaClipboardCheck } from 'react-icons/fa';
 import { getAllTutors } from '../../api/adminTeachers';
 import { mapTutorToUI } from "../../api/tutorMapper";
 import { getAdminTutorStatus } from '../../utils/adminTutorStatus';
@@ -35,11 +35,16 @@ export default function AdminRequestsTab() {
     fetchRequests();
   }, []);
 
+  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+
   const stats = {
     pending: requests.filter((r) => r.status === 'pending').length,
     accepted: requests.filter((r) => r.status === 'accepted').length,
     rejected: requests.filter((r) => r.status === 'rejected').length,
-    dailyAverage: (requests.length / 7).toFixed(1)
+    overdueReview: requests.filter((r) => {
+      if (r.status !== 'pending' || !r.submittedAt) return false;
+      return new Date(r.submittedAt).getTime() < sevenDaysAgo;
+    }).length,
   };
 
   const filteredRequests = filter === 'all' ? requests : requests.filter((r) => r.status === filter);
@@ -87,11 +92,11 @@ export default function AdminRequestsTab() {
             <span className="stat-label">محظورون</span>
           </div>
         </div>
-        <div className="stat-card average">
-          <FaChartLine className="stat-icon" />
+        <div className="stat-card overdue">
+          <FaClock className="stat-icon" />
           <div className="stat-info">
-            <span className="stat-value">{stats.dailyAverage}</span>
-            <span className="stat-label">معدل يومي</span>
+            <span className="stat-value">{stats.overdueReview}</span>
+            <span className="stat-label">التدقيق</span>
           </div>
         </div>
       </div>
