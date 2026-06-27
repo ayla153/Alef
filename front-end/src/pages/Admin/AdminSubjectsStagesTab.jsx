@@ -14,10 +14,13 @@ const initialStages = [
   { id: 3, name: 'المرحلة الثانوية', details: 'السنة 9 - الأكمل 12-14' }
 ];
 
-// ⚠️ نمط الباك إند الحالي لعنوان المادة (CreateSubject / UpdateSubjectRequest): أحرف إنكليزية فقط بدون مسافات
-// ^[A-Za-z]+$  — أي اسم عربي أو يحتوي مسافة سيُرفض من السيرفر بخطأ 422. هاد قيد فعلي بالباك إند
-// ولازم تتأكد مع فريق الباك إند إذا بدهن يدعموا أسماء عربية متل "الرياضيات" قبل ما تعتمد هالنموذج بالإنتاج.
-const SUBJECT_TITLE_PATTERN = /^[A-Za-z]+$/;
+// عربي + إنجليزي + أرقام + مسافات (مطابق للباك إند)
+const SUBJECT_TITLE_PATTERN = /^[\u0600-\u06FFa-zA-Z0-9\s\-']+$/;
+
+function isValidSubjectTitle(value) {
+  const trimmed = value.trim();
+  return trimmed.length > 0 && SUBJECT_TITLE_PATTERN.test(trimmed);
+}
 
 export default function AdminSubjectsStagesTab() {
   const [subjects, setSubjects] = useState([]);
@@ -56,10 +59,8 @@ export default function AdminSubjectsStagesTab() {
     const value = newSubject.trim();
     if (!value) return;
 
-    if (!SUBJECT_TITLE_PATTERN.test(value)) {
-      setSubjectsError(
-        'اسم المادة بالباك إند الحالي يقبل أحرف إنكليزية فقط بدون مسافات (مثال: Math). راجع فريق الباك إند لدعم العربية.'
-      );
+    if (!isValidSubjectTitle(value)) {
+      setSubjectsError('اسم المادة غير صالح. استخدم حروفاً عربية أو إنجليزية مع أرقام أو مسافات (مثال: الرياضيات).');
       return;
     }
 
@@ -97,8 +98,8 @@ export default function AdminSubjectsStagesTab() {
     const value = editingSubjectValue.trim();
     if (!value) return;
 
-    if (!SUBJECT_TITLE_PATTERN.test(value)) {
-      setSubjectsError('اسم المادة بالباك إند الحالي يقبل أحرف إنكليزية فقط بدون مسافات (مثال: Math).');
+    if (!isValidSubjectTitle(value)) {
+      setSubjectsError('اسم المادة غير صالح. استخدم حروفاً عربية أو إنجليزية (مثال: الفيزياء).');
       return;
     }
 
@@ -162,11 +163,15 @@ export default function AdminSubjectsStagesTab() {
       {/* قسم المواد */}
       <div className="subjects-section">
         <h2>المواد الدراسية</h2>
-        {subjectsError && <div className="error-message">{subjectsError}</div>}
+        {subjectsError && (
+          <div className="admin-inline-alert admin-inline-alert--error" role="alert">
+            {subjectsError}
+          </div>
+        )}
         <div className="add-item-row">
           <input
             type="text"
-            placeholder="اسم المادة الجديدة (أحرف إنكليزية فقط حالياً)"
+            placeholder="مثال: الرياضيات أو Mathematics"
             value={newSubject}
             onChange={(e) => setNewSubject(e.target.value)}
           />

@@ -54,7 +54,7 @@ export default function AdminRequestDetails() {
     // ⚠️ الباك إند الحالي لا يملك حالة "مرفوض" منفصلة عن الحذف.
     // الإجراء الوحيد المتاح حالياً هو حذف حساب المعلّم نهائياً.
     const confirmed = window.confirm(
-      'لا توجد بالباك إند حالة "مرفوض" منفصلة — رفض الطلب سيقوم بحذف حساب المعلّم نهائياً. هل تريد المتابعة؟'
+      'حظر الحساب سيحذف المعلّم نهائياً حالياً. لاحقاً سيُنقل إلى قائمة المحظورين مع إمكانية الاسترجاع. هل تريد المتابعة؟'
     );
     if (!confirmed) return;
 
@@ -71,14 +71,14 @@ export default function AdminRequestDetails() {
   };
 
   if (isLoading) return <div className="loading">جاري التحميل...</div>;
-  if (!request) return <div className="loading">{error || 'لم يتم العثور على الطلب'}</div>;
+  if (!request) return <div className="loading">{error || 'لم يتم العثور على الحساب'}</div>;
 
   return (
     <div className="admin-dashboard-container">
       <AdminHeader activeTab="requests" setActiveTab={() => {}} />
       <div className="admin-content">
         <button className="back-btn" onClick={() => navigate('/admin')}>
-          ← العودة لقائمة الطلبات
+          ← العودة لمراجعة الحسابات
         </button>
 
         {error && <div className="error-message">{error}</div>}
@@ -133,10 +133,10 @@ export default function AdminRequestDetails() {
 
         <div className="action-buttons">
           <button className="accept-btn" onClick={handleAccept} disabled={isProcessing}>
-            {isProcessing ? 'جارِ المعالجة...' : 'قبول الطلب'}
+            {isProcessing ? 'جارِ المعالجة...' : 'توثيق الحساب'}
           </button>
           <button className="reject-btn" onClick={handleReject} disabled={isProcessing}>
-            {isProcessing ? 'جارِ المعالجة...' : 'رفض الطلب'}
+            {isProcessing ? 'جارِ المعالجة...' : 'حظر الحساب'}
           </button>
         </div>
       </div>

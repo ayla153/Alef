@@ -7,8 +7,10 @@ import LandingTeacherProfile from './components/TeacherProfile.jsx';
 import TutorProfilePage from './Pages/teacher/TutorProfile';
 import Dashboard from './Pages/teacher/Dashboard';
 import AdminDashboard from './Pages/Admin/AdminDashboard.jsx';
+import AdminLogin from './Pages/Admin/AdminLogin.jsx';
 import AdminRequestDetails from './Pages/Admin/AdminRequestDetails.jsx';
 import AdminTeacherDetails from './Pages/Admin/AdminTeacherDetails';
+import AdminRouteGuard from './components/AdminRouteGuard';
 
 import HomePage from './Pages/student/HomePage';
 import TutorsPage from './Pages/student/TutorsPage';
@@ -68,9 +70,31 @@ function App() {
         <Route path="/MyLeads" element={<MyLeads />} />
         <Route path="/lead/:id" element={<LeadDetailsPage />} />
 
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/request/:id" element={<AdminRequestDetails />} />
-        <Route path="/admin/teacher/:id" element={<AdminTeacherDetails />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route
+          path="/admin"
+          element={
+            <AdminRouteGuard>
+              <AdminDashboard />
+            </AdminRouteGuard>
+          }
+        />
+        <Route
+          path="/admin/request/:id"
+          element={
+            <AdminRouteGuard>
+              <AdminRequestDetails />
+            </AdminRouteGuard>
+          }
+        />
+        <Route
+          path="/admin/teacher/:id"
+          element={
+            <AdminRouteGuard>
+              <AdminTeacherDetails />
+            </AdminRouteGuard>
+          }
+        />
       </Routes>
     </>
   );

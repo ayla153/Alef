@@ -51,7 +51,7 @@ export default function AdminRequestsTab() {
   };
 
   if (isLoading) {
-    return <div className="loading">جارِ تحميل الطلبات...</div>;
+    return <div className="loading">جارِ تحميل الحسابات...</div>;
   }
 
   return (
@@ -63,21 +63,21 @@ export default function AdminRequestsTab() {
           <FaEnvelope className="stat-icon" />
           <div className="stat-info">
             <span className="stat-value">{stats.pending}</span>
-            <span className="stat-label">طلبات جديدة</span>
+            <span className="stat-label">بانتظار التحقق</span>
           </div>
         </div>
         <div className="stat-card accepted">
           <FaCheckCircle className="stat-icon" />
           <div className="stat-info">
             <span className="stat-value">{stats.accepted}</span>
-            <span className="stat-label">مقبولة</span>
+            <span className="stat-label">موثّقون</span>
           </div>
         </div>
         <div className="stat-card rejected">
           <FaTimesCircle className="stat-icon" />
           <div className="stat-info">
             <span className="stat-value">{stats.rejected}</span>
-            <span className="stat-label">مرفوضة</span>
+            <span className="stat-label">محظورون</span>
           </div>
         </div>
         <div className="stat-card average">
@@ -90,28 +90,27 @@ export default function AdminRequestsTab() {
       </div>
 
       <p className="backend-limitation-note">
-        * حالة "مرفوضة" غير مدعومة حالياً بالباك إند (يوجد فقط verified: true/false)، لذلك هذا الفلتر
-        والإحصائية المرتبطة فيه لن يُظهرا نتائج فعلية لحين إضافة دعم لهذه الحالة بالسيرفر.
+        * حالة «محظورون» ستُفعَّل لاحقاً مع أرشيف الحسابات المحذوفة وإمكانية الاسترجاع.
       </p>
 
       <div className="filter-buttons">
         <button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>الكل</button>
-        <button className={filter === 'pending' ? 'active' : ''} onClick={() => setFilter('pending')}>معلقة</button>
-        <button className={filter === 'accepted' ? 'active' : ''} onClick={() => setFilter('accepted')}>مقبولة</button>
-        <button className={filter === 'rejected' ? 'active' : ''} onClick={() => setFilter('rejected')}>مرفوضة</button>
+        <button className={filter === 'pending' ? 'active' : ''} onClick={() => setFilter('pending')}>بانتظار التحقق</button>
+        <button className={filter === 'accepted' ? 'active' : ''} onClick={() => setFilter('accepted')}>موثّقون</button>
+        <button className={filter === 'rejected' ? 'active' : ''} onClick={() => setFilter('rejected')}>محظورون</button>
       </div>
 
       <div className="requests-table">
         <div className="table-header">
           <span>المعلم</span>
           <span>البريد الإلكتروني</span>
-          <span>تاريخ التقديم</span>
+          <span>تاريخ التسجيل</span>
           <span>الحالة</span>
           <span></span>
         </div>
         {filteredRequests.length === 0 && (
           <div className="table-row">
-            <span>لا توجد طلبات لعرضها.</span>
+            <span>لا توجد حسابات لعرضها.</span>
           </div>
         )}
         {filteredRequests.map((req) => (
@@ -120,9 +119,15 @@ export default function AdminRequestsTab() {
             <span>{req.email}</span>
             <span>{req.submittedAt}</span>
             <span className={`status-badge ${req.status}`}>
-              {req.status === 'pending' ? 'معلق' : req.status === 'accepted' ? 'مقبول' : 'مرفوض'}
+              {req.status === 'pending'
+                ? 'بانتظار التحقق'
+                : req.status === 'accepted'
+                  ? 'موثّق'
+                  : 'محظور'}
             </span>
-            <button className="review-btn" onClick={() => handleViewDetails(req.id)}>مراجعة</button>
+            <button className="review-btn" onClick={() => handleViewDetails(req.id)}>
+              عرض الملف للتحقق
+            </button>
           </div>
         ))}
       </div>
