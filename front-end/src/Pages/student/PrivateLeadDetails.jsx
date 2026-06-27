@@ -231,7 +231,7 @@ export default function PrivateLeadDetails({ lead }) {
                   onClick={toggleModal}
                 >
                   <span className="material-symbols-outlined">close</span>
-                  <span>ما بدي حدا</span>
+                  <span>اغلاق</span>
                 </button>
               </div>
             </section>
