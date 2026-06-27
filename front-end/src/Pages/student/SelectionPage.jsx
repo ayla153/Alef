@@ -1,18 +1,41 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "../../styles/sstyle/SelectionPage.css";
 
 const SelectionPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const mode = location.state?.mode || "register";
+
+  const handleStudentClick = () => {
+    if (mode === "login") {
+      navigate("/login");
+    } else {
+      navigate("/register");
+    }
+  };
+
+  const handleTeacherClick = () => {
+    if (mode === "login") {
+      navigate("/tutor/login");
+    } else {
+      navigate("/teacher/register");
+    }
+  };
+
   return (
     <div className="sp-auth-wrapper" dir="rtl">
       <main className="sp-main-content">
         {/* قسم العنوان */}
         <header className="sp-header-container">
-          <h1 className="sp-title-text">ابدأ رحلتك مع ألِفْ</h1>
+          <h1 className="sp-title-text">
+            {mode === "login" ? "مرحباً بعودتك لألِفْ" : "ابدأ رحلتك مع ألِفْ"}
+          </h1>
           <p className="sp-description-text">
-            اختر نوع الحساب الذي يناسبك للانضمام إلى أكبر منصة تعليمية تفاعلية.
-            نحن نربط بين شغف التعلم وخبرة التعليم.
+            {mode === "login"
+              ? "اختر نوع حسابك لتسجيل الدخول."
+              : "اختر نوع الحساب الذي يناسبك للانضمام إلى أكبر منصة تعليمية تفاعلية. نحن نربط بين شغف التعلم وخبرة التعليم."}
           </p>
         </header>
 
@@ -24,16 +47,15 @@ const SelectionPage = () => {
             <div className="sp-icon-box">
               <span className="material-symbols-outlined">school</span>
             </div>
-            <h2 className="sp-card-heading">سجل كطالب</h2>
+            <h2 className="sp-card-heading">
+              {mode === "login" ? "دخول كطالب" : "سجل كطالب"}
+            </h2>
             <p className="sp-card-subtext">
               ابحث عن أفضل المدرسين وابدأ رحلتك التعليمية اليوم. استمتع بدروس
               خصوصية مخصصة ومواد تعليمية متميزة.
             </p>
-            <button
-              className="sp-primary-btn"
-              onClick={() => navigate("/register")}
-            >
-              اختر طالب
+            <button className="sp-primary-btn" onClick={handleStudentClick}>
+              {mode === "login" ? "دخول كطالب" : "اختر طالب"}
             </button>
           </section>
 
@@ -43,14 +65,16 @@ const SelectionPage = () => {
             <div className="sp-icon-box">
               <span className="material-symbols-outlined">co_present</span>
             </div>
-            <h2 className="sp-card-heading">سجل كأستاذ</h2>
+            <h2 className="sp-card-heading">
+              {mode === "login" ? "دخول كأستاذ" : "سجل كأستاذ"}
+            </h2>
             <p className="sp-card-subtext">
               انضم إلى نخبة المعلمين وشارك معرفتك مع آلاف الطلاب. ابنِ علامتك
               الشخصية وحقق دخلًا إضافيًا بمرونة تامة.
             </p>
-            <button className="sp-primary-btn"
-             onClick={()=>navigate("/teacher/register")}
-            >اختر أستاذ</button>
+            <button className="sp-primary-btn" onClick={handleTeacherClick}>
+              {mode === "login" ? "دخول كأستاذ" : "اختر أستاذ"}
+            </button>
           </section>
         </div>
       </main>

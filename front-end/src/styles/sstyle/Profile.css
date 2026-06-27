@@ -290,3 +290,9 @@ body {
 .profile-page__btn-outline:hover {
   background-color: var(--accent-light);
 }
+
+.profile-page__logout-action {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}

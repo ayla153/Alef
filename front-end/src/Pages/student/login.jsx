@@ -8,41 +8,25 @@ import { saveAuthTokens } from "../../api/authStorage";
 
 export default function Login() {
   const navigate = useNavigate();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setError("");
-
     try {
       setLoading(true);
-
-      const response = await api.post("/auth/student/login", {
-        email,
-        password,
-      });
-
-      console.log("LOGIN SUCCESS:", response.data);
-
-      const access_token =
-        response.data.access_token ?? response.data.token ?? null;
+      const response = await api.post("/auth/student/login", { email, password });
+      const access_token = response.data.access_token ?? response.data.token ?? null;
       const refresh_token = response.data.refresh_token ?? null;
       saveAuthTokens({ access_token, refresh_token });
 
-      // تحويل إلى الصفحة الرئيسية
+      // ✅ التعديل هون
       navigate("/home");
     } catch (err) {
-      console.log("LOGIN ERROR:", err.response?.data || err.message);
-
-      setError(
-        err.response?.data?.message || "فشل تسجيل الدخول، تحقق من البيانات",
-      );
+      setError(err.response?.data?.message || "فشل تسجيل الدخول، تحقق من البيانات");
     } finally {
       setLoading(false);
     }
@@ -54,20 +38,16 @@ export default function Login() {
         <div className="login-image-side">
           <img src={loginImage} className="login-image" alt="تسجيل دخول" />
         </div>
-
         <div className="login-form-side">
           <p className="login-title">أهلاً بك في أَلِفْ</p>
           <p className="login-subtitle">الرجاء إدخال تفاصيل حسابك للمتابعة</p>
 
-          {/* ERROR */}
           {error && <p style={{ color: "red", fontSize: "12px" }}>{error}</p>}
 
-          {/* EMAIL */}
           <div className="login-input-wrapper">
             <label htmlFor="email" className="login-label">
               <FaEnvelope className="login-input-icon" /> البريد الإلكتروني
             </label>
-
             <input
               className="login-input"
               id="email"
@@ -78,18 +58,15 @@ export default function Login() {
             />
           </div>
 
-          {/* PASSWORD */}
           <div className="login-input-wrapper">
             <div className="login-label-row">
               <label className="login-label" htmlFor="password">
-                <FaLock className="login-input-icon" /> كلمة السِّر
+                <FaLock className="login-input-icon" /> كلمة السِّر
               </label>
-
               <Link to="/otp" className="login-forgot-link">
                 نسيت كلمة المرور؟
               </Link>
             </div>
-
             <input
               className="login-input"
               id="password"
@@ -101,17 +78,14 @@ export default function Login() {
             />
           </div>
 
-          {/* BUTTON */}
           <button type="submit" className="login-button" disabled={loading}>
             <FaArrowLeft className="login-btn-icon" />
-
-            {loading ? "جاري تسجيل الدخول..." : "تسجيل الدُّخول"}
+            {loading ? "جاري تسجيل الدخول..." : "تسجيل الدُّخول"}
           </button>
 
-          {/* SIGNUP */}
           <p className="login-footer-text">
             ليس لديك حساب ؟
-            <Link to="/selection" className="login-signup-link">
+            <Link to="/selection" state={{ mode: "register" }} className="login-signup-link">
               <FaUserPlus className="login-link-icon" /> أنشئ حساباً
             </Link>
           </p>

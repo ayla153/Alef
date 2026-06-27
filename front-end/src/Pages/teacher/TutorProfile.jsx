@@ -8,6 +8,7 @@ import {
 import '../../styles/TutorProfile.css';
 import { getMyProfile, updateTutor, uploadTutorPhoto } from '../../api/tutorProfile';
 import { getErrorMessage } from '../../utils/apiErrors';
+import LogoutButton from '../../components/LogoutButton';
 
 const availableSubjects = [
   'الرياضيات', 'اللغة العربية', 'اللغة الانكليزية', 'اللغة الفرنسية',
@@ -387,9 +388,12 @@ export default function TutorProfile() {
               </button>
             </>
           ) : (
-            <button type="button" className="edit-profile-btn" onClick={handleStartEdit}>
-              <FaEdit /> تعديل الملف الشخصي
-            </button>
+            <>
+              <button type="button" className="edit-profile-btn" onClick={handleStartEdit}>
+                <FaEdit /> تعديل الملف الشخصي
+              </button>
+              <LogoutButton variant="compact" />
+            </>
           )}
         </div>
 

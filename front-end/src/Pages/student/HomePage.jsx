@@ -158,7 +158,7 @@ const HomePage = () => {
 
   if (loading)
     return (
-      <div className="page-container">
+      <div>
         <Header />
         <p style={{ textAlign: "center", marginTop: "2rem" }}>
           جاري التحميل...
@@ -168,7 +168,7 @@ const HomePage = () => {
 
   return (
     <>
-      <div className="page-container fade-in">
+      <div className=" fade-in">
         <Header />
         <div className="homePage">
           <div className="home-container">

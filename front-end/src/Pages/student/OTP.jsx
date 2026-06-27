@@ -19,7 +19,7 @@ const OTP = () => {
   const inputsRef = useRef([]);
   const initialSendDone = useRef(false);
   const [otp, setOtp] = useState(Array(6).fill(""));
-  const [status, setStatus] = useState("idle"); // idle | success | error | loading
+  const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
   const [isSending, setIsSending] = useState(false);
@@ -76,7 +76,9 @@ const OTP = () => {
 
   useEffect(() => {
     if (!registrationType || !email) {
-      navigate(registrationType === "tutor" ? "/create-account/step1" : "/register");
+      navigate(
+        registrationType === "tutor" ? "/create-account/step1" : "/register"
+      );
       return;
     }
     if (initialSendDone.current) return;

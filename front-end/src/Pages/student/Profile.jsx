@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Header from "../../components/Header";
+import LogoutButton from "../../components/LogoutButton";
 import "../../styles/sstyle/Profile.css";
 import "../../styles/sstyle/EditProfile.css";
 import defaultAvatar from "../../assets/user-avatar.jpg";
@@ -322,6 +323,12 @@ export default function Profile() {
                 ))}
               </div>
             </section>
+          )}
+
+          {!editMode && (
+            <div className="profile-page__logout-action">
+              <LogoutButton />
+            </div>
           )}
 
           {editMode && (

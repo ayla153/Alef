@@ -1,0 +1,190 @@
+/* ===== Logout trigger button ===== */
+.logout-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border: 1.5px solid #e2dccf;
+  border-radius: 10px;
+  background: #fdfbf7;
+  color: #6b4f3b;
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease,
+    transform 0.1s ease;
+  direction: rtl;
+}
+
+.logout-trigger:hover {
+  border-color: #c0392b;
+  background: #fdf3f1;
+  color: #c0392b;
+}
+
+.logout-trigger:active {
+  transform: scale(0.97);
+}
+
+.logout-trigger:focus-visible {
+  outline: 2px solid #c0392b;
+  outline-offset: 2px;
+}
+
+.logout-trigger__icon {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  transform: scaleX(-1); /* arrow points right-to-left for RTL exit feel */
+}
+
+/* Compact variant for tight navbars */
+.logout-trigger--compact {
+  padding: 7px 12px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+
+/* Text-only variant, e.g. inside a dropdown menu */
+.logout-trigger--text {
+  border: none;
+  background: transparent;
+  padding: 8px 4px;
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.logout-trigger--text:hover {
+  background: transparent;
+  text-decoration: underline;
+}
+
+/* ===== Confirmation modal ===== */
+.logout-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(34, 27, 20, 0.45);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: logout-fade-in 0.15s ease;
+}
+
+@keyframes logout-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.logout-modal {
+  direction: rtl;
+  background: #fffdf9;
+  border-radius: 16px;
+  padding: 28px 26px 24px;
+  max-width: 360px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(34, 27, 20, 0.25);
+  animation: logout-pop-in 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes logout-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.logout-modal__icon {
+  width: 46px;
+  height: 46px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: #fdf3f1;
+  color: #c0392b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logout-modal__icon svg {
+  width: 22px;
+  height: 22px;
+  transform: scaleX(-1);
+}
+
+.logout-modal__title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #2b231b;
+}
+
+.logout-modal__text {
+  margin: 0 0 22px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #6f6356;
+}
+
+.logout-modal__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.logout-modal__btn {
+  flex: 1;
+  padding: 11px 0;
+  border-radius: 10px;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.logout-modal__btn:active {
+  transform: scale(0.97);
+}
+
+.logout-modal__btn--ghost {
+  background: #f1ede4;
+  color: #463a2e;
+}
+
+.logout-modal__btn--ghost:hover {
+  background: #e7e1d4;
+}
+
+.logout-modal__btn--danger {
+  background: #c0392b;
+  color: #fff;
+}
+
+.logout-modal__btn--danger:hover {
+  background: #a8311f;
+}
+
+.logout-modal__btn:focus-visible {
+  outline: 2px solid #6b4f3b;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logout-overlay,
+  .logout-modal {
+    animation: none;
+  }
+}

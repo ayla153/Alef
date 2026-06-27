@@ -46,7 +46,7 @@ const FILTER_MAP = {
 
 const ITEMS_PER_PAGE = 5;
 
-export default function Notifications() {
+export default function TutorNotifications() {
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading]         = useState(true);
   const [error, setError]                 = useState('');
