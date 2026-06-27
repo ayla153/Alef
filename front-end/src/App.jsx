@@ -4,7 +4,6 @@ import LandingPageMainPage from './Pages/teacher/LandingPageMainPage';
 import HowItWorksTab from './components/tabs/HowItWorksTab';
 import TeachersTab from './components/tabs/TeacherTab';
 import LandingTeacherProfile from './components/TeacherProfile.jsx';
-import TutorProfilePage from './Pages/teacher/TutorProfile';
 import Dashboard from './Pages/teacher/Dashboard';
 import AdminDashboard from './Pages/Admin/AdminDashboard.jsx';
 import AdminLogin from './Pages/Admin/AdminLogin.jsx';

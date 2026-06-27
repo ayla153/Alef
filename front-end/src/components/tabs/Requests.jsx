@@ -1,174 +1,195 @@
-// src/components/tabs/Requests.jsx
-import React, { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import RequestCard from '../RequestCard';
 import '../../styles/Requests.css';
+import { browsePubicLeads, getTutorInbox, submitOffer, acceptPrivateContact } from '../../api/tutorLeads';
+import { getErrorMessage } from '../../utils/apiErrors';
 
-// اسم الأستاذ الحالي (غيّره حسب المستخدم الفعلي)
-const CURRENT_TUTOR = 'أحمد محمد';
-
-// المواد الثابتة للفلتر
-const allSubjects = [
-  'الرياضيات', 'اللغة العربية', 'اللغة الانكليزية', 'اللغة الفرنسية',
-  'العلوم', 'الفيزياء', 'الكيمياء', 'التربية الاسلامية',
-  'التاريخ', 'الجغرافية', 'الوطنية', 'معلوماتية'
-];
-
-const allLevels = ['المرحلة الابتدائية', 'المرحلة المتوسطة', 'المرحلة الثانوية'];
-
-// بيانات تجريبية
-const mockRequests = [
-  {
-    id: 1,
-    studentName: 'أحمد السالم',
-    subject: 'الرياضيات',
-    level: 'المرحلة الثانوية',
-    teachingMethod: 'online',
-    helpType: 'شرح دروس',
-    genderPreference: 'male',
-    sessionsPerWeek: 3,
-    suitableTime: 'المساء (6-9 م)',
-    budget: 250000,
-    description: 'أحتاج مساعدة في التفاضل والتكامل.',
-    status: 'open',
-    requestType: 'private',
-    targetTutor: 'أحمد محمد',
-    deadline: '2025-06-15',
-  },
-  {
-    id: 2,
-    studentName: 'نورا علي',
-    subject: 'الفيزياء',
-    level: 'المرحلة الثانوية',
-    teachingMethod: 'offline',
-    helpType: 'تحضير امتحانات',
-    genderPreference: '',
-    sessionsPerWeek: 2,
-    suitableTime: 'الصباح (9-12 ص)',
-    budget: 300000,
-    description: 'مراجعة شاملة لمادة الفيزياء العامة.',
-    status: 'slots_full',
-    requestType: 'public',
-    targetTutor: null,
-    deadline: '2025-06-10',
-  },
-  {
-    id: 3,
-    studentName: 'سعاد محمود',
-    subject: 'اللغة العربية',
-    level: 'المرحلة المتوسطة',
-    teachingMethod: 'online',
-    helpType: 'تأسيس',
-    genderPreference: 'female',
-    sessionsPerWeek: 4,
-    suitableTime: 'العصر (3-6 م)',
-    budget: 150000,
-    description: 'تعليم قواعد النحو والصرف من الصفر.',
-    status: 'open',
-    requestType: 'private',
-    targetTutor: 'سارة خالد',
-    deadline: '2025-06-20',
-  },
-  {
-    id: 4,
-    studentName: 'خالد ياسر',
-    subject: 'الكيمياء',
-    level: 'المرحلة الثانوية',
-    teachingMethod: 'online',
-    helpType: 'حل مسائل',
-    genderPreference: '',
-    sessionsPerWeek: 2,
-    suitableTime: 'المساء (6-9 م)',
-    budget: 200000,
-    description: 'حل مسائل كيمياء عضوية.',
-    status: 'open',
-    requestType: 'public',
-    targetTutor: null,
-    deadline: '2025-06-05',
-  },
-  {
-    id: 5,
-    studentName: 'ليلى كريم',
-    subject: 'التاريخ',
-    level: 'المرحلة المتوسطة',
-    teachingMethod: 'offline',
-    helpType: 'بحث',
-    genderPreference: 'male',
-    sessionsPerWeek: 1,
-    suitableTime: 'الصباح (9-12 ص)',
-    budget: 180000,
-    description: 'مساعدة في إعداد بحث عن الحضارة الإسلامية.',
-    status: 'slots_full',
-    requestType: 'private',
-    targetTutor: 'أحمد محمد',
-    deadline: '2025-06-02',
-  },
-  {
-    id: 6,
-    studentName: 'رنا إبراهيم',
-    subject: 'اللغة الإنجليزية',
-    level: 'المرحلة الابتدائية',
-    teachingMethod: 'online',
-    helpType: 'محادثة',
-    genderPreference: '',
-    sessionsPerWeek: 3,
-    suitableTime: 'العصر (3-6 م)',
-    budget: 220000,
-    description: 'تحسين مهارات المحادثة والاستماع.',
-    status: 'open',
-    requestType: 'public',
-    targetTutor: null,
-    deadline: '2025-06-25',
-  },
-];
-
-export default function Requests() {
-  const [requests] = useState(mockRequests);
-  const [filterSubject, setFilterSubject] = useState('');
-  const [filterLevel, setFilterLevel] = useState('');
-  const [filterType, setFilterType] = useState('');
-
-  const filteredRequests = requests.filter(request => {
-    if (filterSubject && request.subject !== filterSubject) return false;
-    if (filterLevel && request.level !== filterLevel) return false;
-    if (filterType === 'public') return request.requestType === 'public';
-    if (filterType === 'private') return request.requestType === 'private' && request.targetTutor === CURRENT_TUTOR;
-    return true;
-  });
-
-  const handleResetFilters = () => {
-    setFilterSubject('');
-    setFilterLevel('');
-    setFilterType('');
+// ─── تحويل LeadBrowseCardOut → شكل RequestCard ───────────────────────────
+function mapPublicLead(lead) {
+  return {
+    ...lead,
+    isPrivate: false,
+    subjectTitle: null,  // LeadBrowseCardOut لا يحمل عنوان المادة، فقط subject_id
+    levelTitle: null,
   };
+}
+
+// ─── تحويل LeadOut (inbox) → شكل RequestCard ─────────────────────────────
+function mapPrivateLead(lead) {
+  return {
+    ...lead,
+    isPrivate: true,
+    subjectTitle: null,
+    levelTitle: null,
+  };
+}
+
+// ─── Modal تقديم عرض بسيط ────────────────────────────────────────────────
+function OfferModal({ leadId, onClose, onSuccess }) {
+  const [form, setForm] = useState({ proposed_fee: '', first_session_note: '', message: '' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async () => {
+    if (!form.proposed_fee || !form.first_session_note || !form.message) {
+      setError('جميع الحقول مطلوبة');
+      return;
+    }
+    setLoading(true);
+    setError('');
+    try {
+      await submitOffer(leadId, {
+        proposed_fee: Number(form.proposed_fee),
+        first_session_note: form.first_session_note,
+        message: form.message,
+      });
+      onSuccess();
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+        <h3>تقديم عرض</h3>
+        {error && <p className="error-text">{error}</p>}
+        <div className="modal-field">
+          <label>الأجر المقترح (ل.س)</label>
+          <input
+            type="number"
+            min="0"
+            value={form.proposed_fee}
+            onChange={(e) => setForm((p) => ({ ...p, proposed_fee: e.target.value }))}
+          />
+        </div>
+        <div className="modal-field">
+          <label>ملاحظة الحصة الأولى</label>
+          <input
+            type="text"
+            maxLength={200}
+            value={form.first_session_note}
+            onChange={(e) => setForm((p) => ({ ...p, first_session_note: e.target.value }))}
+          />
+        </div>
+        <div className="modal-field">
+          <label>رسالة</label>
+          <textarea
+            maxLength={500}
+            value={form.message}
+            onChange={(e) => setForm((p) => ({ ...p, message: e.target.value }))}
+          />
+        </div>
+        <div className="modal-actions">
+          <button className="action-btn offer-btn" onClick={handleSubmit} disabled={loading}>
+            {loading ? 'جارِ الإرسال...' : 'إرسال العرض'}
+          </button>
+          <button className="action-btn cancel-btn-sm" onClick={onClose}>إلغاء</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── الصفحة الرئيسية ─────────────────────────────────────────────────────
+export default function Requests() {
+  const [publicLeads, setPublicLeads]   = useState([]);
+  const [privateLeads, setPrivateLeads] = useState([]);
+  const [isLoading, setIsLoading]       = useState(true);
+  const [error, setError]               = useState('');
+
+  const [filterType, setFilterType]     = useState('all'); // all | public | private
+  const [offerModal, setOfferModal]     = useState(null);  // leadId | null
+
+  // ─── جلب البيانات ───────────────────────────────────────────────────────
+  const fetchLeads = useCallback(async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const [browseRes, inboxRes] = await Promise.all([
+        browsePubicLeads(),
+        getTutorInbox(),
+      ]);
+      setPublicLeads((browseRes.data  || []).map(mapPublicLead));
+      setPrivateLeads((inboxRes.data  || []).map(mapPrivateLead));
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const id = setTimeout(fetchLeads, 0);
+    return () => clearTimeout(id);
+  }, [fetchLeads]);
+
+  // ─── قبول تواصل خاص ────────────────────────────────────────────────────
+  const handleAcceptContact = async (leadId) => {
+    try {
+      await acceptPrivateContact(leadId, null);
+      await fetchLeads(); // تحديث القائمة بعد القبول
+    } catch (err) {
+      alert(getErrorMessage(err));
+    }
+  };
+
+  // ─── تصفية ──────────────────────────────────────────────────────────────
+  const visibleLeads = [
+    ...(filterType !== 'private' ? publicLeads  : []),
+    ...(filterType !== 'public'  ? privateLeads : []),
+  ];
 
   return (
     <div className="page-container2">
       <div className="requests-tab-container">
+
+        {/* شريط الفلاتر */}
         <div className="filters-bar">
-          <select value={filterSubject} onChange={(e) => setFilterSubject(e.target.value)}>
-            <option value="">جميع المواد</option>
-            {allSubjects.map(sub => <option key={sub} value={sub}>{sub}</option>)}
-          </select>
-          <select value={filterLevel} onChange={(e) => setFilterLevel(e.target.value)}>
-            <option value="">جميع المراحل</option>
-            {allLevels.map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)}
-          </select>
           <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
-            <option value="">جميع الطلبات</option>
+            <option value="all">جميع الطلبات</option>
             <option value="public">طلبات عامة</option>
             <option value="private">طلبات خاصة بي</option>
           </select>
-          <button className="reset-btn" onClick={handleResetFilters}>إعادة ضبط</button>
+          <button className="reset-btn" onClick={() => setFilterType('all')}>إعادة ضبط</button>
         </div>
 
-        <div className="requests-grid">
-          {filteredRequests.length > 0 ? (
-            filteredRequests.map(req => <RequestCard key={req.id} request={req} />)
-          ) : (
-            <p className="no-results">لا توجد طلبات تطابق معايير البحث.</p>
-          )}
-        </div>
+        {/* حالات التحميل والخطأ */}
+        {isLoading && <p className="loading-text">جارِ تحميل الطلبات...</p>}
+        {error    && <p className="error-text">{error}</p>}
+
+        {/* شبكة البطاقات */}
+        {!isLoading && (
+          <div className="requests-grid">
+            {visibleLeads.length > 0 ? (
+              visibleLeads.map((lead) => (
+                <RequestCard
+                  key={`${lead.isPrivate ? 'priv' : 'pub'}-${lead.post_requirements_id}`}
+                  request={lead}
+                  onSubmitOffer={!lead.isPrivate ? (id) => setOfferModal(id) : undefined}
+                  onAcceptContact={lead.isPrivate ? handleAcceptContact : undefined}
+                />
+              ))
+            ) : (
+              <p className="no-results">لا توجد طلبات حالياً.</p>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* Modal تقديم عرض */}
+      {offerModal && (
+        <OfferModal
+          leadId={offerModal}
+          onClose={() => setOfferModal(null)}
+          onSuccess={() => {
+            setOfferModal(null);
+            fetchLeads();
+          }}
+        />
+      )}
     </div>
   );
 }
