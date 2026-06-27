@@ -10,8 +10,6 @@ import { isMarketplaceTutor } from "../../utils/adminTutorStatus";
 
 import "../../styles/sstyle/HomePage.css";
 
-// نفس الترجمة المستخدمة في TeacherProfile - أسماء المواد بالباك إنجليزية
-// (subject_title محكوم بـ pattern: ^[A-Za-z]+$)
 const subjectArabicNames = {
   Mathematics: "رياضيات",
   Physics: "فيزياء",
@@ -29,8 +27,6 @@ const getSubjectArabicName = (englishName) => {
   return subjectArabicNames[englishName] || englishName;
 };
 
-// صورة افتراضية محلية (SVG كـ data URI) بدل خدمة خارجية مثل dicebear.com
-// تعمل بدون اتصال بالإنترنت ولا تعتمد على أي خدمة خارجية
 const DEFAULT_AVATAR =
   "data:image/svg+xml;utf8," +
   encodeURIComponent(`
@@ -43,11 +39,7 @@ const DEFAULT_AVATAR =
 
 const statusMap = {
   open: { icon: "hourglass_top", status: "قيد المعالجة", type: "pending" },
-  closed_shortlist: {
-    icon: "check_circle",
-    status: "تم القبول",
-    type: "accepted",
-  },
+  closed_shortlist: { icon: "check_circle", status: "تم القبول", type: "accepted" },
   closed_matched: { icon: "task_alt", status: "مكتمل", type: "completed" },
   closed_empty: { icon: "cancel", status: "تم الرفض", type: "rejected" },
   closed_expired: { icon: "cancel", status: "منتهي", type: "rejected" },
@@ -72,11 +64,16 @@ const HomePage = () => {
           role === "student"
             ? api.get("/favorites/my-favorites")
             : Promise.resolve({ data: [] });
+        const recentRequestsPromise =
+          role === "student"
+            ? api.get("/students/me/recent-requests")
+            : Promise.resolve({ data: { items: [] } });
 
-        const [tutorsRes, leadsRes, favsRes] = await Promise.allSettled([
+        const [tutorsRes, leadsRes, favsRes, recentRes] = await Promise.allSettled([
           tutorsPromise,
           leadsPromise,
           favsPromise,
+          recentRequestsPromise,
         ]);
 
         const tutorsData =
@@ -90,7 +87,23 @@ const HomePage = () => {
         const favsData =
           favsRes.status === "fulfilled" ? favsRes.value.data : [];
 
-        // نبني خريطة tutor_id -> favorite_id لمعرفة مين محفوظ فعلياً بالباك
+        const recentData =
+          recentRes.status === "fulfilled"
+            ? recentRes.value.data?.items || []
+            : [];
+
+        setOrders(
+          recentData.map((item) => ({
+            title: item.title,
+            date: new Date(item.created_at).toLocaleDateString("ar-EG"),
+            ...(statusMap[item.lead_status] || {
+              icon: "help",
+              status: item.lead_status,
+              type: "pending",
+            }),
+          }))
+        );
+
         const favMap = {};
         favsData.forEach((fav) => {
           favMap[fav.tutor_id] = fav.favorite_id;
@@ -142,9 +155,6 @@ const HomePage = () => {
     fetchData();
   }, []);
 
-  // عند تغيّر حالة المفضلة من داخل أي كرت، نحدّث العداد وحالة المعلم نفسه
-  // بهذه القائمة المحلية، عشان يضل البوكمارك ملوّن صحيح حتى لو ظهر نفس المعلم
-  // بأكثر من مكان بالصفحة
   const handleFavoriteChange = (tutorId, isFav, favoriteId) => {
     setFavCount((prev) => (isFav ? prev + 1 : prev - 1));
     setTeachers((prev) =>
@@ -168,7 +178,7 @@ const HomePage = () => {
 
   return (
     <>
-      <div className=" fade-in">
+      <div className="fade-in">
         <Header />
         <div className="homePage">
           <div className="home-container">

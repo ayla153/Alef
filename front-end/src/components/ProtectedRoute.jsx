@@ -6,10 +6,13 @@ export default function ProtectedRoute({ children, role }) {
     return <Navigate to="/selection" replace />;
   }
 
-  if (role && getAuthRole() !== role) {
-    const userRole = getAuthRole();
+  const userRole = getAuthRole();
+
+  if (role && userRole !== role) {
     if (userRole === 'tutor') return <Navigate to="/dashboard" replace />;
-    return <Navigate to="/home" replace />;
+    if (userRole === 'student') return <Navigate to="/home" replace />;
+    if (userRole === 'admin') return <Navigate to="/admin" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return children;
