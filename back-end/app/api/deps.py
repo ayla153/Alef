@@ -22,6 +22,7 @@ from app.services.pending_student_registration_service import get_pending_or_404
 from app.services.pending_tutor_registration_service import get_pending_or_404
 
 security = HTTPBearer()
+optional_security = HTTPBearer(auto_error=False)
 
 
 def get_token_payload(
@@ -87,7 +88,35 @@ def get_current_tutor(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User no longer exists",
         )
+    if tutor.is_banned:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="حساب المعلّم محظور ولا يمكنه استخدام المنصة.",
+        )
     return tutor
+
+
+def get_optional_token_payload(
+    credentials: Annotated[
+        HTTPAuthorizationCredentials | None, Depends(optional_security)
+    ],
+) -> TokenPayload | None:
+    if credentials is None:
+        return None
+    try:
+        claims = decode_access_token(credentials.credentials)
+        sub = claims.get("sub")
+        role = claims.get("role")
+        step = claims.get("step")
+        if sub is None or role is None:
+            return None
+        return TokenPayload(
+            sub=int(sub),
+            role=str(role),
+            step=int(step) if step is not None else None,
+        )
+    except JWTError:
+        return None
 
 
 def get_current_user_role_id(
@@ -118,6 +147,11 @@ def get_current_user_role_id(
 def get_verified_tutor(
     current_tutor: Annotated[Tutor, Depends(get_current_tutor)],
 ) -> Tutor:
+    if current_tutor.is_banned:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="حساب المعلّم محظور ولا يمكنه استخدام المنصة.",
+        )
     if not current_tutor.verified:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

@@ -10,6 +10,7 @@ from app.models.favorites import Favorite
 from app.models.students import Student
 from app.models.tutors import Tutor
 from app.schemas.favorites import CreateFavorite, UpdateFavoriteRequest, FavoriteOut
+from app.services.tutor_service import assert_tutor_marketplace_visible
 
 
 def get_favorite_by_id(db: Session, favorite_id: int) -> Favorite | None:
@@ -58,6 +59,7 @@ def create_favorite(db: Session, student: Student, favorite_data: CreateFavorite
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Tutor not found",
         )
+    assert_tutor_marketplace_visible(tutor)
 
     # Check if student already favorited this tutor
     existing_favorite = db.scalar(
