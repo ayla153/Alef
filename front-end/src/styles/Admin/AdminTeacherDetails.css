@@ -51,6 +51,27 @@
   transform: translateY(-2px);
 }
 
+.restore-teacher-btn {
+  background: #059669;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.5rem;
+  border-radius: 40px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.restore-teacher-btn:hover:not(:disabled) {
+  background: #047857;
+  transform: translateY(-2px);
+}
+
+.restore-teacher-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 .back-btn {
   background: transparent;
   border: none;

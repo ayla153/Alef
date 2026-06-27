@@ -1,6 +1,10 @@
+import re
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+# عربي + إنجليزي + أرقام + مسافات وشرطة
+_SUBJECT_TITLE_RE = re.compile(r"^[\u0600-\u06FFa-zA-Z0-9\s\-']+$")
 
 
 class CreateSubject(BaseModel):
@@ -13,15 +17,22 @@ class CreateSubject(BaseModel):
         ...,
         min_length=1,
         max_length=100,
-        pattern=r'^[A-Za-z]+$',
-        description="Subject title - must be between 1 and 100 characters",
+        description="اسم المادة — عربي أو إنجليزي",
     )
     subject_description: Optional[str] = Field(
         None,
         max_length=500,
-        pattern=r'^[A-Za-z][A-Za-z0-9]*$',
-        description="Subject description - optional, max 500 characters",
+        description="وصف اختياري للمادة",
     )
+
+    @field_validator("subject_title")
+    @classmethod
+    def validate_subject_title(cls, value: str) -> str:
+        if not _SUBJECT_TITLE_RE.fullmatch(value):
+            raise ValueError(
+                "اسم المادة يقبل حروفاً عربية أو إنجليزية وأرقاماً ومسافات فقط (مثال: الرياضيات أو Math)"
+            )
+        return value
 
 
 class UpdateSubjectRequest(BaseModel):
@@ -35,15 +46,22 @@ class UpdateSubjectRequest(BaseModel):
         None,
         min_length=1,
         max_length=100,
-        pattern=r'^[A-Za-z]+$',
-        description="Subject title - must be between 1 and 100 characters",
     )
     subject_description: Optional[str] = Field(
         None,
         max_length=500,
-        pattern=r'^[A-Za-z][A-Za-z0-9]*$',
-        description="Subject description - optional, max 500 characters",
     )
+
+    @field_validator("subject_title")
+    @classmethod
+    def validate_subject_title(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        if not _SUBJECT_TITLE_RE.fullmatch(value):
+            raise ValueError(
+                "اسم المادة يقبل حروفاً عربية أو إنجليزية وأرقاماً ومسافات فقط (مثال: الرياضيات أو Math)"
+            )
+        return value
 
 
 class SubjectOut(BaseModel):

@@ -9,7 +9,7 @@ export default function AdminHeader({ activeTab, setActiveTab = () => {} }) {
 
   const handleLogout = () => {
     logoutSession();
-    navigate('/login');
+    navigate('/admin/login');
   };
 
   return (
@@ -23,13 +23,13 @@ export default function AdminHeader({ activeTab, setActiveTab = () => {} }) {
           className={activeTab === 'requests' ? 'active-tab' : ''}
           onClick={() => setActiveTab('requests')}
         >
-          <FaClipboardList /> إدارة الطلبات
+          <FaClipboardList /> مراجعة الحسابات
         </button>
         <button
           className={activeTab === 'teachers' ? 'active-tab' : ''}
           onClick={() => setActiveTab('teachers')}
         >
-          <FaUserCheck /> الأساتذة المقبولين
+          <FaUserCheck /> المعلّمون الموثّقون
         </button>
         <button
           className={activeTab === 'subjects-stages' ? 'active-tab' : ''}

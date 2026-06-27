@@ -1,4 +1,5 @@
-from typing import Optional
+from datetime import datetime
+from typing import List, Optional
 import re
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
@@ -92,3 +93,28 @@ class AdminOut(BaseModel):
     first_name: str
     last_name: str
     email: str
+
+
+class AdminTutorReviewOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    review_id: int
+    student_name: str
+    number_of_stars: int
+    comment: Optional[str] = None
+    created_at: datetime
+
+
+class AdminTutorReportOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    tutor_id: int
+    tutor_name: str
+    offers_submitted_count: int
+    private_leads_received_count: int
+    favorites_count: int
+    average_rating: Optional[float] = None
+    reviews_count: int
+    reviews: List[AdminTutorReviewOut]
+    last_seen_at: Optional[datetime] = None
+    registered_at: datetime

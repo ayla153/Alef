@@ -265,6 +265,8 @@ class TutorOut(BaseModel):
     registered_at: datetime
     tution_type: TuitionTypeEnum
     verified: bool
+    is_banned: bool = False
+    banned_at: Optional[datetime] = None
     gender: Optional[gender_enum] = None
     reviews: Optional[List[ReviewOut]] = None
     Address: Optional[AddressOut] = None

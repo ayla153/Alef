@@ -1,11 +1,13 @@
 from typing import List
 
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models.levels import Level
+from app.models.post_requirements import PostRequirement
+from app.models.tutor_subjects import TutorSubject
 from app.schemas.levels import LevelOut, CreateLevel, UpdateLevelRequest
 
 
@@ -84,5 +86,35 @@ def delete_level(db: Session, level_id: int) -> None:
     level = get_level_by_id(db, level_id)
     if not level:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Level not found")
+
+    lead_count = db.scalar(
+        select(func.count())
+        .select_from(PostRequirement)
+        .where(PostRequirement.level_id == level_id)
+    )
+    if lead_count:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="لا يمكن حذف المرحلة: مرتبطة بطلبات (leads).",
+        )
+
+    tutor_subject_count = db.scalar(
+        select(func.count())
+        .select_from(TutorSubject)
+        .where(TutorSubject.level_id == level_id)
+    )
+    if tutor_subject_count:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="لا يمكن حذف المرحلة: معلّمون مرتبطون بها.",
+        )
+
     db.delete(level)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="لا يمكن حذف المرحلة: ما زالت مستخدمة في النظام.",
+        ) from exc

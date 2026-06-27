@@ -3,10 +3,11 @@ from typing import List, Optional, Tuple
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_admin, get_current_tutor, get_current_user_role_id
+from app.api.deps import get_current_admin, get_current_tutor, get_current_user_role_id, get_optional_token_payload
 from app.database import get_db
 from app.models.admins import Admin
 from app.models.tutors import Tutor
+from app.schemas.auth import TokenPayload
 from app.schemas.tutors import (
     CreateTutor,
     TutorOut,
@@ -76,8 +77,13 @@ def get_my_recent_activity(
         "Accessible to guests, students, tutors, and admins."
     ),
 )
-def get_tutor_by_id(tutor_id: int, db: Session = Depends(get_db)):
-    tutor = tutor_service.get_tutor_by_id_out(db, tutor_id)
+def get_tutor_by_id(
+    tutor_id: int,
+    db: Session = Depends(get_db),
+    payload: TokenPayload | None = Depends(get_optional_token_payload),
+):
+    allow_banned = payload is not None and payload.role == "admin"
+    tutor = tutor_service.get_tutor_by_id_out(db, tutor_id, allow_banned=allow_banned)
     if not tutor:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tutor not found")
     return tutor
@@ -96,9 +102,17 @@ def get_all_tutors(
     subject_ids: Optional[List[int]] = Query(default=None),
     stages: Optional[List[str]] = Query(default=None),
     db: Session = Depends(get_db),
-    _current_user: Tuple[str, int] = Depends(get_current_user_role_id),
+    current_user: Tuple[str, int] = Depends(get_current_user_role_id),
 ):
-    return tutor_service.get_all_tutors(db, page, page_size, subject_ids, stages)
+    role, _user_id = current_user
+    return tutor_service.get_all_tutors(
+        db,
+        page,
+        page_size,
+        subject_ids,
+        stages,
+        include_banned=(role == "admin"),
+    )
 
 
 @router.post("/{tutor_id}/photo", response_model=TutorOut)

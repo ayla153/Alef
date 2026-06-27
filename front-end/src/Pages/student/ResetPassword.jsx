@@ -17,7 +17,7 @@ export default function ResetPassword() {
   const inputsRef = useRef([]);
   const verifyingRef = useRef(false);
 
-  const { email, token: savedToken } = getPasswordResetSession();
+  const { email, token: savedToken, returnTo } = getPasswordResetSession();
 
   const [step, setStep] = useState(savedToken ? "password" : "otp");
   const [resetToken, setResetToken] = useState(savedToken || "");
@@ -163,7 +163,7 @@ export default function ResetPassword() {
       setStatus("success");
       setMessage("تم تغيير كلمة المرور بنجاح");
 
-      setTimeout(() => navigate("/login"), 1500);
+      setTimeout(() => navigate(returnTo), 1500);
     } catch (error) {
       setStatus("error");
       setMessage(getErrorMessage(error));
@@ -302,7 +302,7 @@ export default function ResetPassword() {
         <button
           type="button"
           className="back-link"
-          onClick={() => navigate("/forgot-password")}
+          onClick={() => navigate("/forgot-password", { state: { returnTo, email } })}
         >
           <span className="material-symbols-outlined">arrow_forward</span>
           <span>العودة</span>

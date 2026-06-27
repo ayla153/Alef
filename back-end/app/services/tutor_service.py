@@ -55,11 +55,29 @@ def _tutor_to_out(tutor: Tutor) -> TutorOut:
     return TutorOut.model_validate(tutor, from_attributes=True)
 
 
-def get_tutor_by_id_out(db: Session, tutor_id: int) -> Tutor | None:
+def get_tutor_by_id_out(db: Session, tutor_id: int, *, allow_banned: bool = False) -> TutorOut | None:
     tutor = get_tutor_by_id(db, tutor_id)
     if not tutor:
         return None
+    if tutor.is_banned and not allow_banned:
+        return None
     return _tutor_to_out(tutor)
+
+
+def assert_tutor_active(tutor: Tutor) -> None:
+    if tutor.is_banned:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="حساب المعلّم محظور ولا يمكنه استخدام المنصة.",
+        )
+
+
+def assert_tutor_marketplace_visible(tutor: Tutor) -> None:
+    if tutor.is_banned or not tutor.verified:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Tutor not found",
+        )
 
 
 def create_tutor(db: Session, tutor_data: CreateTutor) -> TutorOut:
@@ -98,6 +116,8 @@ def get_all_tutors(
     page_size: int = 10,
     subject_ids: list[int] | None = None,
     stages: list[str] | None = None,
+    *,
+    include_banned: bool = False,
 ) -> list[TutorOut]:
     valid_stages = {"foundation", "elementory_stage", "middle_stage", "high_stage"}
     normalized_stages = [stage.strip().lower() for stage in (stages or []) if stage.strip()]
@@ -116,6 +136,9 @@ def get_all_tutors(
             selectinload(Tutor.tutor_subjects).selectinload(TutorSubject.subject),
         )
     )
+
+    if not include_banned:
+        query = query.filter(Tutor.is_banned.is_(False))
 
     if subject_ids:
         query = query.join(Tutor.tutor_subjects).filter(TutorSubject.subject_id.in_(subject_ids))

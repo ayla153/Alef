@@ -10,6 +10,8 @@ export function mapTutorToUI(tutor) {
     yearsExperience: tutor.total_experience_years ?? 0,
     submittedAt: tutor.registered_at ? tutor.registered_at.slice(0, 10) : '',
     verified: tutor.verified,
+    is_banned: tutor.is_banned ?? false,
+    banned_at: tutor.banned_at ?? null,
     subjects: (tutor.tutor_subjects || []).map((ts) => ({
       name: ts.subject?.subject_title || '—',
       years: ts.experience_years

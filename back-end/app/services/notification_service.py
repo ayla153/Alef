@@ -45,10 +45,16 @@ class NotificationService:
             body=body,
             data=data,
         )
-        db.add(notification)
-        db.commit()
-        db.refresh(notification)
-        return notification
+        # Commit on a dedicated session so we never flush unrelated dirty ORM
+        # objects from the caller's request session (e.g. leads mid-update).
+        session = LocalSession()
+        try:
+            session.add(notification)
+            session.commit()
+            session.refresh(notification)
+            return notification
+        finally:
+            session.close()
 
     def _resolve_recipient_email(self, recipient_type: str, recipient_id: int) -> str | None:
         session = LocalSession()
@@ -218,7 +224,7 @@ class NotificationService:
                     TutorSubject.level_id == level_id,
                 )
                 .join(Tutor)
-                .filter(Tutor.verified.is_(True))
+                .filter(Tutor.verified.is_(True), Tutor.is_banned.is_(False))
                 .limit(5)
                 .all()
             )

@@ -5,6 +5,7 @@ import { FaArrowLeft, FaArrowRight, FaPlus, FaTrashAlt } from 'react-icons/fa';
 import logo from '../../assets/Alef-logo.jpg';
 import { getSubjects, getLevels, registerTutorStep2 } from '../../api/tutorRegistration';
 import { getErrorMessage } from '../../utils/apiErrors';
+import Header from '../../components/common/Header';
 
 export default function CreateAccountStep2() {
   const navigate = useNavigate();
@@ -155,10 +156,7 @@ export default function CreateAccountStep2() {
   return (
     <div className="page-container2 fade-in">
       <header className="steponeheader">
-        <div className="logoAndtitle">
-          <img className="Alef-logo" src={logo} alt="logo" />
-          إنشاء حساب مُعلّم - منصَّة ألِف
-        </div>
+        <Header/>
       </header>
       <div className="content">
         <div className="titleforstep1">

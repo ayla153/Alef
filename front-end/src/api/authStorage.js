@@ -16,10 +16,17 @@ function decodeJwtPayload(token) {
 }
 
 export function getAccessToken() {
-  return (
+  const token =
     localStorage.getItem(ACCESS_TOKEN_KEY) ||
-    localStorage.getItem(LEGACY_TOKEN_KEY)
-  );
+    localStorage.getItem(LEGACY_TOKEN_KEY);
+
+  // لو التوكن (خصوصاً الـ legacy) مش JWT قابل لفك التشفير، اعتبره فاسد وتجاهله
+  if (token && !decodeJwtPayload(token)) {
+    localStorage.removeItem(LEGACY_TOKEN_KEY);
+    return null;
+  }
+
+  return token;
 }
 
 export function getRefreshToken() {
@@ -60,8 +67,13 @@ export function clearAuthTokens() {
 }
 
 export function isAuthenticated() {
+  const token = getAccessToken();
+  if (!token) return false;
+
   const expMs = getAccessTokenExpiryMs();
-  if (!expMs) return Boolean(getAccessToken());
+  // إذا ما قدرنا نتحقق من صلاحية التوكن (فاسد/غير قابل لفك التشفير)، اعتبره غير صالح
+  if (!expMs) return false;
+
   return expMs > Date.now();
 }
 

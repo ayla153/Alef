@@ -11,9 +11,9 @@ import {
   FaBookmark 
 } from "react-icons/fa";
 import { getPublicTutors } from "../../api/publicTutors";
+import { isMarketplaceTutor } from "../../utils/adminTutorStatus";
 import { getErrorMessage } from "../../utils/apiErrors";
 
-// تحويل بيانات معلّم من الباك إند (TutorOut) إلى الشكل الذي يتوقعه BesTutors
 function mapTutorToCard(tutor) {
   const reviews = tutor.reviews || [];
   const avgRating = reviews.length > 0
@@ -22,8 +22,6 @@ function mapTutorToCard(tutor) {
 
   const subjectsList = (tutor.tutor_subjects || []).map((ts) => ts.subject?.subject_title).filter(Boolean);
 
-  // ⚠️ الباك إند لا يفصل سعر "أونلاين" عن سعر "حضوري" — السعر مرتبط بكل مادة (price_per_hour)
-  // وليس بطريقة التدريس. نأخذ هنا متوسط أسعار مواد المعلّم كتقريب يُستخدم لكلا الحقلين.
   const prices = (tutor.tutor_subjects || []).map((ts) => ts.price_per_hour).filter((p) => typeof p === 'number');
   const avgPrice = prices.length > 0 ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : 0;
 
@@ -43,8 +41,7 @@ function mapTutorToCard(tutor) {
     id: tutor.tutor_id,
     name: `${tutor.first_name} ${tutor.last_name}`,
     image: tutor.tutor_photo || 'https://randomuser.me/api/portraits/lego/1.jpg',
-    // ⚠️ لا يوجد حقل "وصف قصير/تخصص" بالباك إند، نستخدم بداية النبذة كبديل
-    subtitle: tutor.bio ? tutor.bio.slice(0, 40) : 'مدرّس/ة',
+    stage: tutor.bio ? tutor.bio.slice(0, 40) : 'مدرّس/ة',
     rating: avgRating,
     reviews: reviews.length,
     experience: tutor.total_experience_years ?? 0,
@@ -52,23 +49,21 @@ function mapTutorToCard(tutor) {
     levels,
     modes,
     onlinePrice: modes.includes('online') ? avgPrice : 0,
-    offlinePrice: modes.includes('offline') ? avgPrice : 0
+    offlinePrice: modes.includes('offline') ? avgPrice : 0,
   };
 }
 
 export default function TeachersTab({ setSelectedTeacher, setActiveTab }) {
-  // حالات الفلاتر
   const [selectedSubject, setSelectedSubject] = useState("");
-  const [selectedRating, setSelectedRating] = useState(0); // 0 يعني الكل
-  const [selectedExperience, setSelectedExperience] = useState(0); // 0 الكل، 1: أقل من 3، 2: 3-5، 3: 5+ 
+  const [selectedRating, setSelectedRating] = useState(0);
+  const [selectedExperience, setSelectedExperience] = useState(0);
   const [selectedLevel, setSelectedLevel] = useState("");
-  const [selectedMode, setSelectedMode] = useState(""); // online, offline
+  const [selectedMode, setSelectedMode] = useState("");
 
   const [teachers, setTeachers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // قائمة المراحل الدراسية (ثابتة - تطابق الأعلام التي نولّدها من بيانات الباك إند)
   const levelList = ["تأسيس", "ابتدائية", "إعدادية", "ثانوية"];
 
   const fetchTeachers = async () => {
@@ -76,7 +71,6 @@ export default function TeachersTab({ setSelectedTeacher, setActiveTab }) {
     setError('');
     try {
       const response = await getPublicTutors({ page: 1, page_size: 100 });
-      // نعرض فقط المعلمين الموثّقين (verified) للطلاب
       const verifiedOnly = response.data.filter((t) => t.verified === true);
       setTeachers(verifiedOnly.map(mapTutorToCard));
     } catch (err) {
@@ -87,21 +81,16 @@ export default function TeachersTab({ setSelectedTeacher, setActiveTab }) {
   };
 
   useEffect(() => {
-    const id = setTimeout(() => {
-      fetchTeachers();
-    }, 0);
+    const id = setTimeout(() => fetchTeachers(), 0);
     return () => clearTimeout(id);
   }, []);
 
-  // ⚠️ قائمة المواد للفلتر مبنية ديناميكياً من بيانات المعلمين الفعليين
-  // (وليست قائمة عربية ثابتة) لأنّ أسماء المواد بالباك إند الحالي مقيّدة بأحرف إنكليزية فقط
   const subjectList = Array.from(new Set(teachers.flatMap((t) => t.subjects))).sort();
 
-  // دالة التصفية الرئيسية
   const filteredTeachers = teachers.filter((teacher) => {
     if (selectedSubject && !teacher.subjects.includes(selectedSubject)) return false;
     if (selectedRating > 0 && teacher.rating < selectedRating) return false;
-    if (selectedExperience === 1 && teacher.experience < 3) return false;
+    if (selectedExperience === 1 && teacher.experience >= 3) return false;
     if (selectedExperience === 2 && (teacher.experience < 3 || teacher.experience > 5)) return false;
     if (selectedExperience === 3 && teacher.experience <= 5) return false;
     if (selectedLevel && !teacher.levels.includes(selectedLevel)) return false;
@@ -110,11 +99,6 @@ export default function TeachersTab({ setSelectedTeacher, setActiveTab }) {
     return true;
   });
 
-  const handleViewProfile = (teacher) => {
-    setSelectedTeacher(teacher);
-    setActiveTab('profile');
-  };
-
   return (
     <div className="teachers_tab fade-in">
       <div className="hero-section">
@@ -122,7 +106,6 @@ export default function TeachersTab({ setSelectedTeacher, setActiveTab }) {
         <p className="TtabsubTitle">ابحث عن معلم مناسب لاحتياجاتك من بين نخبة من أفضل المعلمين</p>
       </div>
 
-      {/* الفلاتر */}
       <div className="filters-container">
         <div className="filter-row">
           <div className="filter-group">
@@ -134,9 +117,7 @@ export default function TeachersTab({ setSelectedTeacher, setActiveTab }) {
             >
               <option value="">جميع المواد</option>
               {subjectList.map((sub) => (
-                <option key={sub} value={sub}>
-                  {sub}
-                </option>
+                <option key={sub} value={sub}>{sub}</option>
               ))}
             </select>
           </div>
@@ -178,9 +159,7 @@ export default function TeachersTab({ setSelectedTeacher, setActiveTab }) {
             >
               <option value="">جميع المراحل</option>
               {levelList.map((level) => (
-                <option key={level} value={level}>
-                  {level}
-                </option>
+                <option key={level} value={level}>{level}</option>
               ))}
             </select>
           </div>
@@ -202,21 +181,18 @@ export default function TeachersTab({ setSelectedTeacher, setActiveTab }) {
 
       {error && <div className="error-message">{error}</div>}
 
-      {/* عدد النتائج */}
       <div className="results-count">
         <FaFilter /> {isLoading ? '...' : filteredTeachers.length} أستاذ/ة متاح(ة)
       </div>
 
-      {/* بطاقات الأساتذة */}
       {isLoading ? (
-        <p>جارِ تحميل قائمة الأساتذة...</p>
+        <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>جارِ تحميل قائمة الأساتذة...</p>
       ) : (
         <div className="bestTutorsContainer">
           {filteredTeachers.map((teacher) => (
-            <BesTutors 
-              key={teacher.id} 
-              teacher={teacher} 
-              onViewProfile={handleViewProfile}
+            <TeacherCard
+              key={teacher.id}
+              teacher={teacher}
             />
           ))}
         </div>
