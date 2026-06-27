@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import AdminHeader from './AdminHeader';
 import '../../styles/Admin/AdminTeacherDetails.css';
-import { getTutorById, deleteTutor } from '../../api/adminTeachers';
+import { getTutorById, banTutor } from '../../api/adminTeachers';
 import { mapTutorToUI } from '../../api/tutorMapper';
 import { getErrorMessage } from '../../utils/apiErrors';
 
@@ -13,7 +13,7 @@ export default function AdminTeacherDetails() {
   const [teacher, setTeacher] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isBanning, setIsBanning] = useState(false);
 
   useEffect(() => {
     const fetchTeacher = async () => {
@@ -32,17 +32,17 @@ export default function AdminTeacherDetails() {
     fetchTeacher();
   }, [id]);
 
-  const handleDelete = async () => {
-    if (!window.confirm('هل أنت متأكد من حذف هذا المعلم؟')) return;
+  const handleBan = async () => {
+    if (!window.confirm('حظر هذا المعلّم سيُخفيه من المنصة ويوقف نشاطه. هل أنت متأكد؟')) return;
 
-    setIsDeleting(true);
+    setIsBanning(true);
     setError('');
     try {
-      await deleteTutor(id);
+      await banTutor(id);
       navigate('/admin');
     } catch (err) {
       setError(getErrorMessage(err));
-      setIsDeleting(false);
+      setIsBanning(false);
     }
   };
 
@@ -79,8 +79,8 @@ export default function AdminTeacherDetails() {
           </div>
         </div>
 
-        <button className="delete-teacher-btn" onClick={handleDelete} disabled={isDeleting}>
-          {isDeleting ? 'جارِ الحذف...' : 'حذف المعلم'}
+        <button className="delete-teacher-btn" onClick={handleBan} disabled={isBanning}>
+          {isBanning ? 'جارِ الحظر...' : 'حظر المعلّم'}
         </button>
       </div>
     </div>

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import api from "../../api/api";
 import { getAuthRole } from "../../api/authStorage";
 import { getPublicTutors } from "../../api/publicTutors";
+import { isMarketplaceTutor } from "../../utils/adminTutorStatus";
 
 import Header from "../../components/Header";
 import FiltersBar from "../../components/FiltersBar";
@@ -50,7 +51,7 @@ function TutorsPage() {
 
         const tutorsData =
           tutorsRes.status === "fulfilled"
-            ? (tutorsRes.value.data || []).filter((t) => t.verified === true)
+            ? (tutorsRes.value.data || []).filter(isMarketplaceTutor)
             : [];
 
         const favsData =

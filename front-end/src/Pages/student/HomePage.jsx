@@ -6,6 +6,7 @@ import Sidebar from "../../components/Sidebar";
 import api from "../../api/api";
 import { getAuthRole } from "../../api/authStorage";
 import { getPublicTutors } from "../../api/publicTutors";
+import { isMarketplaceTutor } from "../../utils/adminTutorStatus";
 
 import "../../styles/sstyle/HomePage.css";
 
@@ -80,7 +81,7 @@ const HomePage = () => {
 
         const tutorsData =
           tutorsRes.status === "fulfilled"
-            ? (tutorsRes.value.data || []).filter((t) => t.verified === true)
+            ? (tutorsRes.value.data || []).filter(isMarketplaceTutor)
             : [];
 
         const leadsData =

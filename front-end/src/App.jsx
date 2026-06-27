@@ -10,6 +10,7 @@ import AdminDashboard from './Pages/Admin/AdminDashboard.jsx';
 import AdminLogin from './Pages/Admin/AdminLogin.jsx';
 import AdminRequestDetails from './Pages/Admin/AdminRequestDetails.jsx';
 import AdminTeacherDetails from './Pages/Admin/AdminTeacherDetails';
+import AdminTeacherReport from './Pages/Admin/AdminTeacherReport';
 import AdminRouteGuard from './components/AdminRouteGuard';
 
 import HomePage from './Pages/student/HomePage';
@@ -84,6 +85,14 @@ function App() {
           element={
             <AdminRouteGuard>
               <AdminRequestDetails />
+            </AdminRouteGuard>
+          }
+        />
+        <Route
+          path="/admin/teacher/:id/report"
+          element={
+            <AdminRouteGuard>
+              <AdminTeacherReport />
             </AdminRouteGuard>
           }
         />

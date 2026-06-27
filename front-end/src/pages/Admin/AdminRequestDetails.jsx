@@ -3,8 +3,9 @@ import { useState, useEffect } from 'react';
 import AdminHeader from './AdminHeader';
 import '../../styles/Admin/AdminDashboard.css';
 import '../../styles/Admin/AdminRequestDetails.css';
-import { getTutorById, verifyTutor, deleteTutor } from '../../api/adminTeachers';
+import { getTutorById, verifyTutor, banTutor } from '../../api/adminTeachers';
 import { mapTutorToUI } from '../../api/tutorMapper';
+import { getAdminTutorStatus } from '../../utils/adminTutorStatus';
 import { getErrorMessage } from '../../utils/apiErrors';
 
 export default function AdminRequestDetails() {
@@ -24,7 +25,7 @@ export default function AdminRequestDetails() {
         const response = await getTutorById(id);
         const mapped = {
           ...mapTutorToUI(response.data),
-          status: response.data.verified ? 'accepted' : 'pending'
+          status: getAdminTutorStatus(response.data),
         };
         setRequest(mapped);
       } catch (err) {
@@ -54,14 +55,14 @@ export default function AdminRequestDetails() {
     // ⚠️ الباك إند الحالي لا يملك حالة "مرفوض" منفصلة عن الحذف.
     // الإجراء الوحيد المتاح حالياً هو حذف حساب المعلّم نهائياً.
     const confirmed = window.confirm(
-      'حظر الحساب سيحذف المعلّم نهائياً حالياً. لاحقاً سيُنقل إلى قائمة المحظورين مع إمكانية الاسترجاع. هل تريد المتابعة؟'
+      'حظر الحساب سيُخفيه من الماركت بليس ويمنعه من تقديم العروض واستقبال الطلبات الخاصة. هل تريد المتابعة؟'
     );
     if (!confirmed) return;
 
     setIsProcessing(true);
     setError('');
     try {
-      await deleteTutor(id);
+      await banTutor(id);
       navigate('/admin');
     } catch (err) {
       setError(getErrorMessage(err));
@@ -132,12 +133,16 @@ export default function AdminRequestDetails() {
         </div>
 
         <div className="action-buttons">
-          <button className="accept-btn" onClick={handleAccept} disabled={isProcessing}>
-            {isProcessing ? 'جارِ المعالجة...' : 'توثيق الحساب'}
-          </button>
-          <button className="reject-btn" onClick={handleReject} disabled={isProcessing}>
-            {isProcessing ? 'جارِ المعالجة...' : 'حظر الحساب'}
-          </button>
+          {request.status !== 'rejected' && (
+            <>
+              <button className="accept-btn" onClick={handleAccept} disabled={isProcessing}>
+                {isProcessing ? 'جارِ المعالجة...' : 'توثيق الحساب'}
+              </button>
+              <button className="reject-btn" onClick={handleReject} disabled={isProcessing}>
+                {isProcessing ? 'جارِ المعالجة...' : 'حظر الحساب'}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

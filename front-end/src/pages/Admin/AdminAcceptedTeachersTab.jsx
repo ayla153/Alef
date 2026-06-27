@@ -1,8 +1,46 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/Admin/AdminAcceptedTeachersTab.css';
-import { getAllTutors, deleteTutor } from '../../api/adminTeachers';
+import { FaChartBar, FaEye, FaTrashAlt, FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
+import { getAllTutors, banTutor } from '../../api/adminTeachers';
+import { isMarketplaceTutor } from '../../utils/adminTutorStatus';
 import { getErrorMessage } from '../../utils/apiErrors';
+
+function computeAverageRating(reviews) {
+  if (!reviews?.length) return null;
+  const avg = reviews.reduce((sum, review) => sum + review.number_of_stars, 0) / reviews.length;
+  return Number(avg.toFixed(1));
+}
+
+function TeacherRating({ rating }) {
+  const starTypes = [];
+  for (let i = 1; i <= 5; i += 1) {
+    if (rating == null) {
+      starTypes.push('empty');
+    } else if (rating >= i) {
+      starTypes.push('full');
+    } else if (rating >= i - 0.5) {
+      starTypes.push('half');
+    } else {
+      starTypes.push('empty');
+    }
+  }
+
+  return (
+    <div className="teacher-rating" aria-label={rating != null ? `التقييم ${rating.toFixed(1)} من 5` : 'لا يوجد تقييم'}>
+      <span className="teacher-rating-stars">
+        {starTypes.map((type, index) => {
+          if (type === 'full') return <FaStar key={index} aria-hidden />;
+          if (type === 'half') return <FaStarHalfAlt key={index} aria-hidden />;
+          return <FaRegStar key={index} className="star-empty" aria-hidden />;
+        })}
+      </span>
+      <span className="teacher-rating-score">
+        {rating != null ? `${rating.toFixed(1)} / 5.0` : '— / 5.0'}
+      </span>
+    </div>
+  );
+}
 
 // تحويل بيانات المعلّم القادمة من الباك إند (TutorOut) إلى الشكل الذي تتوقعه الواجهة
 function mapTutorToUI(tutor) {
@@ -13,6 +51,7 @@ function mapTutorToUI(tutor) {
     email: tutor.email,
     phone: tutor.phone_number,
     yearsExperience: tutor.total_experience_years ?? 0,
+    averageRating: computeAverageRating(tutor.reviews),
     subjects: (tutor.tutor_subjects || []).map((ts) => ({
       name: ts.subject?.subject_title || '—',
       years: ts.experience_years
@@ -47,7 +86,7 @@ export default function AdminAcceptedTeachersTab() {
   const [teachers, setTeachers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [deletingId, setDeletingId] = useState(null);
+  const [banningId, setBanningId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -57,7 +96,7 @@ export default function AdminAcceptedTeachersTab() {
       try {
         // نجلب كل المعلمين (حتى 100) ثم نفلتر الموثّقين فقط (verified === true)
         const response = await getAllTutors({ page: 1, page_size: 100 });
-        const acceptedOnly = response.data.filter((tutor) => tutor.verified === true);
+        const acceptedOnly = response.data.filter(isMarketplaceTutor);
         setTeachers(acceptedOnly.map(mapTutorToUI));
       } catch (err) {
         setError(getErrorMessage(err));
@@ -69,24 +108,28 @@ export default function AdminAcceptedTeachersTab() {
     fetchAcceptedTeachers();
   }, []);
 
+  const handleViewReport = (id) => {
+    navigate(`/admin/teacher/${id}/report`);
+  };
+
   const handleViewTeacher = (id) => {
     navigate(`/admin/teacher/${id}`);
   };
 
-  const handleDeleteTeacher = async (id) => {
-    if (!window.confirm('هل أنت متأكد من حذف هذا المعلم؟ لا يمكن التراجع عن هذا الإجراء.')) {
+  const handleBanTeacher = async (id) => {
+    if (!window.confirm('حظر هذا المعلّم سيُخفيه من المنصة ويوقف نشاطه. هل أنت متأكد؟')) {
       return;
     }
 
-    setDeletingId(id);
+    setBanningId(id);
     setError('');
     try {
-      await deleteTutor(id);
+      await banTutor(id);
       setTeachers((prev) => prev.filter((teacher) => teacher.id !== id));
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
-      setDeletingId(null);
+      setBanningId(null);
     }
   };
 
@@ -112,28 +155,51 @@ export default function AdminAcceptedTeachersTab() {
           <span>الإجراءات</span>
         </div>
         {teachers.length === 0 && !error && (
-          <div className="table-row">
+          <div className="table-row table-row-empty">
             <span>لا يوجد معلمون موثّقون حالياً.</span>
           </div>
         )}
         {teachers.map((teacher) => (
           <div key={teacher.id} className="table-row">
-            <span>{teacher.firstname} {teacher.lastname}</span>
-            <span>{teacher.email}</span>
+            <div className="cell-name-block">
+              <span className="cell-teacher-name">{teacher.firstname} {teacher.lastname}</span>
+              <TeacherRating rating={teacher.averageRating} />
+            </div>
+            <span className="cell-email">{teacher.email}</span>
             <span>{teacher.phone}</span>
             <span>{teacher.yearsExperience}</span>
-            <span>{teacher.subjects.map((s) => s.name).join(', ') || '—'}</span>
-            <div className="action-buttons">
-              <button className="view-btn" onClick={() => handleViewTeacher(teacher.id)}>
-                عرض الملف
-              </button>
-              <button
-                className="delete-btn"
-                onClick={() => handleDeleteTeacher(teacher.id)}
-                disabled={deletingId === teacher.id}
-              >
-                {deletingId === teacher.id ? 'جارِ الحذف...' : 'حذف'}
-              </button>
+            <span className="cell-subjects">{teacher.subjects.map((s) => s.name).join('، ') || '—'}</span>
+            <div className="actions-cell">
+              <div className="action-buttons">
+                <button
+                  type="button"
+                  className="action-btn report-btn"
+                  onClick={() => handleViewReport(teacher.id)}
+                  title="عرض تقرير النشاط والتقييمات"
+                >
+                  <FaChartBar aria-hidden />
+                  <span>التقارير</span>
+                </button>
+                <button
+                  type="button"
+                  className="action-btn view-btn"
+                  onClick={() => handleViewTeacher(teacher.id)}
+                  title="عرض ملف المعلّم"
+                >
+                  <FaEye aria-hidden />
+                  <span>الملف</span>
+                </button>
+                <button
+                  type="button"
+                  className="action-btn delete-btn"
+                  onClick={() => handleBanTeacher(teacher.id)}
+                  disabled={banningId === teacher.id}
+                  title="حظر المعلّم"
+                >
+                  <FaTrashAlt aria-hidden />
+                  <span>{banningId === teacher.id ? 'جارِ الحظر...' : 'حظر'}</span>
+                </button>
+              </div>
             </div>
           </div>
         ))}

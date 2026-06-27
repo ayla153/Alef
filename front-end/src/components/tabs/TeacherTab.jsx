@@ -12,6 +12,7 @@ import {
   FaBookmark 
 } from "react-icons/fa";
 import { getPublicTutors } from "../../api/publicTutors";
+import { isMarketplaceTutor } from "../../utils/adminTutorStatus";
 import { getErrorMessage } from "../../utils/apiErrors";
 
 // تحويل بيانات معلّم من الباك إند (TutorOut) إلى الشكل الذي يتوقعه BesTutors
@@ -77,8 +78,7 @@ export default function TeachersTab({ setSelectedTeacher, setActiveTab }) {
     setError('');
     try {
       const response = await getPublicTutors({ page: 1, page_size: 100 });
-      // نعرض فقط المعلمين الموثّقين (verified) للطلاب
-      const verifiedOnly = response.data.filter((t) => t.verified === true);
+      const verifiedOnly = response.data.filter(isMarketplaceTutor);
       setTeachers(verifiedOnly.map(mapTutorToCard));
     } catch (err) {
       setError(getErrorMessage(err));
