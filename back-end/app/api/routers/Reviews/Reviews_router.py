@@ -1,7 +1,9 @@
+from typing import Tuple
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_student
+from app.api.deps import get_current_student, get_current_user_role_id
 from app.database import get_db
 from app.models.students import Student
 from app.schemas.reviews import CreateReview, UpdateReviewRequest, ReviewOut
@@ -15,6 +17,7 @@ router = APIRouter(
 @router.get("/", response_model=list[ReviewOut])
 def list_reviews(
     db: Session = Depends(get_db),
+    _current_user: Tuple[str, int] = Depends(get_current_user_role_id),
 ):
     return review_service.get_all_reviews_out(db)
 
@@ -40,6 +43,7 @@ def get_my_reviews(
 def get_reviews_by_tutor(
     tutor_id: int,
     db: Session = Depends(get_db),
+    _current_user: Tuple[str, int] = Depends(get_current_user_role_id),
 ):
     return review_service.get_reviews_by_tutor_out(db, tutor_id)
 
@@ -48,17 +52,11 @@ def get_reviews_by_tutor(
 def get_review_by_id(
     review_id: int,
     db: Session = Depends(get_db),
-    current_student: Student = Depends(get_current_student),
+    _current_user: Tuple[str, int] = Depends(get_current_user_role_id),
 ):
     review = review_service.get_review_by_id_out(db, review_id)
     if not review:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Review not found")
-    # Check if the review belongs to the current student
-    if review.student_id != current_student.student_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only view your own reviews",
-        )
     return review
 
 
