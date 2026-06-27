@@ -1,6 +1,7 @@
 import axios from 'axios';
 import {
   clearAuthTokens,
+  clearRegistrationTokens,
   getAccessToken,
   getRefreshToken,
   saveAuthTokens,
@@ -57,9 +58,13 @@ async function refreshAccessToken() {
 }
 
 apiClient.interceptors.request.use((config) => {
-  const registrationToken = getRegistrationToken();
   const accessToken = getAccessToken();
-  const token = registrationToken || accessToken;
+  if (accessToken) {
+    clearRegistrationTokens();
+  }
+  const registrationToken = getRegistrationToken();
+  // Real login token wins; registration tokens are only for signup endpoints.
+  const token = accessToken || registrationToken;
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
