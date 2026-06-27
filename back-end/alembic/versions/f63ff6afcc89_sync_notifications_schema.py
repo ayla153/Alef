@@ -10,6 +10,8 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 
+from migration_helpers import table_exists
+
 
 # revision identifiers, used by Alembic.
 revision: str = 'f63ff6afcc89'
@@ -45,6 +47,9 @@ def _notification_type_is_varchar(bind) -> bool:
 def upgrade() -> None:
     """Upgrade schema."""
     bind = op.get_bind()
+    if not table_exists("notifications"):
+        return
+
     columns = _notification_column_names(bind)
 
     if "recipient_type" not in columns:

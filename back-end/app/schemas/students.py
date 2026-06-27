@@ -1,7 +1,7 @@
 from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
-
+from typing import List, Optional
 from app.schemas.enums import student_grade_enum
 
 
@@ -49,3 +49,30 @@ class StudentOut(BaseModel):
     student_photo: str | None = None
     registered_at: datetime
     grade_level: student_grade_enum
+
+
+
+class AcceptedRequestsCountOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+ 
+    accepted_requests: int
+ 
+ 
+class RecentRequestOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+ 
+    lead_id: int
+    title: str
+    subject: str
+    level: str
+    is_public: bool
+    lead_status: str
+    applications_count: int
+    matched_tutor_name: Optional[str]
+    created_at: datetime
+ 
+ 
+class RecentRequestsOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+ 
+    items: List[RecentRequestOut]
