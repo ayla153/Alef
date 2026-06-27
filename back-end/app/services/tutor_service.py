@@ -5,15 +5,26 @@ import shutil
 
 from fastapi import HTTPException, UploadFile, status
 from passlib.context import CryptContext
-from sqlalchemy import or_, func 
+from sqlalchemy import and_, or_, func 
 from sqlalchemy.orm import Session, joinedload, selectinload
 from app.models.reviews import Review
 from app.models.lead_applications import LeadApplication
+from app.models.lead_targets import LeadTarget
 from app.models.notifications import Notification
 from app.models.post_requirements import PostRequirement
 from app.models.tutor_subjects import TutorSubject
 from app.models.tutors import Tutor
-from app.schemas.tutors import CreateTutor, TutorOut, UpdateTutorRequest, WeeklyActivityPoint, RecentActivityItem, TutorStatsOut
+from app.schemas.tutors import (
+    CreateTutor,
+    TutorOut,
+    UpdateTutorRequest,
+    WeeklyActivityPoint,
+    RecentActivityItem,
+    RecentActivityOut,
+    TutorRecentRequestOut,
+    TutorRecentRequestsOut,
+    TutorStatsOut,
+)
 
 from app.schemas.enums import LeadApplicationStatusEnum, LeadStatusEnum, NotificationType
 
@@ -382,6 +393,67 @@ def _get_weekly_activity(db: Session, tutor_id: int, since: datetime) -> list[We
     return points
  
  
+def _resolve_student_name(lead: PostRequirement) -> str | None:
+    if lead.lead_target is not None and lead.student is not None:
+        return f"{lead.student.first_name} {lead.student.last_name}"
+    return None
+
+
+def get_recent_requests(db: Session, tutor_id: int, limit: int = 3) -> TutorRecentRequestsOut:
+    """Last N requests directed at this tutor (private inbox + matching public leads)."""
+    subject_level_pairs = db.query(
+        TutorSubject.subject_id, TutorSubject.level_id
+    ).filter(TutorSubject.tutor_id == tutor_id).all()
+
+    private_filter = PostRequirement.lead_target.has(LeadTarget.tutor_id == tutor_id)
+    public_filters = [
+        and_(
+            PostRequirement.subject_id == subject_id,
+            PostRequirement.level_id == level_id,
+            PostRequirement.is_public.is_(True),
+        )
+        for subject_id, level_id in subject_level_pairs
+    ]
+
+    if public_filters:
+        lead_filter = or_(private_filter, or_(*public_filters))
+    else:
+        lead_filter = private_filter
+
+    leads = (
+        db.query(PostRequirement)
+        .options(
+            joinedload(PostRequirement.subject),
+            joinedload(PostRequirement.level),
+            joinedload(PostRequirement.lead_target),
+            joinedload(PostRequirement.student),
+        )
+        .filter(lead_filter)
+        .order_by(PostRequirement.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+    items = [
+        TutorRecentRequestOut(
+            lead_id=lead.post_requirements_id,
+            title=lead.title,
+            subject=lead.subject.subject_title if lead.subject else "",
+            level=lead.level.level_title if lead.level else "",
+            is_public=lead.is_public,
+            lead_status=lead.lead_status.value,
+            student_name=_resolve_student_name(lead),
+            created_at=lead.created_at,
+        )
+        for lead in leads
+    ]
+    return TutorRecentRequestsOut(items=items)
+
+
+def get_recent_activity(db: Session, tutor_id: int, limit: int = 3) -> RecentActivityOut:
+    return RecentActivityOut(items=_get_recent_activity(db, tutor_id, limit=limit))
+
+
 def _get_recent_activity(db: Session, tutor_id: int, limit: int = 5) -> list[RecentActivityItem]:
     notifications = (
         db.query(Notification)

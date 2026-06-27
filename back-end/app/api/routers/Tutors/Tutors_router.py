@@ -6,7 +6,14 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_tutor, get_current_user_role_id
 from app.database import get_db
 from app.models.tutors import Tutor
-from app.schemas.tutors import CreateTutor, TutorOut, UpdateTutorRequest, TutorStatsOut
+from app.schemas.tutors import (
+    CreateTutor,
+    TutorOut,
+    UpdateTutorRequest,
+    TutorStatsOut,
+    RecentActivityOut,
+    TutorRecentRequestsOut,
+)
 from app.services import tutor_service
 
 router = APIRouter(prefix="/tutors", tags=["Tutors"])
@@ -20,6 +27,31 @@ def create_tutor(tutor: CreateTutor, db: Session = Depends(get_db)):
 @router.get("/me", response_model=TutorOut)
 def get_me_tutor(current_tutor: Tutor = Depends(get_current_tutor)):
     return TutorOut.model_validate(current_tutor)
+
+
+
+@router.get("/me/stats", response_model=TutorStatsOut)
+def get_my_stats(
+    db: Session = Depends(get_db),
+    current_tutor: Tutor = Depends(get_current_tutor),
+):
+    return tutor_service.get_tutor_dashboard_stats(db, current_tutor.tutor_id)
+
+
+@router.get("/me/recent-requests", response_model=TutorRecentRequestsOut)
+def get_my_recent_requests(
+    db: Session = Depends(get_db),
+    current_tutor: Tutor = Depends(get_current_tutor),
+):
+    return tutor_service.get_recent_requests(db, current_tutor.tutor_id, limit=3)
+
+
+@router.get("/me/recent-activity", response_model=RecentActivityOut)
+def get_my_recent_activity(
+    db: Session = Depends(get_db),
+    current_tutor: Tutor = Depends(get_current_tutor),
+):
+    return tutor_service.get_recent_activity(db, current_tutor.tutor_id, limit=3)
 
 
 @router.get(
@@ -74,19 +106,16 @@ def upload_tutor_video(
     return tutor_service.update_tutor_video(db, tutor_id, file)
 
 
-@router.patch("/{tutor_id}", response_model=TutorOut)
-def update_tutor(tutor_id: int, tutor: UpdateTutorRequest, db: Session = Depends(get_db)):
-    return tutor_service.update_tutor(db, tutor_id, tutor)
+
+@router.patch("/me", response_model=TutorOut)
+def update_me_tutor(
+    body: UpdateTutorRequest,
+    db: Session = Depends(get_db),
+    current_tutor: Tutor = Depends(get_current_tutor),
+):
+    return tutor_service.update_tutor(db, current_tutor.tutor_id, body)
 
 
 @router.delete("/{tutor_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_tutor(tutor_id: int, db: Session = Depends(get_db)):
     tutor_service.delete_tutor(db, tutor_id)
-
-@router.get("/me/stats", response_model=TutorStatsOut)
-def get_my_stats(
-    db: Session = Depends(get_db),
-    current_tutor: Tutor = Depends(get_current_tutor),
-):
-    return tutor_service.get_tutor_dashboard_stats(db, current_tutor.tutor_id)
- 

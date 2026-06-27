@@ -285,6 +285,31 @@ class RecentActivityItem(BaseModel):
     type: str
     text: str
     timestamp: datetime
+
+
+class RecentActivityOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    items: List[RecentActivityItem]
+
+
+class TutorRecentRequestOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    lead_id: int
+    title: str
+    subject: str
+    level: str
+    is_public: bool
+    lead_status: str
+    student_name: Optional[str]
+    created_at: datetime
+
+
+class TutorRecentRequestsOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    items: List[TutorRecentRequestOut]
  
  
 class TutorStatsOut(BaseModel):
