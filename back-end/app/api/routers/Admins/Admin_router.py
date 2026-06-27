@@ -55,6 +55,15 @@ def ban_tutor(
     return admin_service.ban_tutor(db, tutor_id)
 
 
+@router.put("/tutors/{tutor_id}/restore", response_model=TutorOut)
+def restore_tutor(
+    tutor_id: int,
+    db: Session = Depends(get_db),
+    current_admin: Admin = Depends(get_current_admin),
+):
+    return admin_service.restore_tutor(db, tutor_id)
+
+
 @router.put("/tutors/{tutor_id}/verify", response_model=TutorOut)
 def verify_tutor(
     tutor_id: int,
