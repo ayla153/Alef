@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import BesTutors from "../BesTutors";
 import "../../styles/TeacherTab.css";
-import { 
-  FaSearch, 
+import {  
   FaStar, 
   FaChalkboardTeacher, 
   FaUserGraduate, 

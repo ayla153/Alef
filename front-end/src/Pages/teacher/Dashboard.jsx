@@ -2,7 +2,6 @@ import '../../styles/Dashboard.css'
 import { useState } from 'react';
 import DashboardHeader from '../../components/common/DashboardHeader';
 import MainPage from '../../components/tabs/MainPage'
-import Tutors from '../../components/tabs/TeacherTab'
 import Requests from '../../components/tabs/Requests'
 import Footer from '../../components/common/Footer'
 import TeachersTab from '../../components/tabs/TeacherTab';

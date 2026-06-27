@@ -1,16 +1,20 @@
-import apiClient from './axiosClient';
 
-// صندوق الطلبات الخاصة المرسلة مباشرة لهذا المعلّم
-export const getTutorInbox = () => apiClient.get('/leads/tutor/inbox');
+// src/api/tutorLeads.js
+import api from './api';
 
-// كل العروض العامة التي قدّمها هذا المعلّم على طلبات السوق المفتوح
-export const getTutorOffers = () => apiClient.get('/leads/tutor/offers');
+/** Tutor private inbox — private leads addressed to this tutor */
+export const getTutorInbox = () => api.get('/leads/tutor/inbox');
 
-// تصفّح الطلبات العامة المفتوحة المطابقة لمواد هذا المعلّم
-export const getBrowseLeads = () => apiClient.get('/leads/browse');
+/** Tutor public offers — track every offer this tutor submitted */
+export const getTutorOffers = () => api.get('/leads/tutor/offers');
 
-// تقديم عرض على طلب عام
-export const submitOffer = (leadId, payload) => apiClient.post(`/leads/${leadId}/offers`, payload);
+/** Browse open public leads matching tutor's subjects */
+export const browsePubicLeads = () => api.get('/leads/browse');
 
-// قبول طلب خاص (موافقة على التواصل)
-export const acceptPrivateContact = (leadId, payload) => apiClient.post(`/leads/${leadId}/accept-contact`, payload);
+/** Submit an offer on a public lead */
+export const submitOffer = (leadId, payload) =>
+  api.post(`/leads/${leadId}/offers`, payload);
+
+/** Accept a private lead contact */
+export const acceptPrivateContact = (leadId, payload = null) =>
+  api.post(`/leads/${leadId}/accept-contact`, payload);
