@@ -1,20 +1,47 @@
 // src/Pages/teacher/TutorProfile.jsx
-// التعديلات عن النسخة السابقة:
-//   1. استيراد updateMyProfile بدل updateTutor
-//   2. handleSave يستدعي updateMyProfile(payload) مباشرة (بدون tutorId)
-//   3. الـ tutorId يبقى في الـ state لرفع الصورة فقط (POST /tutors/{id}/photo)
+// ✅ تم حذف قسم الشهادات بالكامل
+// ✅ إصلاح رابط الصورة بإضافة BASE_URL إذا كان الرابط نسبياً
+// ✅ إضافة timestamp و onError لتجنب مشاكل العرض
 
 import { useState, useRef, useEffect, useMemo } from 'react';
 import {
   FaUser, FaUserTag, FaPhone, FaEnvelope, FaSave, FaUndo, FaEdit,
   FaChalkboardTeacher, FaUserGraduate, FaMoneyBillWave, FaFileAlt,
   FaLaptop, FaUniversity, FaCamera, FaPlus, FaTrashAlt,
-  FaBook, FaCheckCircle,
+  FaBook
 } from 'react-icons/fa';
 import '../../styles/TutorProfile.css';
 import { getMyProfile, updateMyProfile, uploadTutorPhoto } from '../../api/tutorProfile';
 import { getErrorMessage } from '../../utils/apiErrors';
 import LogoutButton from '../../components/LogoutButton';
+
+// رابط صورة افتراضية (يعمل دائماً)
+const DEFAULT_AVATAR = 'https://ui-avatars.com/api/?name=مستخدم&background=3b82f6&color=fff&size=200';
+
+// قاعدة URL الخاصة بالباك إند (خذها من متغير البيئة أو استخدم القيمة الافتراضية)
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+// دالة لتحويل الرابط إلى رابط مطلق
+const getFullImageUrl = (url) => {
+  if (!url) return null;
+  // إذا كان الرابط يبدأ بـ http أو https، فهو مطلق
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  // إذا كان يبدأ بـ /، أضف BASE_URL
+  if (url.startsWith('/')) {
+    return `${BASE_URL}${url}`;
+  }
+  // إذا كان مساراً نسبياً، أضف / قبل الرابط ثم BASE_URL
+  return `${BASE_URL}/${url}`;
+};
+
+// دالة لإضافة timestamp لتجنب Cache
+const addTimestamp = (url) => {
+  if (!url) return url;
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}t=${Date.now()}`;
+};
 
 const availableSubjects = [
   'الرياضيات', 'اللغة العربية', 'اللغة الانكليزية', 'اللغة الفرنسية',
@@ -44,7 +71,6 @@ function mapTutorToProfile(tutor) {
       { stage: 'المرحلة الثانوية',  price: 0 },
     ],
     bio: tutor.bio || '',
-    certificates: [],
   };
 }
 
@@ -52,9 +78,7 @@ export default function TutorProfile() {
   const [tutorId, setTutorId]                     = useState(null);
   const [profileData, setProfileData]             = useState(null);
   const [originalData, setOriginalData]           = useState(null);
-  const [profileImagePreview, setProfileImagePreview] = useState(
-    'https://randomuser.me/api/portraits/men/32.jpg'
-  );
+  const [profileImagePreview, setProfileImagePreview] = useState(DEFAULT_AVATAR);
   const [errors, setErrors]           = useState({});
   const [showValidation, setShowValidation] = useState(false);
   const [isLoading, setIsLoading]     = useState(true);
@@ -64,7 +88,6 @@ export default function TutorProfile() {
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [isEditing, setIsEditing]     = useState(false);
   const fileInputRef       = useRef(null);
-  const fileCertificateRef = useRef(null);
   const [selectedSubject, setSelectedSubject] = useState('');
   const [newSubjectYears, setNewSubjectYears] = useState(0);
 
@@ -78,7 +101,12 @@ export default function TutorProfile() {
       setTutorId(res.data.tutor_id);
       setProfileData(mapped);
       setOriginalData(mapped);
-      if (mapped.profileImage) setProfileImagePreview(mapped.profileImage);
+      if (mapped.profileImage) {
+        const fullUrl = getFullImageUrl(mapped.profileImage);
+        setProfileImagePreview(addTimestamp(fullUrl));
+      } else {
+        setProfileImagePreview(DEFAULT_AVATAR);
+      }
     } catch (err) {
       setLoadError(getErrorMessage(err));
     } finally {
@@ -161,7 +189,6 @@ export default function TutorProfile() {
 
     setIsSaving(true);
     try {
-      // ✅ PATCH /tutors/me — لا يحتاج tutorId في الـ URL
       await updateMyProfile({
         first_name:            profileData.firstname.trim(),
         last_name:             profileData.lastname.trim(),
@@ -186,7 +213,8 @@ export default function TutorProfile() {
   // ─── تحكم واجهة ──────────────────────────────────────────────────────────
   const handleStartEdit = () => {
     setProfileData(JSON.parse(JSON.stringify(originalData)));
-    setProfileImagePreview(originalData.profileImage || 'https://randomuser.me/api/portraits/men/32.jpg');
+    const img = originalData.profileImage ? getFullImageUrl(originalData.profileImage) : null;
+    setProfileImagePreview(img ? addTimestamp(img) : DEFAULT_AVATAR);
     setErrors({});
     setShowValidation(false);
     setSaveError('');
@@ -196,7 +224,8 @@ export default function TutorProfile() {
   const handleCancel = () => {
     if (hasChanges && !window.confirm('هل أنت متأكد من تجاهل التغييرات؟')) return;
     setProfileData(JSON.parse(JSON.stringify(originalData)));
-    setProfileImagePreview(originalData.profileImage || 'https://randomuser.me/api/portraits/men/32.jpg');
+    const img = originalData.profileImage ? getFullImageUrl(originalData.profileImage) : null;
+    setProfileImagePreview(img ? addTimestamp(img) : DEFAULT_AVATAR);
     setErrors({});
     setShowValidation(false);
     setIsEditing(false);
@@ -216,6 +245,7 @@ export default function TutorProfile() {
     const file = e.target.files[0];
     if (!file) return;
 
+    // عرض معاينة مؤقتة (بيانات مرفوعة محلياً)
     const reader = new FileReader();
     reader.onloadend = () => setProfileImagePreview(reader.result);
     reader.readAsDataURL(file);
@@ -226,9 +256,11 @@ export default function TutorProfile() {
       .then((res) => {
         const url = res.data?.tutor_photo;
         if (url) {
-          setProfileImagePreview(url);
-          setProfileData((p) => ({ ...p, profileImage: url }));
-          setOriginalData((p) => ({ ...p, profileImage: url }));
+          const fullUrl = getFullImageUrl(url);
+          const finalUrl = addTimestamp(fullUrl);
+          setProfileImagePreview(finalUrl);
+          setProfileData((p) => ({ ...p, profileImage: finalUrl }));
+          setOriginalData((p) => ({ ...p, profileImage: finalUrl }));
         }
       })
       .catch((err) => setSaveError(`فشل رفع الصورة: ${getErrorMessage(err)}`))
@@ -256,20 +288,7 @@ export default function TutorProfile() {
     setProfileData((p) => ({ ...p, subjects: updated }));
   };
 
-  // ─── شهادات (محلية فقط — لا endpoint) ───────────────────────────────────
-  const addCertificate = (file) => {
-    if (!file) return;
-    if (file.type !== 'application/pdf') { alert('PDF فقط'); return; }
-    if (file.size / 1024 / 1024 > 5)    { alert('الحجم يجب أن لا يتجاوز 5MB'); return; }
-    setProfileData((p) => ({ ...p, certificates: [...p.certificates, file.name] }));
-  };
-
-  const removeCertificate = (idx) => {
-    const updated = [...profileData.certificates];
-    updated.splice(idx, 1);
-    setProfileData((p) => ({ ...p, certificates: updated }));
-  };
-
+  // ─── أسعار ─────────────────────────────────────────────────────────────────
   const handleStagePriceChange = (idx, price) => {
     const updated = [...profileData.stagesPrices];
     updated[idx].price = parseInt(price) || 0;
@@ -322,20 +341,36 @@ export default function TutorProfile() {
           {/* ─── Sidebar ─── */}
           <div className="profile-sidebar">
             <div className="profile-avatar-container">
-              <img src={profileImagePreview} alt="صورة الأستاذ" className="profile-avatar" />
+              <img
+                src={profileImagePreview}
+                alt="صورة الأستاذ"
+                className="profile-avatar"
+                onError={(e) => {
+                  e.target.src = DEFAULT_AVATAR;
+                }}
+              />
               {isEditing && (
                 <>
-                  <button className="upload-photo-btn" onClick={() => fileInputRef.current.click()} disabled={isUploadingPhoto}>
+                  <button
+                    className="upload-photo-btn"
+                    onClick={() => fileInputRef.current.click()}
+                    disabled={isUploadingPhoto}
+                  >
                     <FaCamera /> {isUploadingPhoto ? 'جارِ الرفع...' : 'تغيير الصورة'}
                   </button>
-                  <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleProfileImageChange} />
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    style={{ display: 'none' }}
+                    accept="image/*"
+                    onChange={handleProfileImageChange}
+                  />
                 </>
               )}
             </div>
             <div className="quick-stats">
               <div className="stat"><FaBook />         {profileData.subjects.length} مواد</div>
               <div className="stat"><FaUserGraduate /> {profileData.totalYearsExperience} سنوات خبرة</div>
-              <div className="stat"><FaCheckCircle />  {profileData.certificates.length} شهادات</div>
             </div>
           </div>
 
@@ -437,7 +472,7 @@ export default function TutorProfile() {
               )}
             </div>
 
-            {/* الأسعار */}
+            {/* الأسعار (عرض فقط) */}
             <div className="profile-card">
               <div className="card-title"><FaMoneyBillWave /> الأسعار حسب المرحلة</div>
               {isEditing && <p className="hint">⚠️ السعر مرتبط بكل مادة في الباك إند — هذا القسم للعرض فقط ولن يُحفظ.</p>}
@@ -463,36 +498,6 @@ export default function TutorProfile() {
                 <textarea rows="4" value={profileData.bio} onChange={(e) => handleInputChange('bio', e.target.value)} className="bio-textarea" />
               ) : (
                 <p className="profile-view-bio">{profileData.bio || 'لا توجد نبذة بعد.'}</p>
-              )}
-            </div>
-
-            {/* الشهادات */}
-            <div className="profile-card">
-              <div className="card-title"><FaFileAlt /> الشهادات والمستندات (PDF فقط)</div>
-              {isEditing && <p className="hint">⚠️ لا يوجد endpoint لرفع/جلب الشهادات بعد التسجيل — القائمة محلية فقط حالياً.</p>}
-              {profileData.certificates.length === 0 ? (
-                <p className="hint">لا توجد شهادات مرفوعة.</p>
-              ) : (
-                <ul className="certificates-list">
-                  {profileData.certificates.map((cert, idx) => (
-                    <li key={idx}>
-                      {cert}
-                      {isEditing && (
-                        <button type="button" className="delete-cert-btn" onClick={() => removeCertificate(idx)}><FaTrashAlt /></button>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {isEditing && (
-                <div className="add-certificate">
-                  <input type="file" ref={fileCertificateRef} style={{ display: 'none' }} accept=".pdf"
-                    onChange={(e) => { addCertificate(e.target.files[0]); e.target.value = ''; }} />
-                  <button type="button" className="add-cert-btn" onClick={() => fileCertificateRef.current.click()}>
-                    <FaPlus /> إضافة شهادة (PDF)
-                  </button>
-                  <p className="hint">الملفات المسموحة: PDF فقط - الحد الأقصى 5MB</p>
-                </div>
               )}
             </div>
 
