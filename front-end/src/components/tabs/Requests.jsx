@@ -1,6 +1,6 @@
 // src/pages/tutor/Requests.jsx
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import RequestCard from '../../components/RequestCard';
 import OfferModalNew from '../../components/OfferModalNew';
 import AcceptContactModal from '../../components/AcceptContactModal';
@@ -33,6 +33,9 @@ const DEFAULT_FILTERS = {
 
 export default function Requests({ initialFilter = null, onFilterApplied }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { leadId: leadIdParam } = useParams();
+  const focusLeadId = leadIdParam ? Number(leadIdParam) : null;
 
   const [publicLeads, setPublicLeads] = useState([]);
   const [privateLeads, setPrivateLeads] = useState([]);
@@ -48,6 +51,17 @@ export default function Requests({ initialFilter = null, onFilterApplied }) {
 
   const isMounted = useRef(true);
   const hasAppliedFilter = useRef(false);
+  const hasAppliedFocus = useRef(false);
+
+  useEffect(() => {
+    if (focusLeadId && !hasAppliedFocus.current) {
+      setFilters(DEFAULT_FILTERS);
+      hasAppliedFocus.current = true;
+    }
+    if (!focusLeadId) {
+      hasAppliedFocus.current = false;
+    }
+  }, [focusLeadId]);
 
   useEffect(() => {
     const filterFromRoute = location.state?.filter;
@@ -173,6 +187,28 @@ export default function Requests({ initialFilter = null, onFilterApplied }) {
     ];
     return filterAndSortLeads(list, filters);
   }, [enrichedPublic, enrichedPrivate, filters]);
+
+  const allLoadedLeads = useMemo(
+    () => [...enrichedPublic, ...enrichedPrivate],
+    [enrichedPublic, enrichedPrivate]
+  );
+
+  const focusedLead = focusLeadId
+    ? allLoadedLeads.find((l) => l.post_requirements_id === focusLeadId)
+    : null;
+
+  useEffect(() => {
+    if (!focusLeadId || isLoading) return;
+
+    const timer = window.setTimeout(() => {
+      const el = document.getElementById(`lead-card-${focusLeadId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 150);
+
+    return () => window.clearTimeout(timer);
+  }, [focusLeadId, isLoading, mergedLeads.length]);
 
   const updateFilter = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -338,6 +374,24 @@ export default function Requests({ initialFilter = null, onFilterApplied }) {
           </p>
         )}
 
+        {!isLoading && focusLeadId && !focusedLead && (
+          <p className="lead-focus-missing">
+            الطلب #{focusLeadId} غير متاح حالياً (ربما أُغلق أو لا يطابق موادك).
+            <button type="button" className="lead-focus-back" onClick={() => navigate('/dashboard/requests')}>
+              عرض جميع الطلبات
+            </button>
+          </p>
+        )}
+
+        {focusLeadId && focusedLead && (
+          <div className="lead-focus-banner">
+            <span>تفاصيل الطلب #{focusLeadId}</span>
+            <button type="button" className="lead-focus-back" onClick={() => navigate('/dashboard/requests')}>
+              عرض الكل
+            </button>
+          </div>
+        )}
+
         {isLoading && <p className="loading-text">جارِ تحميل الطلبات...</p>}
         {error && <p className="error-text">{error}</p>}
 
@@ -345,12 +399,19 @@ export default function Requests({ initialFilter = null, onFilterApplied }) {
           <div className="requests-grid">
             {mergedLeads.length > 0 ? (
               mergedLeads.map((lead) => (
-                <RequestCard
+                <div
                   key={`${lead.isPrivate ? 'priv' : 'pub'}-${lead.post_requirements_id}`}
-                  request={lead}
-                  onSubmitOffer={!lead.isPrivate ? handleOpenOfferModal : undefined}
-                  onAcceptContact={lead.isPrivate ? handleOpenContactModal : undefined}
-                />
+                  id={`lead-card-${lead.post_requirements_id}`}
+                  className={
+                    focusLeadId === lead.post_requirements_id ? 'lead-card-wrap lead-card-focused' : 'lead-card-wrap'
+                  }
+                >
+                  <RequestCard
+                    request={lead}
+                    onSubmitOffer={!lead.isPrivate ? handleOpenOfferModal : undefined}
+                    onAcceptContact={lead.isPrivate ? handleOpenContactModal : undefined}
+                  />
+                </div>
               ))
             ) : (
               <p className="no-results">

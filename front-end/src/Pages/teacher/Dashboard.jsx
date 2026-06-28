@@ -62,6 +62,10 @@ export default function Dashboard() {
     navigate('/dashboard/profile');
   };
 
+  const goToLeadDetail = (leadId) => {
+    navigate(`/dashboard/requests/${leadId}`);
+  };
+
   return (
     <div className="page-container2">
       <DashboardHeader activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -70,8 +74,15 @@ export default function Dashboard() {
           <Route index element={<Navigate to="home" replace />} />
           <Route
             path="home"
-            element={<MainPage onGoToRequests={goToRequests} onGoToProfile={goToProfile} />}
+            element={
+              <MainPage
+                onGoToRequests={goToRequests}
+                onGoToProfile={goToProfile}
+                onGoToLeadDetail={goToLeadDetail}
+              />
+            }
           />
+          <Route path="requests/:leadId" element={<Requests />} />
           <Route path="requests" element={<Requests />} />
           <Route path="teachers" element={<TeachersTab />} />
           <Route

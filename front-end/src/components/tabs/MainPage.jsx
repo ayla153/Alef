@@ -44,7 +44,7 @@ function statusClass(status) {
   return map[status] || 'closed';
 }
 
-export default function MainPage({ onGoToRequests, onGoToProfile }) {
+export default function MainPage({ onGoToRequests, onGoToProfile, onGoToLeadDetail }) {
   const [tutorName, setTutorName] = useState('');
   const [stats, setStats] = useState(null);
   const [weeklyData, setWeeklyData] = useState([]);
@@ -238,13 +238,21 @@ export default function MainPage({ onGoToRequests, onGoToProfile }) {
               ) : recentRequests.length === 0 ? (
                 <p className="empty-hint">لا توجد طلبات بعد. راجع تبويب الطلبات لاحقاً.</p>
               ) : (
-                recentRequests.map((req) => (
-                  <div key={req.lead_id} className="recent-request-item">
+                recentRequests.map((req) => {
+                  const leadId = req.post_requirements_id ?? req.lead_id;
+                  return (
+                  <button
+                    key={leadId}
+                    type="button"
+                    className="recent-request-item recent-request-item-clickable"
+                    onClick={() => onGoToLeadDetail?.(leadId)}
+                  >
                     <div className="rr-top">
                       <span className={`rr-type-badge ${req.is_public ? 'public' : 'private'}`}>
                         {req.is_public ? <FaGlobe /> : <FaLock />}
                         {req.is_public ? 'عام' : 'خاص'}
                       </span>
+                      <span className="rr-id">#{leadId}</span>
                       <span className={`rr-status ${statusClass(req.lead_status)}`}>
                         {leadStatusAr[req.lead_status] || req.lead_status}
                       </span>
@@ -256,9 +264,13 @@ export default function MainPage({ onGoToRequests, onGoToProfile }) {
                     {req.student_name && (
                       <div className="rr-student"><FaUserGraduate /> {req.student_name}</div>
                     )}
-                    <div className="rr-date">{formatRelativeTime(req.created_at)}</div>
-                  </div>
-                ))
+                    <div className="rr-footer">
+                      <span className="rr-date">{formatRelativeTime(req.created_at)}</span>
+                      <span className="rr-view-link">عرض التفاصيل <FaArrowLeft /></span>
+                    </div>
+                  </button>
+                  );
+                })
               )}
             </div>
           </div>
