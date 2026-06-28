@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api.js";
+import { getTeacherProfilePath } from "../utils/authRedirect";
 
 const TeacherCard2 = ({
   id,
@@ -49,7 +50,7 @@ const TeacherCard2 = ({
   };
 
   const handleViewProfile = () => {
-    navigate(`/tutor/${id}`);
+    navigate(getTeacherProfilePath(id));
   };
 
   return (

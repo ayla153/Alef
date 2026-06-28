@@ -5,8 +5,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 import LandingPageMainPage from './Pages/teacher/LandingPageMainPage';
 import HowItWorksTab from './components/tabs/HowItWorksTab';
-import TeachersTab from './components/tabs/TeacherTab';
-import LandingTeacherProfile from './components/TeacherProfile.jsx';
+import PublicTeachersPage from './Pages/PublicTeachersPage';
+import PublicTeacherProfilePage from './Pages/PublicTeacherProfilePage';
 import Dashboard from './Pages/teacher/Dashboard';
 import AdminDashboard from './Pages/Admin/AdminDashboard.jsx';
 import AdminLogin from './Pages/Admin/AdminLogin.jsx';
@@ -37,8 +37,6 @@ import CreateAccountStep2 from './Pages/teacher/CreateAccountStep2';
 import CreateAccountStep3 from './Pages/teacher/CreateAccountStep3';
 import CreateAccountStep4 from './Pages/teacher/CreateAccountStep4';
 import SessionExpiryPrompt from './components/SessionExpiryPrompt';
-import TutorProfile from './Pages/teacher/TutorProfile.jsx';
-import Requests from './components/tabs/Requests.jsx';
 
 function App() {
   return (
@@ -48,13 +46,14 @@ function App() {
         {/* صفحات عامة */}
         <Route path="/" element={<LandingPageMainPage />} />
         <Route path="/how-it-works" element={<HowItWorksTab />} />
-        <Route path="/teachers" element={<TeachersTab />} />
-        <Route path="/teacher-profile/:id" element={<LandingTeacherProfile />} />
+        <Route path="/teachers" element={<PublicTeachersPage />} />
+        <Route path="/teacher-profile/:id" element={<PublicTeacherProfilePage />} />
 
         {/* صفحات الـ auth - بس للزوار */}
         <Route path="/selection" element={<GuestRoute><SelectionPage /></GuestRoute>} />
         <Route path="/register" element={<GuestRoute><CreateStudentAccount /></GuestRoute>} />
         <Route path="/teacher/register" element={<GuestRoute><CreateAccountStep1 /></GuestRoute>} />
+        <Route path="/create-account/step1" element={<GuestRoute><CreateAccountStep1 /></GuestRoute>} />
         <Route path="/create-account/step2" element={<GuestRoute><CreateAccountStep2 /></GuestRoute>} />
         <Route path="/create-account/step3" element={<GuestRoute><CreateAccountStep3 /></GuestRoute>} />
         <Route path="/create-account/step4" element={<GuestRoute><CreateAccountStep4 /></GuestRoute>} />
@@ -77,9 +76,7 @@ function App() {
 
         {/* صفحات الأستاذ - بس للمسجلين */}
         <Route path="/dashboard" element={<ProtectedRoute role="tutor"><Dashboard /></ProtectedRoute>} />
-        
-        <Route path="/profile" element={<TutorProfile />} />
-        <Route path="/requests" element={<Requests />} />
+
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route
           path="/admin"

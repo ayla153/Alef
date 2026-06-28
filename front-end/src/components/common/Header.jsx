@@ -41,6 +41,12 @@ export default function Header({ activeTab, setActiveTab }) {
         >
           <FaQuestionCircle className="tab-icon" /> كيف نعمل
         </button>
+        <button
+          className={activeTab === "teachers" ? "active-tab" : ""}
+          onClick={() => handleTabClick("teachers", "/teachers")}
+        >
+          <FaChalkboardTeacher className="tab-icon" /> الأساتذة
+        </button>
       </div>
       
         <div className="account-buttons">

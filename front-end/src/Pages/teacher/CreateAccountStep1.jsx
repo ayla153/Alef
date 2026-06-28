@@ -319,7 +319,7 @@ export default function CreateAccountStep1() {
               <FaTimesCircle className="btn-icon" /> إلغاء
             </button>
           </div>
-          <p className="haveaccount">لديك حساب بالفعل ؟ <a href="#" onClick={(e) => {e.preventDefault(); navigate('/login');}}>تسجيل الدخول</a></p>
+          <p className="haveaccount">لديك حساب بالفعل ؟ <a href="#" onClick={(e) => {e.preventDefault(); navigate('/tutor/login');}}>تسجيل الدخول</a></p>
         </form>
       </div>
     </div>
