@@ -1,14 +1,16 @@
 // src/pages/tutor/Requests.jsx
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import RequestCard from '../../components/RequestCard';
 import OfferModalNew from '../../components/OfferModalNew';
 import '../../styles/Requests.css';
 import { browsePubicLeads, getTutorInbox, submitOffer, acceptPrivateContact } from '../../api/tutorLeads';
-import { getSubjects } from '../../api/tutorRegistration';
+import { getSubjects, getLevels } from '../../api/tutorRegistration'; // ✅ تم إضافة getLevels
 import { getErrorMessage } from '../../utils/apiErrors';
 
-// تخزين المواد محلياً
+// تخزين مؤقت للمواد والمستويات
 let subjectsCache = null;
+let levelsCache = null;
 
 function mapPublicLead(lead) {
   return { ...lead, isPrivate: false };
@@ -19,6 +21,8 @@ function mapPrivateLead(lead) {
 }
 
 export default function Requests() {
+  const location = useLocation();
+
   const [publicLeads, setPublicLeads] = useState([]);
   const [privateLeads, setPrivateLeads] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -26,30 +30,49 @@ export default function Requests() {
   const [filterType, setFilterType] = useState('all');
   const [selectedLead, setSelectedLead] = useState(null);
   const [subjectsMap, setSubjectsMap] = useState({});
+  const [levelsMap, setLevelsMap] = useState({});
 
   const isMounted = useRef(true);
+  const hasAppliedFilter = useRef(false);
 
-  // ─── جلب المواد من الباك إند ──────────────────────────────
-  const fetchSubjects = useCallback(async () => {
-    if (subjectsCache) {
-      setSubjectsMap(subjectsCache);
-      return;
+  // ─── قراءة الفلتر من الـ state ──────────────────────────────────────────
+  useEffect(() => {
+    if (location.state?.filter && !hasAppliedFilter.current) {
+      setFilterType(location.state.filter);
+      hasAppliedFilter.current = true;
     }
+  }, [location.state]);
+
+  // ─── جلب المواد والمستويات ──────────────────────────────────────────────
+  const fetchCatalog = useCallback(async () => {
     try {
-      const res = await getSubjects();
-      const map = {};
-      res.data.forEach((sub) => {
-        map[sub.subject_id] = sub.subject_title;
-      });
-      subjectsCache = map;
-      setSubjectsMap(map);
-      console.log('📚 المواد التي تم جلبها:', map); // للتحقق
+      // جلب المواد
+      if (!subjectsCache) {
+        const subjectsRes = await getSubjects();
+        const map = {};
+        subjectsRes.data.forEach((sub) => {
+          map[sub.subject_id] = sub.subject_title;
+        });
+        subjectsCache = map;
+      }
+      setSubjectsMap(subjectsCache);
+
+      // جلب المستويات
+      if (!levelsCache) {
+        const levelsRes = await getLevels(); // ✅ الآن getLevels معرف
+        const map = {};
+        levelsRes.data.forEach((level) => {
+          map[level.level_id] = level.level_title;
+        });
+        levelsCache = map;
+      }
+      setLevelsMap(levelsCache);
     } catch (err) {
-      console.warn('فشل جلب المواد:', err);
+      console.warn('فشل جلب المواد/المستويات:', err);
     }
   }, []);
 
-  // ─── جلب الطلبات ──────────────────────────────────────────
+  // ─── جلب الطلبات ──────────────────────────────────────────────────────────
   const fetchLeads = useCallback(async () => {
     if (!isMounted.current) return;
     try {
@@ -67,7 +90,7 @@ export default function Requests() {
     }
   }, []);
 
-  // ─── تحميل البيانات ──────────────────────────────────────
+  // ─── تحميل البيانات ──────────────────────────────────────────────────────
   useEffect(() => {
     let ignore = false;
     isMounted.current = true;
@@ -76,8 +99,10 @@ export default function Requests() {
       setIsLoading(true);
       setError('');
 
-      await fetchSubjects();
+      // جلب المواد والمستويات أولاً
+      await fetchCatalog();
 
+      // ثم جلب الطلبات
       const result = await fetchLeads();
 
       if (!ignore && isMounted.current) {
@@ -97,30 +122,19 @@ export default function Requests() {
       ignore = true;
       isMounted.current = false;
     };
-  }, [fetchLeads, fetchSubjects]);
+  }, [fetchLeads, fetchCatalog]);
 
-  // ─── إثراء البيانات بأسماء المواد ──────────────────────
+  // ─── إثراء البيانات بأسماء المواد والمستويات ──────────────────────────
   const enrichLead = (lead) => {
-    // 🔥 التحقق من وجود subject_id واستخدامه للحصول على الاسم
-    const subjectTitle = lead.subject_id && subjectsMap[lead.subject_id] 
-      ? subjectsMap[lead.subject_id] 
-      : null;
-    
-    // 🔥 إذا كان هناك subjectTitle من الباك إند مباشرة، نستخدمه
-    const finalSubjectTitle = subjectTitle || lead.subjectTitle || null;
-
-    console.log('🔍 إثراء الطلب:', {
-      id: lead.post_requirements_id,
-      subject_id: lead.subject_id,
-      subjectTitle_from_map: subjectTitle,
-      subjectTitle_from_lead: lead.subjectTitle,
-      final_subjectTitle: finalSubjectTitle,
-    });
+    // جلب اسم المادة من الخريطة باستخدام subject_id
+    const subjectName = subjectsMap[lead.subject_id] || null;
+    // جلب اسم المستوى من الخريطة باستخدام level_id
+    const levelName = levelsMap[lead.level_id] || null;
 
     return {
       ...lead,
-      subjectTitle: finalSubjectTitle,
-      levelTitle: lead.levelTitle || null,
+      subjectTitle: subjectName,
+      levelTitle: levelName,
     };
   };
 

@@ -4,12 +4,12 @@ import {
   FaTimes,
   FaPaperPlane,
   FaMoneyBillWave,
+  FaFileAlt,
   FaBook,
   FaChalkboard,
   FaClock,
   FaUserGraduate,
   FaTag,
-  FaFileAlt,
   FaClipboardList,
 } from 'react-icons/fa';
 import '../styles/OfferModalNew.css';
@@ -31,6 +31,7 @@ export default function OfferModalNew({ lead, onClose, onSubmit }) {
   };
 
   const handleSubmit = async () => {
+    // جميع الحقول مطلوبة حسب الباك إند (OfferIn)
     if (!fee || !note || !message) {
       setError('جميع الحقول مطلوبة');
       return;
@@ -43,6 +44,7 @@ export default function OfferModalNew({ lead, onClose, onSubmit }) {
         first_session_note: note,
         message,
       });
+      // سيتم الإغلاق والتحديث من خارج المودال
     } catch (err) {
       setError(err.message || 'حدث خطأ، حاول مجدداً');
       setLoading(false);
@@ -52,7 +54,7 @@ export default function OfferModalNew({ lead, onClose, onSubmit }) {
   return (
     <div className="offer-modal-overlay" onClick={onClose}>
       <div className="offer-modal-container" onClick={(e) => e.stopPropagation()}>
-        {/* رأس المودال */}
+        {/* ─── رأس المودال ─── */}
         <div className="offer-modal-header">
           <h2>
             <FaPaperPlane className="header-icon" /> تقديم عرض جديد

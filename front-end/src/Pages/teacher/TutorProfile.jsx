@@ -2,8 +2,10 @@
 // ✅ تم حذف قسم الشهادات بالكامل
 // ✅ إصلاح رابط الصورة بإضافة BASE_URL إذا كان الرابط نسبياً
 // ✅ إضافة timestamp و onError لتجنب مشاكل العرض
+// ✅ استقبال state من useLocation لتفعيل التعديل وإضافة مادة
 
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   FaUser, FaUserTag, FaPhone, FaEnvelope, FaSave, FaUndo, FaEdit,
   FaChalkboardTeacher, FaUserGraduate, FaMoneyBillWave, FaFileAlt,
@@ -75,6 +77,8 @@ function mapTutorToProfile(tutor) {
 }
 
 export default function TutorProfile() {
+  const location = useLocation();
+
   const [tutorId, setTutorId]                     = useState(null);
   const [profileData, setProfileData]             = useState(null);
   const [originalData, setOriginalData]           = useState(null);
@@ -100,13 +104,36 @@ export default function TutorProfile() {
       const mapped = mapTutorToProfile(res.data);
       setTutorId(res.data.tutor_id);
       setProfileData(mapped);
-      setOriginalData(mapped);
+      setOriginalData(JSON.parse(JSON.stringify(mapped)));
+
       if (mapped.profileImage) {
         const fullUrl = getFullImageUrl(mapped.profileImage);
         setProfileImagePreview(addTimestamp(fullUrl));
       } else {
         setProfileImagePreview(DEFAULT_AVATAR);
       }
+
+      // ─── معالجة الـ state الوارد من زر "إضافة مادة" أو "تعديل الملف الشخصي" ───
+      const { state } = location;
+      if (state) {
+        // تفعيل وضع التعديل
+        if (state.startEditing) {
+          setIsEditing(true);
+        }
+        // إضافة مادة جديدة
+        if (state.addSubject) {
+          const { name, years } = state.addSubject;
+          // تأكد من عدم تكرار المادة
+          if (!mapped.subjects.some(s => s.name === name)) {
+            const newSubjects = [...mapped.subjects, { name, years }];
+            setProfileData(prev => ({ ...prev, subjects: newSubjects }));
+            setOriginalData(prev => ({ ...prev, subjects: newSubjects }));
+          }
+        }
+        // ننظف الـ state بعد الاستخدام (لتجنب إعادة التفعيل عند تحديث الصفحة)
+        window.history.replaceState({}, document.title);
+      }
+
     } catch (err) {
       setLoadError(getErrorMessage(err));
     } finally {

@@ -37,6 +37,8 @@ import CreateAccountStep2 from './Pages/teacher/CreateAccountStep2';
 import CreateAccountStep3 from './Pages/teacher/CreateAccountStep3';
 import CreateAccountStep4 from './Pages/teacher/CreateAccountStep4';
 import SessionExpiryPrompt from './components/SessionExpiryPrompt';
+import TutorProfile from './Pages/teacher/TutorProfile.jsx';
+import Requests from './components/tabs/Requests.jsx';
 
 function App() {
   return (
@@ -75,7 +77,9 @@ function App() {
 
         {/* صفحات الأستاذ - بس للمسجلين */}
         <Route path="/dashboard" element={<ProtectedRoute role="tutor"><Dashboard /></ProtectedRoute>} />
-
+        
+        <Route path="/profile" element={<TutorProfile />} />
+        <Route path="/requests" element={<Requests />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route
           path="/admin"

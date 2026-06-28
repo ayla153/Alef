@@ -18,40 +18,28 @@ export const leadStatusAr = {
   closed_expired: 'انتهت مدته',
 };
 
-// خريطة المواد (للترجمة فقط، وليست مصدر البيانات الأساسي)
+// خريطة المواد (للترجمة الاحتياطية)
 const SUBJECT_MAP = {
-  'Mathematics': 'الرياضيات',
-  'Math': 'الرياضيات',
-  'Physics': 'الفيزياء',
-  'Chemistry': 'الكيمياء',
-  'Biology': 'الأحياء',
-  'Arabic': 'اللغة العربية',
-  'English': 'اللغة الإنجليزية',
-  'French': 'اللغة الفرنسية',
-  'Science': 'العلوم',
+  Mathematics: 'الرياضيات',
+  Math: 'الرياضيات',
+  Physics: 'الفيزياء',
+  Chemistry: 'الكيمياء',
+  Biology: 'الأحياء',
+  Arabic: 'اللغة العربية',
+  English: 'اللغة الإنجليزية',
+  French: 'اللغة الفرنسية',
+  Science: 'العلوم',
   'Islamic Education': 'التربية الإسلامية',
-  'Islamic Studies': 'الدراسات الإسلامية',
-  'History': 'التاريخ',
-  'Geography': 'الجغرافيا',
+  History: 'التاريخ',
+  Geography: 'الجغرافيا',
   'Civic Education': 'التربية الوطنية',
-  'Civics': 'التربية الوطنية',
   'Computer Science': 'المعلوماتية',
-  'Informatics': 'المعلوماتية',
-  'ICT': 'تقنية المعلومات',
-  'Social Studies': 'الدراسات الاجتماعية',
-  'Art': 'التربية الفنية',
-  'Music': 'الموسيقى',
-  'Physical Education': 'التربية الرياضية',
+  Informatics: 'المعلوماتية',
 };
 
 export const translateSubject = (title) => {
-  if (!title) return null; // إذا كان العنوان فارغاً، نُرجع null
-  // إذا كان النص موجوداً في الخريطة، نرجعه مترجماً
-  if (SUBJECT_MAP[title]) return SUBJECT_MAP[title];
-  // إذا كان النص عربياً (يحتوي على أحرف عربية) نرجعه كما هو
-  if (/[\u0600-\u06FF]/.test(title)) return title;
-  // وإلا نرجعه كما هو (ربما يكون اسم مادة غير موجود في الخريطة)
-  return title;
+  if (!title) return null;
+  return SUBJECT_MAP[title] || title;
 };
 
 // خريطة المستويات
