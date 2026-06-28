@@ -1,12 +1,95 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "../../styles/sstyle/notification.css";
 import Header from "../../components/Header";
 import api from "../../api/api.js";
+
+// خريطة ترجمة كل نوع إشعار لنص عربي ثابت (عنوان + وصف)
+// نتجاهل title/body القادمين من الباك إند بالإنجليزي ونستخدم هذي النصوص بدالها
+const NOTIFICATION_TEXT = {
+  // إشعارات الطلب العام (Public Lead)
+  public_lead_created: {
+    title: "طلب جديد متاح",
+    body: "يوجد طلب جديد متاح في مادتك",
+  },
+  public_lead_slots_full: {
+    title: "اكتمل عدد العروض",
+    body: "طلبك وصله 5 عروض، حان وقت مراجعتها",
+  },
+  public_lead_expired: {
+    title: "انتهى الطلب",
+    body: "طلبك انتهت صلاحيته بدون تطابق",
+  },
+  public_lead_closed_matched: {
+    title: "تم إغلاق الطلب",
+    body: "الطالب أغلق الطلب، تقدر تتواصل الآن",
+  },
+  public_lead_closed_no_match: {
+    title: "تم إغلاق الطلب بدون اختيار",
+    body: "الطالب أغلق الطلب بدون اختيار أحد",
+  },
+
+  // إشعارات العروض (Offers)
+  new_offer_received: {
+    title: "عرض جديد",
+    body: "أحد المعلمين أرسل لك عرضًا على طلبك",
+  },
+  offer_accepted: {
+    title: "تم قبول عرضك",
+    body: "تم قبول عرضك، بيانات التواصل مع الطالب أصبحت متاحة",
+  },
+  offer_rejected: {
+    title: "تم رفض عرضك",
+    body: "لم يتم اختيار عرضك على هذا الطلب",
+  },
+  offer_slot_opened: {
+    title: "فرصة جديدة",
+    body: "تفتحت لك فرصة جديدة على طلب كنت مؤهلًا له",
+  },
+
+  // إشعارات الطلب الخاص (Private Lead)
+  private_lead_received: {
+    title: "طلب خاص جديد",
+    body: "أرسل لك طالب طلب تدريس خاص",
+  },
+  private_lead_accepted: {
+    title: "تم قبول طلبك الخاص",
+    body: "المعلم وافق على طلبك الخاص، بيانات التواصل أصبحت متاحة",
+  },
+  private_lead_rejected: {
+    title: "تم رفض طلبك الخاص",
+    body: "المعلم رفض طلبك الخاص",
+  },
+
+  // إشعارات الإدارة (Admin)
+  new_tutor_pending: {
+    title: "معلم جديد بانتظار التوثيق",
+    body: "معلم جديد قدّم مستنداته وبانتظار المراجعة",
+  },
+  tutor_verified: {
+    title: "تم توثيق حسابك",
+    body: "تم توثيق حسابك، تقدر الآن تتصفح الطلبات",
+  },
+  tutor_verification_rejected: {
+    title: "تم رفض التوثيق",
+    body: "تم رفض توثيق حسابك، راجع السبب وأعد التقديم",
+  },
+};
+
+function getNotificationText(type) {
+  return (
+    NOTIFICATION_TEXT[type] || {
+      title: "إشعار",
+      body: "",
+    }
+  );
+}
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -14,16 +97,20 @@ export default function Notifications() {
         setError(null);
         const { data } = await api.get("/notifications/");
         // الباك بيرجع is_read، نحوّلها لـ unread عشان تتوافق مع منطق الـ UI
-        const mapped = data.map((n) => ({
-          id: n.id,
-          type: n.type,
-          title: n.title,
-          desc: n.body,
-          time: formatTime(n.created_at),
-          unread: !n.is_read,
-          status: getStatusLabel(n.type),
-          dismissed: false,
-        }));
+        const mapped = data.map((n) => {
+          const text = getNotificationText(n.type);
+          return {
+            id: n.id,
+            leadId: n.data?.lead_id ?? n.lead_id ?? null,
+            type: n.type,
+            title: text.title,
+            desc: text.body,
+            time: formatTime(n.created_at),
+            unread: !n.is_read,
+            status: getStatusLabel(n.type),
+            dismissed: false,
+          };
+        });
         setNotifications(mapped);
       } catch (err) {
         setError(err.response?.data?.detail || "فشل تحميل الإشعارات");
@@ -46,6 +133,18 @@ export default function Notifications() {
     } catch (err) {
       console.error("فشل تحديث الإشعار", err);
     }
+  };
+
+  const goToLeadDetails = (notif) => {
+    if (!notif.leadId) {
+      console.error("لا يوجد lead_id لهذا الإشعار", notif);
+      return;
+    }
+    navigate(`/lead/${notif.leadId}`);
+  };
+
+  const goToTutorsSearch = () => {
+    navigate("/tutors");
   };
 
   return (
@@ -130,7 +229,10 @@ export default function Notifications() {
 
                   {isActionType(notif.type) && (
                     <div className="notifications-page__btns">
-                      <button className="notifications-page__btn notifications-page__btn--filled">
+                      <button
+                        className="notifications-page__btn notifications-page__btn--filled"
+                        onClick={() => goToLeadDetails(notif)}
+                      >
                         عرض الطلب
                       </button>
                       <button
@@ -144,7 +246,10 @@ export default function Notifications() {
                   )}
 
                   {isSuccessType(notif.type) && (
-                    <button className="notifications-page__link-action">
+                    <button
+                      className="notifications-page__link-action"
+                      onClick={() => goToLeadDetails(notif)}
+                    >
                       عرض التفاصيل
                       <span className="material-symbols-outlined">
                         arrow_back
@@ -153,7 +258,10 @@ export default function Notifications() {
                   )}
 
                   {isRejectedType(notif.type) && (
-                    <button className="notifications-page__link-action">
+                    <button
+                      className="notifications-page__link-action"
+                      onClick={goToTutorsSearch}
+                    >
                       البحث عن بديل
                     </button>
                   )}
