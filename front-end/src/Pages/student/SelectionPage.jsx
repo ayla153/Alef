@@ -10,17 +10,17 @@ const SelectionPage = () => {
 
   const handleStudentClick = () => {
     if (mode === "login") {
-      navigate("/login");
+      navigate("/login", { replace: true });
     } else {
-      navigate("/register");
+      navigate("/register", { replace: true });
     }
   };
 
   const handleTeacherClick = () => {
     if (mode === "login") {
-      navigate("/tutor/login");
+      navigate("/tutor/login", { replace: true });
     } else {
-      navigate("/teacher/register");
+      navigate("/teacher/register", { replace: true });
     }
   };
 

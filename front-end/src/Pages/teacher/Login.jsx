@@ -5,6 +5,7 @@ import signImage from "../../assets/logo_noBG.png";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../api/api";
 import { saveAuthTokens } from "../../api/authStorage";
+import { markTutorFreshLogin } from "../../utils/dashboardHistory";
 
 export default function TutorLogin() {
   const [email, setEmail] = useState("");
@@ -51,8 +52,8 @@ export default function TutorLogin() {
       const { access_token, refresh_token } = response.data;
       saveAuthTokens({ access_token, refresh_token });
 
-      // ✅ التعديل هون
-      navigate("/dashboard");
+      markTutorFreshLogin();
+      navigate("/dashboard/home", { replace: true });
     } catch (err) {
       const errData = err.response?.data;
       let msg = "فشل تسجيل الدخول، تحقق من البريد وكلمة السر";

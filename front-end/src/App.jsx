@@ -75,7 +75,7 @@ function App() {
         <Route path="/lead/:id" element={<ProtectedRoute role="student"><LeadDetailsPage /></ProtectedRoute>} />
 
         {/* صفحات الأستاذ - بس للمسجلين */}
-        <Route path="/dashboard" element={<ProtectedRoute role="tutor"><Dashboard /></ProtectedRoute>} />
+        <Route path="/dashboard/*" element={<ProtectedRoute role="tutor"><Dashboard /></ProtectedRoute>} />
 
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route

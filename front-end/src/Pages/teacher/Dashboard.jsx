@@ -1,51 +1,93 @@
-import '../../styles/Dashboard.css'
-import { useState } from 'react';
+import '../../styles/Dashboard.css';
+import { useState, useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import DashboardHeader from '../../components/common/DashboardHeader';
-import MainPage from '../../components/tabs/MainPage'
-import Requests from '../../components/tabs/Requests'
-import Footer from '../../components/common/Footer'
+import MainPage from '../../components/tabs/MainPage';
+import Requests from '../../components/tabs/Requests';
+import Footer from '../../components/common/Footer';
 import TeachersTab from '../../components/tabs/TeacherTab';
 import TutorProfile from './TutorProfile';
 import Notifications from './Notifications';
+import {
+  useDashboardHomeBackGuard,
+  useDashboardInternalBackGuard,
+} from '../../hooks/useDashboardHomeBackGuard';
+import { consumeTutorFreshLogin, seedDashboardAsCurrentEntry } from '../../utils/dashboardHistory';
 
-export default function Dashboard(){
-    const [activeTab, setActiveTab] = useState('home');
-    const [requestsFilter, setRequestsFilter] = useState(null);
-    const [profileIntent, setProfileIntent] = useState(null);
+const TAB_PATHS = {
+  home: '/dashboard/home',
+  requets: '/dashboard/requests',
+  teachers: '/dashboard/teachers',
+  profile: '/dashboard/profile',
+  Notifications: '/dashboard/notifications',
+};
 
-    const goToRequests = (filter = 'all') => {
-        setRequestsFilter(filter);
-        setActiveTab('requets');
-    };
+function tabFromPath(pathname) {
+  if (pathname.includes('/requests')) return 'requets';
+  if (pathname.includes('/teachers')) return 'teachers';
+  if (pathname.includes('/profile')) return 'profile';
+  if (pathname.includes('/notifications')) return 'Notifications';
+  return 'home';
+}
 
-    const goToProfile = (intent = null) => {
-        setProfileIntent(intent);
-        setActiveTab('profile');
-    };
+export default function Dashboard() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const activeTab = tabFromPath(location.pathname);
+  const [profileIntent, setProfileIntent] = useState(null);
 
-    return(
-        <div className="page-container2">
-            <DashboardHeader activeTab={activeTab} setActiveTab={setActiveTab} />
-                <div className="homePageContent">
-                    {activeTab === 'home' && (
-                        <MainPage onGoToRequests={goToRequests} onGoToProfile={goToProfile} />
-                    )}
-                    {activeTab === 'requets' && (
-                        <Requests
-                            initialFilter={requestsFilter}
-                            onFilterApplied={() => setRequestsFilter(null)}
-                        />
-                    )}
-                    {activeTab === 'teachers' && <TeachersTab/>}
-                    {activeTab === 'profile' && (
-                        <TutorProfile
-                            profileIntent={profileIntent}
-                            onIntentConsumed={() => setProfileIntent(null)}
-                        />
-                    )}
-                    {activeTab === 'Notifications' && <Notifications/>}
-                </div>
-            <Footer />
-        </div>
-    )
+  useDashboardHomeBackGuard();
+  useDashboardInternalBackGuard();
+
+  useEffect(() => {
+    if (consumeTutorFreshLogin()) {
+      seedDashboardAsCurrentEntry('/dashboard/home');
+    }
+  }, []);
+
+  const setActiveTab = (tab) => {
+    navigate(TAB_PATHS[tab] || TAB_PATHS.home);
+  };
+
+  const goToRequests = (filter = 'all') => {
+    if (filter && filter !== 'all') {
+      navigate('/dashboard/requests', { state: { filter } });
+    } else {
+      navigate('/dashboard/requests');
+    }
+  };
+
+  const goToProfile = (intent = null) => {
+    if (intent) setProfileIntent(intent);
+    navigate('/dashboard/profile');
+  };
+
+  return (
+    <div className="page-container2">
+      <DashboardHeader activeTab={activeTab} setActiveTab={setActiveTab} />
+      <div className="homePageContent">
+        <Routes>
+          <Route index element={<Navigate to="home" replace />} />
+          <Route
+            path="home"
+            element={<MainPage onGoToRequests={goToRequests} onGoToProfile={goToProfile} />}
+          />
+          <Route path="requests" element={<Requests />} />
+          <Route path="teachers" element={<TeachersTab />} />
+          <Route
+            path="profile"
+            element={
+              <TutorProfile
+                profileIntent={profileIntent}
+                onIntentConsumed={() => setProfileIntent(null)}
+              />
+            }
+          />
+          <Route path="notifications" element={<Notifications />} />
+          <Route path="*" element={<Navigate to="home" replace />} />
+        </Routes>
+      </div>
+      <Footer />
+    </div>
+  );
 }

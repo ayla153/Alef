@@ -24,7 +24,7 @@ export default function Login() {
       saveAuthTokens({ access_token, refresh_token });
 
       // ✅ التعديل هون
-      navigate("/home");
+      navigate("/home", { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || "فشل تسجيل الدخول، تحقق من البيانات");
     } finally {

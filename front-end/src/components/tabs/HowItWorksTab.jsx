@@ -78,7 +78,7 @@ export default function HowItWorksTab() {
               description="قدم دروس سودا أولئك عبر فرصة الإفتراضية أو حضوري. واحصل على تقييمات لزيادة موثوقيتك." 
             />
           </div>
-          <button className='btn-teacher-student' onClick={() => navigate('/teacher/register')}>سجل كمعلم</button>
+          <button className='btn-teacher-student' onClick={() => navigate('/teacher/register', { replace: true })}>سجل كمعلم</button>
         </div>
       )}
       

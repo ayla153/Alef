@@ -126,8 +126,8 @@ export default function HomeTab({ onViewProfile }) {
               خصوصية مع معلمين من اختيارك
             </div>
             <div className="homepagebuttons">
-              <button className="btn-glow" onClick={() => navigate('/register')}>انضم كطالب</button>
-              <button className="btn-glow" onClick={() => navigate('/teacher/register')}>انضم كمعلم</button>
+              <button className="btn-glow" onClick={() => navigate('/register', { replace: true })}>انضم كطالب</button>
+              <button className="btn-glow" onClick={() => navigate('/teacher/register', { replace: true })}>انضم كمعلم</button>
             </div>
           </div>
         </div>

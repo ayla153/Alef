@@ -52,13 +52,15 @@ export default function Header({ activeTab, setActiveTab }) {
         <div className="account-buttons">
           <button
             onClick={() =>
-              navigate("/selection", { state: { mode: "register" } })
+              navigate("/selection", { state: { mode: "register" }, replace: true })
             }
           >
             <FaUserPlus className="btn-icon" /> إنشاء حساب
           </button>
           <button
-            onClick={() => navigate("/selection", { state: { mode: "login" } })}
+            onClick={() =>
+              navigate("/selection", { state: { mode: "login" }, replace: true })
+            }
             className="signupbtn"
           >
             <FaSignInAlt className="btn-icon" /> تسجيل الدخول
