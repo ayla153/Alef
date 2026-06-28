@@ -514,6 +514,7 @@ def get_recent_requests(db: Session, tutor_id: int, limit: int = 3) -> TutorRece
     items = [
         TutorRecentRequestOut(
             lead_id=lead.post_requirements_id,
+            post_requirements_id=lead.post_requirements_id,
             title=lead.title,
             subject=lead.subject.subject_title if lead.subject else "",
             level=lead.level.level_title if lead.level else "",

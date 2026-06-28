@@ -303,6 +303,7 @@ class TutorRecentRequestOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     lead_id: int
+    post_requirements_id: int
     title: str
     subject: str
     level: str
