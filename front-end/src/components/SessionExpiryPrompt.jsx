@@ -36,7 +36,7 @@ export default function SessionExpiryPrompt() {
   const handleLogout = () => {
     logoutSession();
     hidePrompt();
-    navigate(getLoginPathForCurrentUser());
+    navigate('/');
   };
 
   useEffect(() => {

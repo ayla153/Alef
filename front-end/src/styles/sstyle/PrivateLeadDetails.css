@@ -609,7 +609,9 @@ html.dark .pld-theme-toggle:hover, html.dark .pld-nav-icon-btn:hover {
 
 .pld-modal-backdrop {
   position: absolute;
-  inset: 0;  
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 100;         /* ← أضف هذا */
 }
 
 .pld-modal-wrapper {
@@ -625,6 +627,8 @@ html.dark .pld-theme-toggle:hover, html.dark .pld-nav-icon-btn:hover {
   border-radius: 2rem;
   overflow: hidden;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  position: relative;   /* ← أضف هذا */
+  z-index: 101;         /* ← أضف هذا */
 }
 
 .pld-modal-body {
@@ -697,6 +701,8 @@ html.dark .pld-modal-btn-cancel:hover {
 .pld-modal-btn-confirm:hover {
   background-color: #dc2626;
 }
+
+
 
 /* شاشات الهواتف والأجهزة اللوحية (Responsive Design) */
 @media (max-width: 1024px) {
