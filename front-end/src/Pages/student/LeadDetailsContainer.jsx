@@ -14,6 +14,7 @@ export default function LeadDetailsContainer() {
     const fetchLead = async () => {
       try {
         const { data } = await api.get(`/leads/${id}`);
+        console.log("lead data:", data);
         setLead(data);
       } catch (err) {
         setError(err.response?.data?.detail || "لم يتم العثور على الطلب");
