@@ -17,8 +17,6 @@ const TeacherCard2 = ({
   favoriteId = null,
   onFavoriteChange,
 }) => {
-  const [saved, setSaved] = useState(isFavorite);
-  const [savedFavoriteId, setSavedFavoriteId] = useState(favoriteId);
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
 
@@ -27,20 +25,16 @@ const TeacherCard2 = ({
     setBusy(true);
 
     try {
-      if (!saved) {
+      if (!isFavorite) {
         // إضافة للمفضلة
         const { data } = await api.post("/favorites/", { tutor_id: id });
-        setSaved(true);
-        setSavedFavoriteId(data.favorite_id);
         if (onFavoriteChange) onFavoriteChange(true, data.favorite_id);
       } else {
         // حذف من المفضلة (يحتاج favorite_id لا tutor_id)
-        if (savedFavoriteId != null) {
-          await api.delete(`/favorites/${savedFavoriteId}`);
+        if (favoriteId != null) {
+          await api.delete(`/favorites/${favoriteId}`);
         }
-        setSaved(false);
-        setSavedFavoriteId(null);
-        if (onFavoriteChange) onFavoriteChange(false, savedFavoriteId);
+        if (onFavoriteChange) onFavoriteChange(false, null);
       }
     } catch (err) {
       console.error("فشل تحديث المفضلة:", err);
@@ -94,12 +88,10 @@ const TeacherCard2 = ({
         <div className="actions">
           {/* Bookmark Button */}
           <button className="favBtn" onClick={handleFavClick} disabled={busy}>
-            {saved ? (
-              <FaBookmark color="
-#2563eb" />
+            {isFavorite ? (
+              <FaBookmark color="#2563eb" />
             ) : (
-              <FaRegBookmark color="
-#6b7280" />
+              <FaRegBookmark color="#6b7280" />
             )}
           </button>
 

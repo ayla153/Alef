@@ -95,6 +95,7 @@ const HomePage = () => {
         setOrders(
           recentData.map((item) => ({
             title: item.title,
+            subject: getSubjectArabicName(item.subject),
             date: new Date(item.created_at).toLocaleDateString("ar-EG"),
             ...(statusMap[item.lead_status] || {
               icon: "help",
