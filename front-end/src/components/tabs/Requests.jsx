@@ -1,166 +1,137 @@
-import { useState, useEffect, useCallback } from 'react';
-import RequestCard from '../RequestCard';
+// src/pages/tutor/Requests.jsx
+import { useState, useEffect, useCallback, useRef } from 'react';
+import RequestCard from '../../components/RequestCard';
+import OfferModalNew from '../../components/OfferModalNew';
 import '../../styles/Requests.css';
 import { browsePubicLeads, getTutorInbox, submitOffer, acceptPrivateContact } from '../../api/tutorLeads';
 import { getErrorMessage } from '../../utils/apiErrors';
 
-// ─── تحويل LeadBrowseCardOut → شكل RequestCard ───────────────────────────
 function mapPublicLead(lead) {
-  return {
-    ...lead,
-    isPrivate: false,
-    subjectTitle: null,  // LeadBrowseCardOut لا يحمل عنوان المادة، فقط subject_id
-    levelTitle: null,
-  };
+  return { ...lead, isPrivate: false, subjectTitle: null, levelTitle: null };
 }
 
-// ─── تحويل LeadOut (inbox) → شكل RequestCard ─────────────────────────────
 function mapPrivateLead(lead) {
-  return {
-    ...lead,
-    isPrivate: true,
-    subjectTitle: null,
-    levelTitle: null,
-  };
+  return { ...lead, isPrivate: true, subjectTitle: null, levelTitle: null };
 }
 
-// ─── Modal تقديم عرض بسيط ────────────────────────────────────────────────
-function OfferModal({ leadId, onClose, onSuccess }) {
-  const [form, setForm] = useState({ proposed_fee: '', first_session_note: '', message: '' });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleSubmit = async () => {
-    if (!form.proposed_fee || !form.first_session_note || !form.message) {
-      setError('جميع الحقول مطلوبة');
-      return;
-    }
-    setLoading(true);
-    setError('');
-    try {
-      await submitOffer(leadId, {
-        proposed_fee: Number(form.proposed_fee),
-        first_session_note: form.first_session_note,
-        message: form.message,
-      });
-      onSuccess();
-    } catch (err) {
-      setError(getErrorMessage(err));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-        <h3>تقديم عرض</h3>
-        {error && <p className="error-text">{error}</p>}
-        <div className="modal-field">
-          <label>الأجر المقترح (ل.س)</label>
-          <input
-            type="number"
-            min="0"
-            value={form.proposed_fee}
-            onChange={(e) => setForm((p) => ({ ...p, proposed_fee: e.target.value }))}
-          />
-        </div>
-        <div className="modal-field">
-          <label>ملاحظة الحصة الأولى</label>
-          <input
-            type="text"
-            maxLength={200}
-            value={form.first_session_note}
-            onChange={(e) => setForm((p) => ({ ...p, first_session_note: e.target.value }))}
-          />
-        </div>
-        <div className="modal-field">
-          <label>رسالة</label>
-          <textarea
-            maxLength={500}
-            value={form.message}
-            onChange={(e) => setForm((p) => ({ ...p, message: e.target.value }))}
-          />
-        </div>
-        <div className="modal-actions">
-          <button className="action-btn offer-btn" onClick={handleSubmit} disabled={loading}>
-            {loading ? 'جارِ الإرسال...' : 'إرسال العرض'}
-          </button>
-          <button className="action-btn cancel-btn-sm" onClick={onClose}>إلغاء</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── الصفحة الرئيسية ─────────────────────────────────────────────────────
 export default function Requests() {
-  const [publicLeads, setPublicLeads]   = useState([]);
+  const [publicLeads, setPublicLeads] = useState([]);
   const [privateLeads, setPrivateLeads] = useState([]);
-  const [isLoading, setIsLoading]       = useState(true);
-  const [error, setError]               = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [filterType, setFilterType] = useState('all');
+  const [selectedLead, setSelectedLead] = useState(null);
 
-  const [filterType, setFilterType]     = useState('all'); // all | public | private
-  const [offerModal, setOfferModal]     = useState(null);  // leadId | null
+  const isMounted = useRef(true);
 
-  // ─── جلب البيانات ───────────────────────────────────────────────────────
   const fetchLeads = useCallback(async () => {
-    setIsLoading(true);
-    setError('');
+    if (!isMounted.current) return;
     try {
       const [browseRes, inboxRes] = await Promise.all([
         browsePubicLeads(),
         getTutorInbox(),
       ]);
-      setPublicLeads((browseRes.data  || []).map(mapPublicLead));
-      setPrivateLeads((inboxRes.data  || []).map(mapPrivateLead));
+      return {
+        public: (browseRes.data || []).map(mapPublicLead),
+        private: (inboxRes.data || []).map(mapPrivateLead),
+        error: null,
+      };
     } catch (err) {
-      setError(getErrorMessage(err));
-    } finally {
-      setIsLoading(false);
+      return { public: [], private: [], error: getErrorMessage(err) };
     }
   }, []);
 
   useEffect(() => {
-    const id = setTimeout(fetchLeads, 0);
-    return () => clearTimeout(id);
+    let ignore = false;
+    isMounted.current = true;
+
+    const loadData = async () => {
+      setIsLoading(true);
+      setError('');
+
+      const result = await fetchLeads();
+
+      if (!ignore && isMounted.current) {
+        if (result.error) {
+          setError(result.error);
+        } else {
+          setPublicLeads(result.public);
+          setPrivateLeads(result.private);
+        }
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+
+    return () => {
+      ignore = true;
+      isMounted.current = false;
+    };
   }, [fetchLeads]);
 
-  // ─── قبول تواصل خاص ────────────────────────────────────────────────────
+  const handleOpenOfferModal = (leadId) => {
+    const allLeads = [...publicLeads, ...privateLeads];
+    const lead = allLeads.find((l) => l.post_requirements_id === leadId);
+    if (lead) setSelectedLead(lead);
+  };
+
+  const handleSubmitOffer = async (leadId, data) => {
+    await submitOffer(leadId, data);
+    setSelectedLead(null);
+
+    const result = await fetchLeads();
+    if (isMounted.current) {
+      if (result.error) {
+        setError(result.error);
+      } else {
+        setPublicLeads(result.public);
+        setPrivateLeads(result.private);
+      }
+      setIsLoading(false);
+    }
+  };
+
   const handleAcceptContact = async (leadId) => {
     try {
       await acceptPrivateContact(leadId, null);
-      await fetchLeads(); // تحديث القائمة بعد القبول
+      const result = await fetchLeads();
+      if (isMounted.current) {
+        if (result.error) {
+          setError(result.error);
+        } else {
+          setPublicLeads(result.public);
+          setPrivateLeads(result.private);
+        }
+        setIsLoading(false);
+      }
     } catch (err) {
       alert(getErrorMessage(err));
     }
   };
 
-  // ─── تصفية ──────────────────────────────────────────────────────────────
   const visibleLeads = [
-    ...(filterType !== 'private' ? publicLeads  : []),
-    ...(filterType !== 'public'  ? privateLeads : []),
+    ...(filterType !== 'private' ? publicLeads : []),
+    ...(filterType !== 'public' ? privateLeads : []),
   ];
 
   return (
     <div className="page-container2">
       <div className="requests-tab-container">
-
-        {/* شريط الفلاتر */}
         <div className="filters-bar">
           <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
             <option value="all">جميع الطلبات</option>
             <option value="public">طلبات عامة</option>
             <option value="private">طلبات خاصة بي</option>
           </select>
-          <button className="reset-btn" onClick={() => setFilterType('all')}>إعادة ضبط</button>
+          <button className="reset-btn" onClick={() => setFilterType('all')}>
+            إعادة ضبط
+          </button>
         </div>
 
-        {/* حالات التحميل والخطأ */}
         {isLoading && <p className="loading-text">جارِ تحميل الطلبات...</p>}
-        {error    && <p className="error-text">{error}</p>}
+        {error && <p className="error-text">{error}</p>}
 
-        {/* شبكة البطاقات */}
         {!isLoading && (
           <div className="requests-grid">
             {visibleLeads.length > 0 ? (
@@ -168,7 +139,7 @@ export default function Requests() {
                 <RequestCard
                   key={`${lead.isPrivate ? 'priv' : 'pub'}-${lead.post_requirements_id}`}
                   request={lead}
-                  onSubmitOffer={!lead.isPrivate ? (id) => setOfferModal(id) : undefined}
+                  onSubmitOffer={!lead.isPrivate ? handleOpenOfferModal : undefined}
                   onAcceptContact={lead.isPrivate ? handleAcceptContact : undefined}
                 />
               ))
@@ -179,15 +150,11 @@ export default function Requests() {
         )}
       </div>
 
-      {/* Modal تقديم عرض */}
-      {offerModal && (
-        <OfferModal
-          leadId={offerModal}
-          onClose={() => setOfferModal(null)}
-          onSuccess={() => {
-            setOfferModal(null);
-            fetchLeads();
-          }}
+      {selectedLead && (
+        <OfferModalNew
+          lead={selectedLead}
+          onClose={() => setSelectedLead(null)}
+          onSubmit={handleSubmitOffer}
         />
       )}
     </div>
