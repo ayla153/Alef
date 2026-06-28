@@ -2,7 +2,6 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { FaUser, FaUserTag, FaPhone, FaEnvelope, FaLock, FaCheckCircle, FaArrowLeft, FaTimesCircle, FaCalendarAlt } from 'react-icons/fa';
 import '../../styles/CreateAccountStep1.css';
-import logo from '../../assets/logo_noBG.png';
 import { registerTutorStep1 } from '../../api/tutorRegistration';
 import { parseValidationErrors, getErrorMessage } from '../../utils/apiErrors';
 import Header from '../../components/common/Header';
