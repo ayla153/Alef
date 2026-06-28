@@ -277,6 +277,7 @@
   position: relative;
   height: 32px;
   margin: 8px 0 4px;
+  direction: ltr; /* ثابت بصرياً حتى مع dir=rtl للصفحة */
 }
 
 .createLeadStep2_dualSliderTrack {
@@ -288,18 +289,18 @@
   transform: translateY(-50%);
   background-color: #dbeafe;
   border-radius: 9999px;
+  z-index: 1;
 }
 
 .createLeadStep2_dualSliderRange {
   position: absolute;
   top: 50%;
-  left: calc(var(--min-percent) * 1%);
-  width: calc((var(--max-percent) - var(--min-percent)) * 1%);
   height: 8px;
   transform: translateY(-50%);
   background-color: var(--primary);
   border-radius: 9999px;
   pointer-events: none;
+  z-index: 2;
 }
 
 .createLeadStep2_rangeSlider {

@@ -128,30 +128,6 @@ const CreateLeadStep2 = ({ formData, updateForm, onNext, onBack }) => {
                   )}
                 </label>
 
-                {/* الوقت المناسب — معطّل مؤقتاً (لا يُرسل للباك) */}
-                {/*
-                <label className="createLeadStep2_formGroup">
-                  <span className="createLeadStep2_formLabel">
-                    الوقت المناسب
-                  </span>
-
-                  <div className="createLeadStep2_inputWrapper createLeadStep2_inputWrapper--time">
-                    <input
-                      type="time"
-                      name="time"
-                      value={formData.time || ""}
-                      onChange={handleChange}
-                      className="createLeadStep2_formControl createLeadStep2_timeInput"
-                      dir="ltr"
-                      step="900"
-                    />
-                    <span className="material-symbols-outlined createLeadStep2_inputIcon createLeadStep2_timeIcon">
-                      schedule
-                    </span>
-                  </div>
-                </label>
-                */}
-
                 <div className="createLeadStep2_formGroup createLeadStep2_fullWidth createLeadStep2_budgetGroup">
                   <div className="createLeadStep2_budgetHeader">
                     <span className="createLeadStep2_formLabel">
@@ -164,15 +140,15 @@ const CreateLeadStep2 = ({ formData, updateForm, onNext, onBack }) => {
                   </div>
 
                   <div className="createLeadStep2_sliderWrapper">
-                    <div
-                      className="createLeadStep2_dualSlider"
-                      style={{
-                        "--min-percent": minPercent,
-                        "--max-percent": maxPercent,
-                      }}
-                    >
+                    <div className="createLeadStep2_dualSlider">
                       <div className="createLeadStep2_dualSliderTrack" />
-                      <div className="createLeadStep2_dualSliderRange" />
+                      <div
+                        className="createLeadStep2_dualSliderRange"
+                        style={{
+                          left: `${minPercent}%`,
+                          width: `${Math.max(0, maxPercent - minPercent)}%`,
+                        }}
+                      />
 
                       <input
                         type="range"

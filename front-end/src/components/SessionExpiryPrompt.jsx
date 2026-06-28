@@ -6,6 +6,7 @@ import {
   scheduleSessionWarning,
 } from '../api/sessionManager';
 import { getAccessToken } from '../api/authStorage';
+import { getLoginPathForCurrentUser } from '../utils/authRedirect';
 import '../styles/sstyle/SessionExpiryPrompt.css';
 
 export default function SessionExpiryPrompt() {

@@ -3,6 +3,7 @@ import "../styles/sstyle/TeacherCard.css";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api.js";
+import { getTeacherProfilePath } from "../utils/authRedirect";
 
 const TeacherCard = ({
   teacher,
@@ -24,7 +25,7 @@ const TeacherCard = ({
       onViewProfile(teacher);
       return;
     }
-    navigate(`/tutor/${teacher.id}`);
+    navigate(getTeacherProfilePath(teacher.id));
   };
 
   const handleToggleSave = async () => {

@@ -305,7 +305,7 @@ export default function CreateAccountStep2() {
               href="#"
               onClick={(e) => {
                 e.preventDefault();
-                navigate('/login');
+                navigate('/tutor/login');
               }}
             >
               تسجيل الدخول

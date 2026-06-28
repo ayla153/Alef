@@ -10,7 +10,8 @@ import {
   FaFilter, 
   FaBookmark 
 } from "react-icons/fa";
-import { getPublicTutors } from "../../api/publicTutors";
+import { getPublicTutors, getTopTutors } from "../../api/publicTutors";
+import { isAuthenticated } from "../../api/authStorage";
 import { isMarketplaceTutor } from "../../utils/adminTutorStatus";
 import { getErrorMessage } from "../../utils/apiErrors";
 
@@ -53,7 +54,7 @@ function mapTutorToCard(tutor) {
   };
 }
 
-export default function TeachersTab({ setSelectedTeacher, setActiveTab }) {
+export default function TeachersTab({ setSelectedTeacher, setActiveTab, onViewProfile }) {
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedRating, setSelectedRating] = useState(0);
   const [selectedExperience, setSelectedExperience] = useState(0);
@@ -70,9 +71,30 @@ export default function TeachersTab({ setSelectedTeacher, setActiveTab }) {
     setIsLoading(true);
     setError('');
     try {
-      const response = await getPublicTutors({ page: 1, page_size: 100 });
-      const verifiedOnly = response.data.filter((t) => t.verified === true);
-      setTeachers(verifiedOnly.map(mapTutorToCard));
+      if (isAuthenticated()) {
+        const response = await getPublicTutors({ page: 1, page_size: 100 });
+        const verifiedOnly = response.data.filter((t) => t.verified === true);
+        setTeachers(verifiedOnly.map(mapTutorToCard));
+      } else {
+        const { data } = await getTopTutors({ limit: 50 });
+        const items = data?.items ?? [];
+        setTeachers(
+          items.map((item) => ({
+            id: item.tutor_id,
+            name: `${item.first_name} ${item.last_name}`,
+            image: item.tutor_photo || 'https://randomuser.me/api/portraits/lego/1.jpg',
+            stage: `${item.total_experience_years ?? 0} سنوات خبرة`,
+            rating: item.average_rating ?? 0,
+            reviews: item.reviews_count ?? 0,
+            experience: item.total_experience_years ?? 0,
+            subjects: [],
+            levels: [],
+            modes: [],
+            onlinePrice: 0,
+            offlinePrice: 0,
+          })),
+        );
+      }
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -98,6 +120,17 @@ export default function TeachersTab({ setSelectedTeacher, setActiveTab }) {
     if (selectedMode === "offline" && !teacher.modes.includes("offline")) return false;
     return true;
   });
+
+  const handleViewProfile = (teacher) => {
+    if (onViewProfile) {
+      onViewProfile(teacher);
+      return;
+    }
+    if (setSelectedTeacher && setActiveTab) {
+      setSelectedTeacher(teacher);
+      setActiveTab('profile');
+    }
+  };
 
   return (
     <div className="teachers_tab fade-in">
@@ -193,6 +226,8 @@ export default function TeachersTab({ setSelectedTeacher, setActiveTab }) {
             <TeacherCard
               key={teacher.id}
               teacher={teacher}
+              showFavorite={false}
+              onViewProfile={handleViewProfile}
             />
           ))}
         </div>

@@ -199,7 +199,7 @@ export default function CreateAccountStep3(){
                             <FaArrowLeft className="btn-icon"/> 
                         </button>
                     </div>
-                    <p className="haveaccount">لديك حساب بالفعل ؟ <a href="#" onClick={(e) => {e.preventDefault(); navigate('/login');}}>تسجيل الدخول</a></p>
+                    <p className="haveaccount">لديك حساب بالفعل ؟ <a href="#" onClick={(e) => {e.preventDefault(); navigate('/tutor/login');}}>تسجيل الدخول</a></p>
                 </div>
             </div>
         </div>

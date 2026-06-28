@@ -7,6 +7,7 @@ import {
   saveAuthTokens,
 } from './authStorage';
 import { scheduleSessionWarning } from './sessionManager';
+import { getLoginPathFromLocation } from '../utils/authRedirect';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -96,8 +97,9 @@ apiClient.interceptors.response.use(
       return apiClient(originalRequest);
     } catch {
       clearAuthTokens();
-      if (!window.location.pathname.includes('/login')) {
-        window.location.assign('/login');
+      const loginPath = getLoginPathFromLocation();
+      if (!window.location.pathname.includes(loginPath)) {
+        window.location.assign(loginPath);
       }
       return Promise.reject(error);
     }
