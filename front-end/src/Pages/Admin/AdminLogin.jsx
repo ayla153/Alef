@@ -69,6 +69,7 @@ export default function AdminLogin() {
               id="admin-email"
               placeholder="admin@alef.com"
               value={email}
+              autoComplete="off"
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="username"
             />
@@ -83,6 +84,7 @@ export default function AdminLogin() {
               id="admin-password"
               placeholder="*******"
               value={password}
+              autoComplete="new-password"
               onChange={(e) => setPassword(e.target.value)}
               type="password"
               autoComplete="current-password"
