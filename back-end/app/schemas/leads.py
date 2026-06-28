@@ -165,6 +165,10 @@ class LeadOut(BaseModel):
         None,
         description="Populated only after contact reveal rules apply.",
     )
+    student_name: Optional[str] = Field(
+        None,
+        description="Private leads only (lead_targets row) — student first name for targeted tutor.",
+    )
     applications: list[LeadApplicationOut] = Field(default_factory=list)
 
 
@@ -218,6 +222,8 @@ class LeadBrowseCardOut(BaseModel):
     preferred_gender: Optional[gender_enum] = None
     subject_id: int
     level_id: int
+    lead_status: LeadStatusEnum
     accepting_applications: bool
     pending_offer_count: int
     max_applications: int
+    expired_at: datetime

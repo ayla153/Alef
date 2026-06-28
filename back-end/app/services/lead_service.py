@@ -209,6 +209,14 @@ def _application_to_out(app: LeadApplication, lead: PostRequirement) -> LeadAppl
     )
 
 
+def _private_lead_student_name(student: Student | None) -> str | None:
+    """First name only — exposed to targeted tutor on private leads."""
+    if student is None:
+        return None
+    name = student.first_name.strip()
+    return name or None
+
+
 def lead_to_out(lead: PostRequirement) -> LeadOut:
     pending = sum(
         1 for app in lead.lead_applications if app.application_status == LeadApplicationStatusEnum.PENDING
@@ -216,6 +224,11 @@ def lead_to_out(lead: PostRequirement) -> LeadOut:
     student_phone = (
         lead.student.phone_number
         if _student_phone_visible(lead) and lead.student
+        else None
+    )
+    student_name = (
+        _private_lead_student_name(lead.student)
+        if lead.lead_target is not None
         else None
     )
     return LeadOut(
@@ -242,6 +255,7 @@ def lead_to_out(lead: PostRequirement) -> LeadOut:
         pending_offer_count=pending,
         target_tutor_id=lead.lead_target.tutor_id if lead.lead_target else None,
         student_phone_number=student_phone,
+        student_name=student_name,
         applications=[
             _application_to_out(app, lead)
             for app in sorted(lead.lead_applications, key=lambda a: a.created_at)
@@ -451,9 +465,11 @@ def lead_to_browse_card_out(lead: PostRequirement) -> LeadBrowseCardOut:
         preferred_gender=lead.preferred_gender,
         subject_id=lead.subject_id,
         level_id=lead.level_id,
+        lead_status=lead.lead_status,
         accepting_applications=lead.accepting_applications,
         pending_offer_count=pending,
         max_applications=lead.max_applications,
+        expired_at=lead.expired_at,
     )
 
 
@@ -645,8 +661,10 @@ def create_private_lead(db: Session, student: Student, data: CreatePrivateLeadIn
     refreshed = get_lead_by_id(db, lead.post_requirements_id)
     assert refreshed is not None
 
+    student_name = _private_lead_student_name(refreshed.student)
+
     notification_service.notify_private_lead_received(
-        db, data.target_tutor_id, lead.post_requirements_id
+        db, data.target_tutor_id, lead.post_requirements_id, student_name=student_name
     )
 
     return lead_to_out(refreshed)

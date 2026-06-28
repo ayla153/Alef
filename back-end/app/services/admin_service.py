@@ -166,11 +166,7 @@ def get_tutor_report(db: Session, tutor_id: int) -> AdminTutorReportOut:
     review_rows: list[AdminTutorReviewOut] = []
     for review in reviews:
         student = review.student or db.get(Student, review.student_id)
-        student_name = (
-            f"{student.first_name} {student.last_name}".strip()
-            if student
-            else f"طالب #{review.student_id}"
-        )
+        student_name = student.first_name.strip() if student else f"طالب #{review.student_id}"
         review_rows.append(
             AdminTutorReviewOut(
                 review_id=review.review_id,
