@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.routers.Tutor_Subjects.tutor_subjects_router import router as tutor_subjects_router
 from app.api.routers.auth import router as auth_router
 from app.api.routers.Tutors.Tutors_router import router as tutors_router
 from app.api.routers.Admins import router as admin_router
@@ -66,3 +67,4 @@ app.include_router(leads_router)
 app.include_router(notifications_router)
 app.include_router(ws_router)
 app.include_router(auth_router)
+app.include_router(tutor_subjects_router)
