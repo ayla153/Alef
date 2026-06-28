@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
-import BesTutors from "../BesTutors";
 import "../../styles/TeacherTab.css";
-import {  
-  FaStar, 
-  FaChalkboardTeacher, 
-  FaUserGraduate, 
-  FaLaptop, 
-  FaUsers, 
-  FaFilter, 
-  FaBookmark 
+import TeacherCard from "../TeacherCard";
+import {
+  FaStar,
+  FaChalkboardTeacher,
+  FaUserGraduate,
+  FaLaptop,
+  FaUsers,
+  FaFilter,
+  FaBookmark
 } from "react-icons/fa";
 import { getPublicTutors, getTopTutors } from "../../api/publicTutors";
 import { isAuthenticated } from "../../api/authStorage";
@@ -23,8 +23,10 @@ function mapTutorToCard(tutor) {
 
   const subjectsList = (tutor.tutor_subjects || []).map((ts) => ts.subject?.subject_title).filter(Boolean);
 
-  const prices = (tutor.tutor_subjects || []).map((ts) => ts.price_per_hour).filter((p) => typeof p === 'number');
-  const avgPrice = prices.length > 0 ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : 0;
+  const prices = (tutor.tutor_subjects || [])
+    .map((ts) => ts.price_per_hour)
+    .filter((p) => typeof p === 'number');
+  const minPrice = prices.length > 0 ? Math.min(...prices) : null;
 
   const modes = [];
   if (tutor.tution_type === 'online' || tutor.tution_type === 'both') modes.push('online');
@@ -49,8 +51,8 @@ function mapTutorToCard(tutor) {
     subjects: subjectsList,
     levels,
     modes,
-    onlinePrice: modes.includes('online') ? avgPrice : 0,
-    offlinePrice: modes.includes('offline') ? avgPrice : 0,
+    onlinePrice: tutor.tution_type === 'offline' ? null : minPrice,
+    offlinePrice: tutor.tution_type === 'online' ? null : minPrice,
   };
 }
 

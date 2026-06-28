@@ -1,5 +1,12 @@
 import { getAuthRole, isAuthenticated } from '../api/authStorage';
 
+/** الصفحة الرئيسية بعد تسجيل الدخول حسب الدور */
+export function getHomePathForRole(role) {
+  if (role === 'tutor') return '/dashboard/home';
+  if (role === 'admin') return '/admin';
+  return '/home';
+}
+
 /** صفحة الدخول حسب الدور — بدون تغيير أسماء الـ URLs */
 export function getLoginPathForRole(role) {
   if (role === 'tutor') return '/tutor/login';

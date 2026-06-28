@@ -18,6 +18,7 @@ export default function CreateAccountStep2() {
   const [selectedSubjectId, setSelectedSubjectId] = useState('');
   const [selectedLevelId, setSelectedLevelId] = useState('');
   const [selectedYears, setSelectedYears] = useState(0);
+  const [selectedPrice, setSelectedPrice] = useState('');
   const [selectedFoundation, setSelectedFoundation] = useState(false);
   const [selectedPrimary, setSelectedPrimary] = useState(false);
   const [selectedElementary, setSelectedElementary] = useState(false);
@@ -55,6 +56,7 @@ export default function CreateAccountStep2() {
     setSelectedSubjectId('');
     setSelectedLevelId('');
     setSelectedYears(0);
+    setSelectedPrice('');
     setSelectedFoundation(false);
     setSelectedPrimary(false);
     setSelectedElementary(false);
@@ -79,6 +81,11 @@ export default function CreateAccountStep2() {
       return;
     }
 
+    if (!selectedPrice || Number(selectedPrice) < 0) {
+      setError('يرجى إدخال سعر صحيح لهذه المادة');
+      return;
+    }
+
     const subjectInfo = subjectsList.find((s) => s.subject_id === Number(selectedSubjectId));
     const levelInfo = levelsList.find((l) => l.level_id === Number(selectedLevelId));
 
@@ -90,6 +97,7 @@ export default function CreateAccountStep2() {
         subject_title: subjectInfo?.subject_title || '',
         level_title: levelInfo?.level_title || '',
         years: Number(selectedYears) || 0,
+        price: Number(selectedPrice) || 0,
         foundation: selectedFoundation,
         primary_stage: selectedPrimary,
         elementary_stage: selectedElementary,
@@ -131,7 +139,8 @@ export default function CreateAccountStep2() {
           experience_years: s.years,
           primary_stage: s.primary_stage,
           elementary_stage: s.elementary_stage,
-          high_school_stage: s.high_school_stage
+          high_school_stage: s.high_school_stage,
+          price_per_hour: s.price
         }))
       };
 
@@ -210,6 +219,14 @@ export default function CreateAccountStep2() {
                     placeholder="سنوات الخبرة"
                     value={selectedYears}
                     onChange={(e) => setSelectedYears(e.target.value)}
+                    min="0"
+                  />
+                  <input
+                    type="number"
+                    className="years-input-add"
+                    placeholder="السعر بالساعة (ل.س)"
+                    value={selectedPrice}
+                    onChange={(e) => setSelectedPrice(e.target.value)}
                     min="0"
                   />
                   <button className="add-btn" onClick={addSubject} type="button">

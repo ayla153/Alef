@@ -10,7 +10,7 @@ import {
   FaChalkboardTeacher,
 } from 'react-icons/fa';
 
-export default function DashboardHeader({ activeTab, setActiveTab }) {
+export default function DashboardHeader({ activeTab, setActiveTab, unreadCount = 0, onOpenNotifications }) {
   return (
     <header className="steponeheader lanP dashboard-nav-header">
       <div className="logoAndtitle">
@@ -50,9 +50,18 @@ export default function DashboardHeader({ activeTab, setActiveTab }) {
         </button>
       </div>
       <div className="user-actions">
-        <button className="icon-btn" onClick={() => setActiveTab('Notifications')} aria-label="الإشعارات">
-          <FaBell />
-        </button>
+        <div className="icon-btn-notif-wrap">
+          <button
+            className="icon-btn"
+            onClick={() => onOpenNotifications?.() ?? setActiveTab('Notifications')}
+            aria-label="الإشعارات"
+          >
+            <FaBell />
+          </button>
+          {unreadCount > 0 && (
+            <span className="header-notif-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
+          )}
+        </div>
         <button className="icon-btn" onClick={() => setActiveTab('profile')} aria-label="الملف الشخصي">
           <FaUserCircle />
         </button>

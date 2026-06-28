@@ -20,6 +20,16 @@ const DEFAULT_FILTERS = {
   sortBy: 'newest',
 };
 
+function countActiveFilters(filters) {
+  return [
+    filters.subjectId,
+    filters.levelId,
+    filters.budgetMin,
+    filters.budgetMax,
+    filters.sortBy !== 'newest',
+  ].filter(Boolean).length;
+}
+
 const STATUS_TABS = [
   { value: 'open', label: 'بانتظار ردك' },
   { value: 'all', label: 'الكل' },
@@ -166,6 +176,8 @@ export default function PrivateRequests() {
   };
 
   const updateFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }));
+  const resetFilters = () => setFilters(DEFAULT_FILTERS);
+  const activeFilterCount = countActiveFilters(filters);
 
   return (
     <div className="page-container2">
@@ -177,53 +189,103 @@ export default function PrivateRequests() {
 
         <div className="pr-page-layout">
           <div className="pr-main-column">
-            <div className="contacts-status-pills">
-              {STATUS_TABS.map((tab) => (
+            <div className="filters-panel pr-filters-panel">
+              <div className="pr-filters-top">
+                <div className="contacts-status-pills pr-status-pills">
+                  {STATUS_TABS.map((tab) => (
+                    <button
+                      key={tab.value}
+                      type="button"
+                      className={`contacts-pill ${statusTab === tab.value ? 'active' : ''}`}
+                      onClick={() => setStatusTab(tab.value)}
+                    >
+                      {tab.label}
+                      {tab.value === 'open' && openCount > 0 && ` (${openCount})`}
+                    </button>
+                  ))}
+                </div>
                 <button
-                  key={tab.value}
                   type="button"
-                  className={`contacts-pill ${statusTab === tab.value ? 'active' : ''}`}
-                  onClick={() => setStatusTab(tab.value)}
+                  className="reset-btn pr-reset-btn"
+                  onClick={resetFilters}
+                  disabled={activeFilterCount === 0}
                 >
-                  {tab.label}
-                  {tab.value === 'open' && openCount > 0 && ` (${openCount})`}
+                  إعادة ضبط{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
                 </button>
-              ))}
-            </div>
+              </div>
 
-            <div className="filters-panel">
-              <div className="filters-row filters-row-primary">
-                <select
-                  value={filters.subjectId}
-                  onChange={(e) => updateFilter('subjectId', e.target.value)}
-                  aria-label="المادة"
-                >
-                  <option value="">كل المواد</option>
-                  {subjectsList.map((sub) => (
-                    <option key={sub.subject_id} value={sub.subject_id}>
-                      {sub.subject_title}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={filters.levelId}
-                  onChange={(e) => updateFilter('levelId', e.target.value)}
-                  aria-label="المستوى"
-                >
-                  <option value="">كل المستويات</option>
-                  {levelsList.map((level) => (
-                    <option key={level.level_id} value={level.level_id}>
-                      {level.level_title}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={filters.sortBy}
-                  onChange={(e) => updateFilter('sortBy', e.target.value)}
-                  aria-label="الترتيب"
-                >
-                  <option value="newest">الأحدث أولاً</option>
-                </select>
+              <div className="filters-row filters-row-primary pr-filters-fields">
+                <div className="filter-field">
+                  <label htmlFor="pr-filter-subject">المادة</label>
+                  <select
+                    id="pr-filter-subject"
+                    value={filters.subjectId}
+                    onChange={(e) => updateFilter('subjectId', e.target.value)}
+                  >
+                    <option value="">كل المواد</option>
+                    {subjectsList.map((sub) => (
+                      <option key={sub.subject_id} value={sub.subject_id}>
+                        {sub.subject_title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="filter-field">
+                  <label htmlFor="pr-filter-level">المستوى</label>
+                  <select
+                    id="pr-filter-level"
+                    value={filters.levelId}
+                    onChange={(e) => updateFilter('levelId', e.target.value)}
+                  >
+                    <option value="">كل المستويات</option>
+                    {levelsList.map((level) => (
+                      <option key={level.level_id} value={level.level_id}>
+                        {level.level_title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="filter-field">
+                  <label htmlFor="pr-filter-sort">الترتيب</label>
+                  <select
+                    id="pr-filter-sort"
+                    value={filters.sortBy}
+                    onChange={(e) => updateFilter('sortBy', e.target.value)}
+                  >
+                    <option value="newest">الأحدث أولاً</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="filters-row filters-row-secondary pr-filters-bottom">
+                <div className="budget-filter">
+                  <label className="budget-label" htmlFor="pr-filter-budget-min">
+                    الميزانية (ل.س)
+                  </label>
+                  <input
+                    id="pr-filter-budget-min"
+                    type="number"
+                    min="0"
+                    placeholder="من"
+                    value={filters.budgetMin}
+                    onChange={(e) => updateFilter('budgetMin', e.target.value)}
+                  />
+                  <span className="budget-sep">–</span>
+                  <input
+                    id="pr-filter-budget-max"
+                    type="number"
+                    min="0"
+                    placeholder="إلى"
+                    value={filters.budgetMax}
+                    onChange={(e) => updateFilter('budgetMax', e.target.value)}
+                  />
+                </div>
+                {!isLoading && visibleLeads.length > 0 && (
+                  <p className="pr-results-count">
+                    {visibleLeads.length} رسالة
+                    {activeFilterCount > 0 ? ' (بعد التصفية)' : ''}
+                  </p>
+                )}
               </div>
             </div>
 

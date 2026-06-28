@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 
 import GuestRoute from './components/GuestRoute';
 import ProtectedRoute from './components/ProtectedRoute';
+import StudentProtectedRoute from './components/StudentProtectedRoute';
 
 import LandingPageMainPage from './Pages/teacher/LandingPageMainPage';
 import HowItWorksTab from './components/tabs/HowItWorksTab';
@@ -64,15 +65,15 @@ function App() {
         <Route path="/otp" element={<GuestRoute><OTP /></GuestRoute>} />
 
         {/* صفحات الطالب - بس للمسجلين */}
-        <Route path="/home" element={<ProtectedRoute role="student"><HomePage /></ProtectedRoute>} />
-        <Route path="/tutors" element={<ProtectedRoute role="student"><TutorsPage /></ProtectedRoute>} />
-        <Route path="/tutor/:tutor_id" element={<ProtectedRoute role="student"><TeacherProfile /></ProtectedRoute>} />
-        <Route path="/favorites" element={<ProtectedRoute role="student"><FavPage /></ProtectedRoute>} />
-        <Route path="/notifications" element={<ProtectedRoute role="student"><Notifications /></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute role="student"><Profile /></ProtectedRoute>} />
-        <Route path="/Create/Lead" element={<ProtectedRoute role="student"><CreateLeadWizard /></ProtectedRoute>} />
-        <Route path="/MyLeads" element={<ProtectedRoute role="student"><MyLeads /></ProtectedRoute>} />
-        <Route path="/lead/:id" element={<ProtectedRoute role="student"><LeadDetailsPage /></ProtectedRoute>} />
+        <Route path="/home" element={<StudentProtectedRoute><HomePage /></StudentProtectedRoute>} />
+        <Route path="/tutors" element={<StudentProtectedRoute><TutorsPage /></StudentProtectedRoute>} />
+        <Route path="/tutor/:tutor_id" element={<StudentProtectedRoute><TeacherProfile /></StudentProtectedRoute>} />
+        <Route path="/favorites" element={<StudentProtectedRoute><FavPage /></StudentProtectedRoute>} />
+        <Route path="/notifications" element={<StudentProtectedRoute><Notifications /></StudentProtectedRoute>} />
+        <Route path="/profile" element={<StudentProtectedRoute><Profile /></StudentProtectedRoute>} />
+        <Route path="/Create/Lead" element={<StudentProtectedRoute><CreateLeadWizard /></StudentProtectedRoute>} />
+        <Route path="/MyLeads" element={<StudentProtectedRoute><MyLeads /></StudentProtectedRoute>} />
+        <Route path="/lead/:id" element={<StudentProtectedRoute><LeadDetailsPage /></StudentProtectedRoute>} />
 
         {/* صفحات الأستاذ - بس للمسجلين */}
         <Route path="/dashboard/*" element={<ProtectedRoute role="tutor"><Dashboard /></ProtectedRoute>} />

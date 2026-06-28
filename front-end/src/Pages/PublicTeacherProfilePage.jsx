@@ -30,13 +30,7 @@ function mapTutorToTeacherData(tutor) {
   const prices = (tutor.tutor_subjects || [])
     .map((ts) => ts.price_per_hour)
     .filter((p) => typeof p === 'number');
-  const avgPrice = prices.length
-    ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length)
-    : 0;
-
-  const modes = [];
-  if (tutor.tution_type === 'online' || tutor.tution_type === 'both') modes.push('online');
-  if (tutor.tution_type === 'offline' || tutor.tution_type === 'both') modes.push('offline');
+  const minPrice = prices.length > 0 ? Math.min(...prices) : null;
 
   return {
     id: tutor.tutor_id,
@@ -47,8 +41,8 @@ function mapTutorToTeacherData(tutor) {
     experience: tutor.total_experience_years ?? 0,
     bio: tutor.bio || '',
     subjects,
-    onlinePrice: modes.includes('online') ? avgPrice : 0,
-    offlinePrice: modes.includes('offline') ? avgPrice : 0,
+    onlinePrice: tutor.tution_type === 'offline' ? null : minPrice,
+    offlinePrice: tutor.tution_type === 'online' ? null : minPrice,
   };
 }
 

@@ -31,7 +31,7 @@ export default function RecentContactsSidebar({
         </h3>
         <span className="pcs-count">{contacts.length}</span>
       </div>
-      <p className="pcs-hint">آخر من شاركتَ أرقامهم معك</p>
+      <p className="pcs-hint">اسم الطالب، رقمه، المادة والصف — لتتذكّر بسرعة</p>
 
       <div className="pcs-list">
         {recent.map((contact) => (

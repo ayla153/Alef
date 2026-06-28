@@ -11,10 +11,10 @@ export function buildTutorContacts(inboxLeads = [], publicOffers = [], subjectsM
     if (!phone || seenPhones.has(phone)) continue;
     seenPhones.add(phone);
 
-    const subject = subjectsMap[lead.subject_id]?.subject_title;
-    const level = levelsMap[lead.level_id]?.level_title;
-    const subjectTitle = subject ? translateSubject(subject) : null;
-    const levelTitle = level ? translateLevel(level) : null;
+    const subjectRaw = subjectsMap[lead.subject_id] ?? lead.subjectTitle;
+    const levelRaw = levelsMap[lead.level_id] ?? lead.levelTitle;
+    const subjectTitle = subjectRaw ? translateSubject(subjectRaw) : null;
+    const levelTitle = levelRaw ? translateLevel(levelRaw) : null;
     const subjectLabel = [subjectTitle, levelTitle].filter(Boolean).join(' · ');
 
     contacts.push({
@@ -37,10 +37,10 @@ export function buildTutorContacts(inboxLeads = [], publicOffers = [], subjectsM
     if (!phone || seenPhones.has(phone)) continue;
     seenPhones.add(phone);
 
-    const subject = subjectsMap[offer.subject_id]?.subject_title;
-    const level = levelsMap[offer.level_id]?.level_title;
-    const subjectTitle = subject ? translateSubject(subject) : null;
-    const levelTitle = level ? translateLevel(level) : null;
+    const subjectRaw = subjectsMap[offer.subject_id];
+    const levelRaw = levelsMap[offer.level_id];
+    const subjectTitle = subjectRaw ? translateSubject(subjectRaw) : null;
+    const levelTitle = levelRaw ? translateLevel(levelRaw) : null;
     const subjectLabel = [subjectTitle, levelTitle].filter(Boolean).join(' · ');
 
     contacts.push({

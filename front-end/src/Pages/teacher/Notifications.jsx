@@ -10,6 +10,7 @@ import {
   markAllNotificationsRead,
 } from '../../api/notifications';
 import { getErrorMessage } from '../../utils/apiErrors';
+import { NOTIFICATION_RECEIVED_EVENT } from '../../hooks/useNotificationSocket';
 
 // ─── NotificationType → أيقونة ───────────────────────────────────────────
 const iconFor = (type) => {
@@ -46,7 +47,7 @@ const FILTER_MAP = {
 
 const ITEMS_PER_PAGE = 5;
 
-export default function TutorNotifications() {
+export default function TutorNotifications({ onRead }) {
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading]         = useState(true);
   const [error, setError]                 = useState('');
@@ -72,11 +73,29 @@ export default function TutorNotifications() {
     return () => clearTimeout(id);
   }, [fetchNotifications]);
 
+  useEffect(() => {
+    const onLive = (e) => {
+      const n = e.detail;
+      if (!n?.id) return;
+      setNotifications((prev) => {
+        if (prev.some((x) => x.id === n.id)) return prev;
+        return [{ ...n, is_read: false }, ...prev];
+      });
+    };
+    window.addEventListener(NOTIFICATION_RECEIVED_EVENT, onLive);
+    return () => window.removeEventListener(NOTIFICATION_RECEIVED_EVENT, onLive);
+  }, []);
+
+  useEffect(() => {
+    onRead?.();
+  }, [onRead]);
+
   // ─── تحديد الكل كمقروء ─────────────────────────────────────────────────
   const handleMarkAllAsRead = async () => {
     try {
       await markAllNotificationsRead();
       setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+      onRead?.();
     } catch (err) {
       alert(getErrorMessage(err));
     }

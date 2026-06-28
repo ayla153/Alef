@@ -107,6 +107,73 @@
   cursor: not-allowed;
 }
 
+/* ─── Private requests: unified filter toolbar ─── */
+.pr-filters-panel {
+  padding: 0;
+  overflow: hidden;
+}
+
+.pr-filters-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.85rem 1.1rem;
+  background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+  border-bottom: 1px solid #eef2f7;
+}
+
+.pr-status-pills {
+  margin-bottom: 0;
+}
+
+.pr-reset-btn {
+  margin-right: 0;
+  flex-shrink: 0;
+}
+
+.pr-filters-fields {
+  padding: 0.9rem 1.1rem 0.35rem;
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 150px;
+  flex: 1;
+}
+
+.filter-field label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.01em;
+}
+
+.filter-field select {
+  width: 100%;
+  min-height: 38px;
+}
+
+.pr-filters-bottom {
+  padding: 0.35rem 1.1rem 0.9rem;
+  justify-content: space-between;
+}
+
+.pr-results-count {
+  margin: 0;
+  margin-right: auto;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #475569;
+  background: #f1f5f9;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
 .results-count {
   text-align: center;
   color: #64748b;
@@ -196,6 +263,35 @@
 @media (max-width: 768px) {
   .requests-tab-container {
     padding: 1rem;
+  }
+
+  .pr-filters-top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pr-reset-btn {
+    width: 100%;
+  }
+
+  .pr-filters-fields {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-field {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .pr-filters-bottom {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pr-results-count {
+    margin-right: 0;
+    text-align: center;
   }
 
   .filters-row-primary,

@@ -15,6 +15,9 @@ import {
   useDashboardHomeBackGuard,
   useDashboardInternalBackGuard,
 } from '../../hooks/useDashboardHomeBackGuard';
+import useNotificationSocket from '../../hooks/useNotificationSocket';
+import useUnreadNotifications from '../../hooks/useUnreadNotifications';
+import NotificationToast from '../../components/NotificationToast';
 import { consumeTutorFreshLogin, seedDashboardAsCurrentEntry } from '../../utils/dashboardHistory';
 
 const TAB_PATHS = {
@@ -42,6 +45,9 @@ export default function Dashboard() {
   const location = useLocation();
   const activeTab = tabFromPath(location.pathname);
   const [profileIntent, setProfileIntent] = useState(null);
+  const { unreadCount, refreshUnread } = useUnreadNotifications();
+
+  useNotificationSocket(true);
 
   useDashboardHomeBackGuard();
   useDashboardInternalBackGuard();
@@ -87,7 +93,13 @@ export default function Dashboard() {
 
   return (
     <div className="page-container2">
-      <DashboardHeader activeTab={activeTab} setActiveTab={setActiveTab} />
+      <NotificationToast onViewNotifications={() => navigate('/dashboard/notifications')} />
+      <DashboardHeader
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        unreadCount={unreadCount}
+        onOpenNotifications={() => setActiveTab('Notifications')}
+      />
       <div className="homePageContent">
         <Routes>
           <Route index element={<Navigate to="home" replace />} />
@@ -119,7 +131,7 @@ export default function Dashboard() {
               />
             }
           />
-          <Route path="notifications" element={<Notifications />} />
+          <Route path="notifications" element={<Notifications onRead={refreshUnread} />} />
           <Route path="*" element={<Navigate to="home" replace />} />
         </Routes>
       </div>

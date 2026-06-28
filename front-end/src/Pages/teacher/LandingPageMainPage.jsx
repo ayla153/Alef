@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import { isAuthenticated, getAuthRole } from '../../api/authStorage';
 import Header from '../../components/common/Header';
 import Footer from '../../components/common/Footer';
 import HomeTab from '../../components/tabs/HomeTab';
@@ -11,13 +9,6 @@ import TeacherProfile from '../../components/TeacherProfile';
 export default function LandingPageMainPage() {
   const [activeTab, setActiveTab] = useState('home');
   const [selectedTeacher, setSelectedTeacher] = useState(null);
-
-  if (isAuthenticated()) {
-    const role = getAuthRole();
-    if (role === 'tutor') return <Navigate to="/dashboard/home" replace />;
-    if (role === 'student') return <Navigate to="/home" replace />;
-    if (role === 'admin') return <Navigate to="/admin" replace />;
-  }
 
   const handleViewProfile = (teacher) => {
     setSelectedTeacher(teacher);
