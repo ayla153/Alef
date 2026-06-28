@@ -125,6 +125,21 @@ Opened from **التقارير** button on verified teachers tab.
 
 ---
 
+## 7. المواد والمراحل (`AdminSubjectsStagesTab`)
+
+| Section | API | Fields |
+|---------|-----|--------|
+| المواد | `/subjects/` | `subject_title` (+ optional description) |
+| المراحل | `/levels/` | `level_title` only |
+
+Frontend: `adminSubjects.js`, `adminLevels.js`.
+
+Both accept **Arabic or English** titles (same validation pattern).
+
+Delete blocked if level/subject linked to leads or tutors (409 Arabic message).
+
+---
+
 ## Quick “what do I import?”
 
 | Need | Import |
