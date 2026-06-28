@@ -22,6 +22,7 @@ from app.database import Base, engine
 from app.db_migrations import upgrade_database_if_needed
 from app.models import cities  # noqa: F401 — triggers dynamic model imports
 from fastapi.staticfiles import StaticFiles
+import os
 
 print(Base.metadata.tables.keys())
 
@@ -43,6 +44,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+os.makedirs("uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.include_router(tutors_router)
 app.include_router(admin_router)
