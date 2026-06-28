@@ -4,15 +4,13 @@ import CreateLeadStep2 from "./CreateLeadStep2";
 import CreateLeadStep3 from "./CreateLeadStep3";
 import RequestSuccess from "./RequestSuccess";
 import { useLocation } from "react-router-dom";
-import api from "../../api/api.js"
+import api from "../../api/api.js";
 
 const CreateLeadWizard = () => {
   const [step, setStep] = useState(1);
   const location = useLocation();
 
-  // origin: "teacher" إذا جاي من بروفايل معلم، "create" إذا من تاب إنشاء
   const origin = location.state?.origin || "create";
-  // tutor_id يجي من TeacherProfile لما يضغط "طلب درس"
   const tutorId = location.state?.tutor_id || null;
 
   const [submitted, setSubmitted] = useState(false);
@@ -20,43 +18,23 @@ const CreateLeadWizard = () => {
   const [error, setError] = useState(null);
 
   const [formData, setFormData] = useState({
-    // Step 1 — يتطابق مع CreateLeadFields بالباك
-    subject_id: "",        // رقم المادة من الـ API
-    level_id: "",          // رقم المرحلة من الـ API
-    tution_type: "",       // "online" | "offline" | "both"
-    preferred_gender: null, // "male" | "female" | null
+    subject_id: "",
+    level_id: "",
+    tution_type: "",
+    preferred_gender: null,
     foundation_tution: false,
-
-    // Step 1
-    helpType: "",          // نوع المساعدة → help_type
-
-    // Step 2
+    helpType: "",
     min_expected_fee: 50,
     max_expected_fee: 500,
-    weeklyClasses: "1",    // حصص أسبوعياً → weekly_classes
-
-    // Step 3
+    weeklyClasses: "1",
     title: "",
-    description: "",       // وصف الطلب — يتعبّأ من request_description
+    description: "",
     privacy_type: origin === "teacher" ? "private" : "public",
-
-    // ============================================================
-    // حقول واجهة فقط — ما بتنبعت للباك
-    // ============================================================
-    // subject_label: اسم المادة للعرض بالـ select (ما بينبعت)
     subject_label: "",
-    // level_label: اسم المرحلة للعرض (ما بينبعت)
     level_label: "",
-    // teachingMethod: القيمة المؤقتة قبل التحويل لـ tution_type
-    // "online" → "online" | "in-person" → "offline"
     teachingMethod: "",
-    // teacherGender: القيمة المؤقتة قبل التحويل لـ preferred_gender
-    // "ذكر" → "male" | "أنثى" → "female" | "لا يهم" → null
     teacherGender: "",
-    // request_description: نص الـ textarea في Step3
-    // بيتحوّل لـ description عند الإرسال
     request_description: "",
-    // حقول واجهة فقط — ما بتنبعت للباك
     location: "",
   });
 
@@ -67,83 +45,56 @@ const CreateLeadWizard = () => {
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
 
-  // ── تحويل قيم الواجهة لقيم الـ API ──────────────────────────
-
-  /**
-   * teachingMethod → tution_type
-   * "online"     → "online"
-   * "in-person"  → "offline"
-   * "both"       → "both"  (لو الواجهة أضافته لاحقاً)
-   */
-  const mapTutionType = (teachingMethod) => {
-    if (teachingMethod === "in-person") return "offline";
-    if (teachingMethod === "online") return "online";
-    if (teachingMethod === "both") return "both";
-    return teachingMethod; // fallback لو جاي صح مسبقاً
-  };
-
-  /**
-   * teacherGender → preferred_gender
-   * "ذكر"   → "male"
-   * "أنثى"  → "female"
-   * "لا يهم" / "" / null → null
-   */
-  const mapPreferredGender = (teacherGender) => {
-    if (teacherGender === "ذكر") return "male";
-    if (teacherGender === "أنثى") return "female";
-    return null;
-  };
-
-  // ── بناء جسم الطلب ───────────────────────────────────────────
-
-  const buildRequestBody = () => {
-    // الحقول المشتركة — يتطابقوا 1:1 مع CreateLeadFields بالباك
-    return {
-      // title: لو ما كتب المستخدم عنوان خاص رح نستخدم subject_label
-      // الباك بيطلبها مش فاضية (1-100 حرف)
-      title: formData.title?.trim() || formData.subject_label || "طلب درس خصوصي",
-
-      // description: بيجي من textarea "request_description" بـ Step3
-      description: formData.request_description?.trim() || formData.description?.trim() || "",
-
-      foundation_tution: formData.foundation_tution,
-
-      // tution_type: بنحوّل من teachingMethod إذا الحقل الأصلي فاضي
-      tution_type: formData.tution_type
-        ? formData.tution_type
-        : mapTutionType(formData.teachingMethod),
-
-      help_type: formData.helpType?.trim() || "",
-
-      min_expected_fee: Number(formData.min_expected_fee) || 50,
-      max_expected_fee: Number(formData.max_expected_fee) || 0,
-      weekly_classes: Number(formData.weeklyClasses) || 1,
-
-      // preferred_gender: بنحوّل من teacherGender إذا ما انحدّد مسبقاً
-      preferred_gender: formData.preferred_gender !== undefined && formData.preferred_gender !== ""
-        ? formData.preferred_gender
-        : mapPreferredGender(formData.teacherGender),
-
-      // subject_id و level_id — لازم يكونوا أرقام موجبة
-      subject_id: Number(formData.subject_id),
-      level_id: Number(formData.level_id),
-    };
-  };
-
   // ── إرسال الطلب ──────────────────────────────────────────────
+  // ملاحظة: نقرأ القيم مباشرة من formData بدل الاعتماد على updateForm
+  // لأن setState غير متزامن وقد لا تكون القيم محدّثة عند الاستدعاء
 
   const submitForm = async () => {
     setLoading(true);
     setError(null);
 
     const isPrivate = origin === "teacher" && tutorId;
-
-    // الباك عنده endpointين منفصلين للعام والخاص
     const endpoint = isPrivate ? "/leads/private" : "/leads/public";
 
-    const sharedBody = buildRequestBody();
+    // نقرأ description مباشرة من formData
+    const description = (
+      formData.request_description?.trim() ||
+      formData.description?.trim() ||
+      ""
+    );
 
-    // التحقق من الحقول المطلوبة قبل الإرسال
+    // tution_type
+    const tutionType = formData.tution_type
+      ? formData.tution_type
+      : formData.teachingMethod === "in-person"
+      ? "offline"
+      : formData.teachingMethod || "";
+
+    // preferred_gender
+    const preferredGender =
+      formData.preferred_gender !== undefined && formData.preferred_gender !== ""
+        ? formData.preferred_gender
+        : formData.teacherGender === "ذكر"
+        ? "male"
+        : formData.teacherGender === "أنثى"
+        ? "female"
+        : null;
+
+    const sharedBody = {
+      title: formData.title?.trim() || formData.subject_label || "طلب درس خصوصي",
+      description,
+      foundation_tution: formData.foundation_tution,
+      tution_type: tutionType,
+      help_type: formData.helpType?.trim() || "",
+      min_expected_fee: Number(formData.min_expected_fee) || 50,
+      max_expected_fee: Number(formData.max_expected_fee) || 0,
+      weekly_classes: Number(formData.weeklyClasses) || 1,
+      preferred_gender: preferredGender,
+      subject_id: Number(formData.subject_id),
+      level_id: Number(formData.level_id),
+    };
+
+    // ── التحقق من الحقول المطلوبة ────────────────────────────
     if (!sharedBody.subject_id || sharedBody.subject_id <= 0) {
       setError("يرجى اختيار المادة الدراسية");
       setLoading(false);
@@ -175,7 +126,6 @@ const CreateLeadWizard = () => {
       return;
     }
 
-    // الخاص يضيف target_tutor_id — العام بيبعت sharedBody فقط
     const body = isPrivate
       ? {
           ...sharedBody,
@@ -185,11 +135,9 @@ const CreateLeadWizard = () => {
       : sharedBody;
 
     try {
-      // api instance بيحط الـ token تلقائياً من الـ interceptor
       await api.post(endpoint, body);
       setSubmitted(true);
     } catch (err) {
-      // axios بيحط الـ response بـ err.response
       const errData = err.response?.data;
       let msg = "حدث خطأ أثناء إرسال الطلب";
 
@@ -199,7 +147,6 @@ const CreateLeadWizard = () => {
         msg = errData.detail.map((e) => e.msg).join("، ");
       }
 
-      // ترجمة رسائل الباك للعربية
       if (msg.includes("within the last 14 days")) {
         msg = "لا يمكن نشر طلب عام لهذه المادة خلال 14 يوماً. يمكنك التواصل مع معلّم عبر ملفه الشخصي مباشرة.";
       } else if (msg.includes("open private lead")) {

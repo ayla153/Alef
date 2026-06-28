@@ -11,30 +11,19 @@ const CreateLeadStep3 = ({ formData, updateForm, onBack, onSubmit, origin, loadi
   );
   const [errors, setErrors] = useState({});
 
-  // ─── request_description → description ──────────────────────
-  // الـ textarea بالواجهة بيحفظ بـ "request_description"
-  // الـ Wizard بيقرأها ويحطها في "description" عند البناء
-  // هون بنحدّث الاتنين مع بعض عشان ما نكسر أي حاجة
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     updateForm({
       [name]: value,
-      // لما يتغير request_description نحدّث description كمان
       ...(name === "request_description" ? { description: value } : {}),
     });
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  // ─── Validation ─────────────────────────────────────────────
-
   const validateForm = () => {
     const newErrors = {};
-
     const desc = formData.request_description || formData.description || "";
 
-    // الباك بيطلب description بين 1-500 حرف
-    // الواجهة بتطلب 20 حرف كحد أدنى
     if (!desc || desc.trim().length < 20) {
       newErrors.request_description = "يجب أن يكون الوصف على الأقل 20 حرف";
     }
@@ -53,28 +42,26 @@ const CreateLeadStep3 = ({ formData, updateForm, onBack, onSubmit, origin, loadi
 
   const handleSubmit = () => {
     if (validateForm()) {
-      // نحدّث privacy_type و description قبل الإرسال
+      const finalDescription = (formData.request_description || "").trim();
+      // نحدث الـ form أولاً
       updateForm({
         privacy_type: privacyType,
-        description: (formData.request_description || "").trim(),
+        description: finalDescription,
       });
-      onSubmit && onSubmit();
+      // نستخدم setTimeout عشان نضمن إن الـ state اتحدث قبل الإرسال
+      setTimeout(() => {
+        onSubmit && onSubmit();
+      }, 0);
     }
   };
-
-  // ─────────────────────────────────────────────────────────────
-  // الـ JSX — نفس الواجهة بالكامل بدون أي تغيير بصري
-  // ─────────────────────────────────────────────────────────────
 
   return (
     <div className="cl3-app-container" dir="rtl">
       <Header />
 
-      {/* Main Content */}
       <main className="cl3-main-content">
         <div className="cl3-content-wrapper">
 
-          {/* Page Header & Progress */}
           <div className="cl3-page-header">
             <div className="cl3-page-title-group">
               <h2 className="cl3-page-title">
@@ -96,16 +83,12 @@ const CreateLeadStep3 = ({ formData, updateForm, onBack, onSubmit, origin, loadi
             </div>
           </div>
 
-          {/* Form Card */}
           <div className="cl3-form-card">
 
-            {/* Request Description Section */}
             <div className="cl3-form-section">
               <h3 className="cl3-section-title">
                 <span className="cl3-section-icon">
-                  <span className="material-symbols-outlined">
-                    edit_note
-                  </span>
+                  <span className="material-symbols-outlined">edit_note</span>
                 </span>
                 وصف الطلب
               </h3>
@@ -131,20 +114,16 @@ const CreateLeadStep3 = ({ formData, updateForm, onBack, onSubmit, origin, loadi
               </div>
             </div>
 
-            {/* Privacy Section */}
             <div className="cl3-form-section cl3-privacy-section-spacing">
               <h3 className="cl3-section-title">
                 <span className="cl3-section-icon">
-                  <span className="material-symbols-outlined">
-                    lock_open
-                  </span>
+                  <span className="material-symbols-outlined">lock_open</span>
                 </span>
                 خصوصية النشر
               </h3>
 
               <div className="cl3-privacy-cards-grid">
 
-                {/* Public */}
                 <label className="cl3-privacy-card-label">
                   <input
                     type="radio"
@@ -158,17 +137,13 @@ const CreateLeadStep3 = ({ formData, updateForm, onBack, onSubmit, origin, loadi
                   <div className="cl3-privacy-card-ui">
                     <div className="cl3-privacy-card-header">
                       <div className="cl3-privacy-icon">
-                        <span className="material-symbols-outlined">
-                          public
-                        </span>
+                        <span className="material-symbols-outlined">public</span>
                       </div>
                       <div className="cl3-radio-circle"></div>
                     </div>
 
                     <div className="cl3-privacy-card-body">
-                      <h4 className="cl3-privacy-card-title">
-                        طلب عام
-                      </h4>
+                      <h4 className="cl3-privacy-card-title">طلب عام</h4>
                       <p className="cl3-privacy-card-desc">
                         سيظهر طلبك لجميع المعلمين المتاحين في المنصة لتقديم عروضهم.
                       </p>
@@ -176,7 +151,6 @@ const CreateLeadStep3 = ({ formData, updateForm, onBack, onSubmit, origin, loadi
                   </div>
                 </label>
 
-                {/* Private */}
                 <label className={`cl3-privacy-card-label ${!isFromTeacher ? "cl3-privacy-card-disabled" : ""}`}>
                   <input
                     type="radio"
@@ -191,17 +165,13 @@ const CreateLeadStep3 = ({ formData, updateForm, onBack, onSubmit, origin, loadi
                   <div className="cl3-privacy-card-ui">
                     <div className="cl3-privacy-card-header">
                       <div className="cl3-privacy-icon">
-                        <span className="material-symbols-outlined">
-                          lock
-                        </span>
+                        <span className="material-symbols-outlined">lock</span>
                       </div>
                       <div className="cl3-radio-circle"></div>
                     </div>
 
                     <div className="cl3-privacy-card-body">
-                      <h4 className="cl3-privacy-card-title">
-                        طلب خاص
-                      </h4>
+                      <h4 className="cl3-privacy-card-title">طلب خاص</h4>
                       <p className="cl3-privacy-card-desc">
                         سيكون طلبك مخفياً ولن يراه إلا المعلمون الذين تختار التواصل معهم مباشرة.
                       </p>
@@ -209,7 +179,7 @@ const CreateLeadStep3 = ({ formData, updateForm, onBack, onSubmit, origin, loadi
                       {!isFromTeacher && (
                         <p className="cl3-privacy-locked-hint">
                           <span className="material-symbols-outlined">info</span>
-                       لإرسال طلب خاص ، يرجى اختيار معلم أولاً
+                          لإرسال طلب خاص ، يرجى اختيار معلم أولاً
                         </p>
                       )}
                     </div>
@@ -219,20 +189,15 @@ const CreateLeadStep3 = ({ formData, updateForm, onBack, onSubmit, origin, loadi
               </div>
 
               {errors.privacy_type && (
-                <span className="cl3-error-text">
-                  {errors.privacy_type}
-                </span>
+                <span className="cl3-error-text">{errors.privacy_type}</span>
               )}
             </div>
 
-            {/* Actions */}
             <div className="cl3-form-actions">
-
               <button className="cl3-btn-cancel" onClick={onBack} disabled={loading}>
                 السابق
               </button>
 
-              {/* زر الإرسال — يعرض loading state لو ما اتحطت loading prop */}
               <button
                 className="cl3-btn-primary"
                 onClick={handleSubmit}
@@ -243,7 +208,6 @@ const CreateLeadStep3 = ({ formData, updateForm, onBack, onSubmit, origin, loadi
                   {loading ? "hourglass_empty" : "check_circle"}
                 </span>
               </button>
-
             </div>
 
           </div>
