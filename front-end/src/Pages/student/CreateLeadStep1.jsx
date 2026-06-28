@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import "../../styles/sstyle/CreateLeadStep1.css";
 import Header from "../../components/Header";
 

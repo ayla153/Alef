@@ -3,7 +3,6 @@ import { useState } from 'react';
 import {
   FaTimes,
   FaPaperPlane,
-  FaInfoCircle,
   FaMoneyBillWave,
   FaBook,
   FaChalkboard,
@@ -11,6 +10,7 @@ import {
   FaUserGraduate,
   FaTag,
   FaFileAlt,
+  FaClipboardList,
 } from 'react-icons/fa';
 import '../styles/OfferModalNew.css';
 
@@ -22,14 +22,15 @@ export default function OfferModalNew({ lead, onClose, onSubmit }) {
   const [error, setError] = useState('');
 
   const tuitionLabel = (type) => {
-    if (type === 'online') return 'أونلاين';
-    if (type === 'offline') return 'حضوري';
-    if (type === 'both') return 'أونلاين وحضوري';
-    return 'غير محدد';
+    const map = {
+      online: 'أونلاين',
+      offline: 'حضوري',
+      both: 'أونلاين وحضوري',
+    };
+    return map[type] || 'غير محدد';
   };
 
   const handleSubmit = async () => {
-    // جميع الحقول مطلوبة حسب الباك إند
     if (!fee || !note || !message) {
       setError('جميع الحقول مطلوبة');
       return;
@@ -61,10 +62,10 @@ export default function OfferModalNew({ lead, onClose, onSubmit }) {
           </button>
         </div>
 
-        {/* ─── تفاصيل الطلب (عرض فقط) ─── */}
+        {/* ─── تفاصيل الطلب ─── */}
         <div className="offer-lead-card">
           <div className="lead-title-row">
-            <FaInfoCircle className="info-icon" />
+            <FaClipboardList className="info-icon" />
             <span className="lead-title">{lead.title}</span>
           </div>
           <div className="lead-details-grid">
@@ -82,7 +83,7 @@ export default function OfferModalNew({ lead, onClose, onSubmit }) {
             )}
             <div className="detail-item">
               <FaMoneyBillWave className="detail-icon" />
-              <span className="detail-label">الميزانية:</span>
+              <span className="detail-label">الميزانية المتوقعة:</span>
               <span className="detail-value">
                 {lead.min_expected_fee?.toLocaleString()} – {lead.max_expected_fee?.toLocaleString()} ل.س
               </span>
@@ -107,7 +108,7 @@ export default function OfferModalNew({ lead, onClose, onSubmit }) {
 
         <hr className="modal-divider" />
 
-        {/* ─── حقول النموذج (جميعها مطلوبة) ─── */}
+        {/* ─── حقول النموذج ─── */}
         <div className="offer-form">
           <div className="form-group">
             <label>

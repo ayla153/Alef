@@ -4,14 +4,18 @@ import RequestCard from '../../components/RequestCard';
 import OfferModalNew from '../../components/OfferModalNew';
 import '../../styles/Requests.css';
 import { browsePubicLeads, getTutorInbox, submitOffer, acceptPrivateContact } from '../../api/tutorLeads';
+import { getSubjects } from '../../api/tutorRegistration';
 import { getErrorMessage } from '../../utils/apiErrors';
 
+// تخزين المواد محلياً
+let subjectsCache = null;
+
 function mapPublicLead(lead) {
-  return { ...lead, isPrivate: false, subjectTitle: null, levelTitle: null };
+  return { ...lead, isPrivate: false };
 }
 
 function mapPrivateLead(lead) {
-  return { ...lead, isPrivate: true, subjectTitle: null, levelTitle: null };
+  return { ...lead, isPrivate: true };
 }
 
 export default function Requests() {
@@ -21,9 +25,31 @@ export default function Requests() {
   const [error, setError] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [selectedLead, setSelectedLead] = useState(null);
+  const [subjectsMap, setSubjectsMap] = useState({});
 
   const isMounted = useRef(true);
 
+  // ─── جلب المواد من الباك إند ──────────────────────────────
+  const fetchSubjects = useCallback(async () => {
+    if (subjectsCache) {
+      setSubjectsMap(subjectsCache);
+      return;
+    }
+    try {
+      const res = await getSubjects();
+      const map = {};
+      res.data.forEach((sub) => {
+        map[sub.subject_id] = sub.subject_title;
+      });
+      subjectsCache = map;
+      setSubjectsMap(map);
+      console.log('📚 المواد التي تم جلبها:', map); // للتحقق
+    } catch (err) {
+      console.warn('فشل جلب المواد:', err);
+    }
+  }, []);
+
+  // ─── جلب الطلبات ──────────────────────────────────────────
   const fetchLeads = useCallback(async () => {
     if (!isMounted.current) return;
     try {
@@ -41,6 +67,7 @@ export default function Requests() {
     }
   }, []);
 
+  // ─── تحميل البيانات ──────────────────────────────────────
   useEffect(() => {
     let ignore = false;
     isMounted.current = true;
@@ -48,6 +75,8 @@ export default function Requests() {
     const loadData = async () => {
       setIsLoading(true);
       setError('');
+
+      await fetchSubjects();
 
       const result = await fetchLeads();
 
@@ -68,10 +97,38 @@ export default function Requests() {
       ignore = true;
       isMounted.current = false;
     };
-  }, [fetchLeads]);
+  }, [fetchLeads, fetchSubjects]);
+
+  // ─── إثراء البيانات بأسماء المواد ──────────────────────
+  const enrichLead = (lead) => {
+    // 🔥 التحقق من وجود subject_id واستخدامه للحصول على الاسم
+    const subjectTitle = lead.subject_id && subjectsMap[lead.subject_id] 
+      ? subjectsMap[lead.subject_id] 
+      : null;
+    
+    // 🔥 إذا كان هناك subjectTitle من الباك إند مباشرة، نستخدمه
+    const finalSubjectTitle = subjectTitle || lead.subjectTitle || null;
+
+    console.log('🔍 إثراء الطلب:', {
+      id: lead.post_requirements_id,
+      subject_id: lead.subject_id,
+      subjectTitle_from_map: subjectTitle,
+      subjectTitle_from_lead: lead.subjectTitle,
+      final_subjectTitle: finalSubjectTitle,
+    });
+
+    return {
+      ...lead,
+      subjectTitle: finalSubjectTitle,
+      levelTitle: lead.levelTitle || null,
+    };
+  };
+
+  const enrichedPublic = publicLeads.map(enrichLead);
+  const enrichedPrivate = privateLeads.map(enrichLead);
 
   const handleOpenOfferModal = (leadId) => {
-    const allLeads = [...publicLeads, ...privateLeads];
+    const allLeads = [...enrichedPublic, ...enrichedPrivate];
     const lead = allLeads.find((l) => l.post_requirements_id === leadId);
     if (lead) setSelectedLead(lead);
   };
@@ -79,7 +136,6 @@ export default function Requests() {
   const handleSubmitOffer = async (leadId, data) => {
     await submitOffer(leadId, data);
     setSelectedLead(null);
-
     const result = await fetchLeads();
     if (isMounted.current) {
       if (result.error) {
@@ -111,8 +167,8 @@ export default function Requests() {
   };
 
   const visibleLeads = [
-    ...(filterType !== 'private' ? publicLeads : []),
-    ...(filterType !== 'public' ? privateLeads : []),
+    ...(filterType !== 'private' ? enrichedPublic : []),
+    ...(filterType !== 'public' ? enrichedPrivate : []),
   ];
 
   return (

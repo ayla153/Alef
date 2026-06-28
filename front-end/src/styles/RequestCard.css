@@ -1,217 +1,221 @@
-/* src/styles/RequestCard.css */
-/* ─── تصميم فاخر جداً مع تفاصيل دقيقة ─── */
-
-.request-card-premium {
+/* src/styles/RequestCard.css - تصميم جديد كلياً */
+.request-card-v2 {
   background: #ffffff;
-  border-radius: 20px;
-  padding: 24px 26px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.03);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: 24px;
+  padding: 22px 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  border: 1px solid #f0f4f8;
   position: relative;
   overflow: hidden;
 }
 
-.request-card-premium::before {
+.request-card-v2:hover {
+  box-shadow: 0 8px 40px rgba(46, 134, 222, 0.10);
+  transform: translateY(-3px);
+}
+
+.request-card-v2::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #2e86de, #48a0e8, #2e86de);
-  opacity: 0.6;
-  transition: opacity 0.3s;
+  background: linear-gradient(90deg, #2e86de, #48a0e8);
+  opacity: 0.7;
 }
 
-.request-card-premium:hover {
-  box-shadow: 0 12px 48px rgba(46, 134, 222, 0.12), 0 4px 12px rgba(0, 0, 0, 0.05);
-  transform: translateY(-2px);
-  border-color: rgba(46, 134, 222, 0.15);
-}
-
-.request-card-premium:hover::before {
-  opacity: 1;
-}
-
-/* ─── شريط الحالة العلوي ─── */
-.card-top-bar {
+/* ─── رأس البطاقة ─── */
+.card-header-v2 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #f0f4f8;
+  margin-bottom: 14px;
 }
 
-.type-badge-wrapper {
+.type-badge-v2 {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
+  gap: 6px;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: #2d3e50;
+  color: #4a5a6e;
+  background: #f8fafc;
+  padding: 4px 14px;
+  border-radius: 30px;
 }
 
-.type-icon {
-  font-size: 0.9rem;
+.type-icon-v2 {
+  font-size: 0.8rem;
 }
-.type-icon.private-icon {
+.type-icon-v2.private {
   color: #8e44ad;
 }
-.type-icon.public-icon {
+.type-icon-v2.public {
   color: #2e86de;
 }
 
-.type-label {
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-size: 0.75rem;
-  color: #4a5a6e;
-}
-
-/* ─── شارة الحالة ─── */
-.status-badge-premium {
+.status-badge-v2 {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 4px 14px;
   border-radius: 30px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  background: #f0f4f8;
-  color: #4a5a6e;
 }
-
-.status-badge-premium .status-icon {
-  font-size: 0.8rem;
-}
-
-.status-badge-premium.open {
+.status-badge-v2.open {
   background: #e8f5e9;
   color: #2e7d32;
 }
-.status-badge-premium.slots-full {
+.status-badge-v2.slots-full {
   background: #fff3e0;
   color: #e65100;
 }
-.status-badge-premium.closed {
+.status-badge-v2.closed {
   background: #fce4ec;
   color: #c62828;
 }
-.status-badge-premium.matched {
+.status-badge-v2.matched {
   background: #e3f2fd;
   color: #0d47a1;
 }
-.status-badge-premium.shortlist {
+.status-badge-v2.shortlist {
   background: #f3e5f5;
   color: #6a1b9a;
 }
-
-/* ─── العنوان ─── */
-.card-title-section {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
-  flex-wrap: wrap;
+.status-icon-v2 {
+  font-size: 0.8rem;
 }
 
-.request-title {
+/* ─── العنوان ─── */
+.card-title-v2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.title-icon-v2 {
+  color: #2e86de;
+  font-size: 1.1rem;
+}
+.card-title-v2 h3 {
   font-size: 1.15rem;
   font-weight: 700;
   color: #1a1a2e;
   margin: 0;
   flex: 1;
-  line-height: 1.4;
 }
-
-.foundation-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+.foundation-tag-v2 {
   background: #fef3e2;
   color: #b7791f;
   padding: 2px 12px;
   border-radius: 20px;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 600;
   white-space: nowrap;
 }
-.foundation-icon {
-  font-size: 0.65rem;
-}
 
 /* ─── المادة والمستوى ─── */
-.subject-level-row {
+.subject-level-v2 {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: 8px;
+  margin-bottom: 14px;
 }
-
-.subject-badge,
-.level-badge {
+.subject-tag-v2,
+.level-tag-v2 {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #f8fafc;
+  background: #f0f7ff;
   padding: 4px 14px;
   border-radius: 30px;
   font-size: 0.85rem;
   font-weight: 500;
-  color: #2d3e50;
-  border: 1px solid #edf2f7;
+  color: #1a3a5c;
 }
-
-.badge-icon {
-  font-size: 0.75rem;
+.tag-icon-v2 {
   color: #2e86de;
+  font-size: 0.8rem;
 }
 
-/* ─── شبكة المعلومات السريعة ─── */
-.quick-info-grid {
+/* ─── الوصف (بارز جداً) ─── */
+.description-v2 {
+  background: linear-gradient(135deg, #f0f7ff 0%, #e6f0fa 100%);
+  border-radius: 16px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  border-right: 4px solid #2e86de;
+}
+.description-header-v2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.desc-icon-v2 {
+  color: #2e86de;
+  font-size: 1rem;
+}
+.description-header-v2 span {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #1a3a5c;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.description-text-v2 {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+/* ─── شبكة المعلومات الأساسية ─── */
+.info-grid-v2 {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px 20px;
+  gap: 8px 20px;
   padding: 12px 0;
   border-top: 1px solid #f0f4f8;
   border-bottom: 1px solid #f0f4f8;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
-
-.info-item {
+.info-item-v2 {
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 0.85rem;
-  color: #4a5a6e;
+  flex-wrap: wrap;
 }
-
-.info-item .info-icon {
+.info-icon-v2 {
   color: #2e86de;
   font-size: 0.85rem;
 }
-
-.info-item .info-text {
+.info-label-v2 {
+  font-weight: 600;
+  color: #2d3e50;
+}
+.info-value-v2 {
   font-weight: 400;
+  color: #1a1a2e;
 }
 
-/* ─── تفاصيل إضافية (شبكة منسقة) ─── */
-.details-premium-grid {
+/* ─── تفاصيل إضافية ─── */
+.details-v2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px 20px;
-  margin-bottom: 18px;
+  gap: 10px 20px;
+  margin-bottom: 14px;
 }
-
-.detail-premium-item {
+.detail-v2 {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
-
-.detail-label-wrapper {
+.detail-label-v2 {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -221,112 +225,61 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-
-.detail-icon {
+.detail-icon-v2 {
   font-size: 0.7rem;
   color: #2e86de;
 }
-
-.detail-value {
+.detail-value-v2 {
   font-size: 0.92rem;
   font-weight: 500;
   color: #1a1a2e;
 }
-
-.detail-value.highlight {
+.detail-value-v2.highlight {
   color: #2e86de;
   font-weight: 600;
 }
-
-.slots-available {
+.slots-available-v2 {
   color: #2e7d32;
   font-size: 0.75rem;
   font-weight: 600;
 }
-.slots-full-label {
+.slots-full-v2 {
   color: #e65100;
   font-size: 0.75rem;
   font-weight: 600;
 }
 
-/* ─── قسم الوصف (مُبرَز جداً) ─── */
-.description-premium-section {
-  background: linear-gradient(135deg, #f8fafc 0%, #edf2f9 100%);
-  border-radius: 16px;
-  padding: 16px 20px;
-  margin-bottom: 18px;
-  border-right: 4px solid #2e86de;
-  position: relative;
-}
-
-.description-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.description-icon {
-  color: #2e86de;
-  font-size: 0.9rem;
-}
-
-.description-title {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #2d3e50;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.description-text {
-  font-size: 0.92rem;
-  line-height: 1.7;
-  color: #1a1a2e;
-  margin: 0;
-  padding-right: 4px;
-}
-
-/* ─── كشف رقم الطالب ─── */
-.phone-reveal-premium {
+/* ─── رقم الطالب ─── */
+.phone-reveal-v2 {
   display: flex;
   align-items: center;
   gap: 8px;
   background: #e8f5e9;
   border-radius: 12px;
-  padding: 10px 16px;
-  margin-bottom: 16px;
+  padding: 8px 16px;
+  margin-bottom: 14px;
   border: 1px solid #c8e6c9;
 }
-
-.phone-icon {
+.phone-icon-v2 {
   color: #2e7d32;
   font-size: 0.9rem;
 }
-
-.phone-label {
-  font-weight: 600;
-  color: #2d3e50;
+.phone-reveal-v2 span {
   font-size: 0.85rem;
+  color: #2d3e50;
 }
-
-.phone-number {
-  font-weight: 700;
+.phone-reveal-v2 strong {
   color: #1a1a2e;
-  font-size: 0.95rem;
-  direction: ltr;
-  unicode-bidi: embed;
 }
 
 /* ─── أزرار الإجراء ─── */
-.card-actions-premium {
+.actions-v2 {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 6px;
+  gap: 10px;
 }
-
-.action-btn-premium {
+.btn-offer-v2,
+.btn-accept-v2 {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -341,40 +294,26 @@
   justify-content: center;
   min-width: 140px;
 }
-
-.action-btn-premium .btn-icon {
-  font-size: 0.9rem;
-}
-
-.action-btn-premium.offer-btn {
+.btn-offer-v2 {
   background: linear-gradient(135deg, #2e86de, #1f6eb5);
   color: #fff;
   box-shadow: 0 4px 14px rgba(46, 134, 222, 0.25);
 }
-.action-btn-premium.offer-btn:hover {
+.btn-offer-v2:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 24px rgba(46, 134, 222, 0.35);
 }
-.action-btn-premium.offer-btn:active {
-  transform: translateY(0);
-}
-
-.action-btn-premium.accept-btn {
+.btn-accept-v2 {
   background: linear-gradient(135deg, #27ae60, #1e8449);
   color: #fff;
   box-shadow: 0 4px 14px rgba(39, 174, 96, 0.25);
 }
-.action-btn-premium.accept-btn:hover {
+.btn-accept-v2:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 24px rgba(39, 174, 96, 0.35);
 }
-.action-btn-premium.accept-btn:active {
-  transform: translateY(0);
-}
-
-/* ─── حالات خاصة ─── */
-.matched-badge-premium,
-.shortlist-badge-premium {
+.badge-matched-v2,
+.badge-shortlist-v2 {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -385,85 +324,60 @@
   flex: 1;
   justify-content: center;
 }
-
-.matched-badge-premium {
+.badge-matched-v2 {
   background: #e3f2fd;
   color: #0d47a1;
 }
-.matched-icon {
-  color: #f9a825;
-}
-
-.shortlist-badge-premium {
+.badge-shortlist-v2 {
   background: #f3e5f5;
   color: #6a1b9a;
 }
-.shortlist-icon {
-  color: #9c27b0;
-}
 
-/* ─── تلوين بطاقة خاص / عام ─── */
-.request-card-premium.private {
+/* ─── تلوين الحواف حسب النوع والحالة ─── */
+.request-card-v2.private {
   border-left: 4px solid #8e44ad;
 }
-.request-card-premium.public {
+.request-card-v2.public {
   border-left: 4px solid #2e86de;
 }
-
-/* ─── تلوين حسب الحالة (ظل خفيف) ─── */
-.request-card-premium.open {
+.request-card-v2.open {
   border-left-color: #2e7d32;
 }
-.request-card-premium.slots-full {
+.request-card-v2.slots-full {
   border-left-color: #e65100;
 }
-.request-card-premium.closed {
+.request-card-v2.closed {
   border-left-color: #c62828;
 }
-.request-card-premium.matched {
+.request-card-v2.matched {
   border-left-color: #0d47a1;
 }
-.request-card-premium.shortlist {
+.request-card-v2.shortlist {
   border-left-color: #6a1b9a;
 }
 
-/* ─── استجابة للشاشات الصغيرة ─── */
+/* ─── استجابة ─── */
 @media (max-width: 600px) {
-  .request-card-premium {
+  .request-card-v2 {
     padding: 18px 16px;
   }
-
-  .details-premium-grid {
+  .details-v2 {
     grid-template-columns: 1fr;
     gap: 8px;
   }
-
-  .quick-info-grid {
-    gap: 8px 14px;
+  .info-grid-v2 {
+    gap: 6px 14px;
   }
-
-  .action-btn-premium {
+  .btn-offer-v2,
+  .btn-accept-v2 {
     flex: 1 1 100%;
     min-width: unset;
   }
-
-  .card-top-bar {
+  .card-header-v2 {
     flex-wrap: wrap;
     gap: 8px;
   }
-
-  .subject-level-row {
-    gap: 6px;
-  }
-
-  .request-title {
+  .card-title-v2 h3 {
     font-size: 1rem;
-  }
-}
-
-@media (max-width: 400px) {
-  .quick-info-grid {
-    flex-direction: column;
-    gap: 4px;
   }
 }
