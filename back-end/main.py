@@ -26,6 +26,7 @@ from pathlib import Path
 from fastapi.staticfiles import StaticFiles
 
 UPLOADS_DIR = Path("uploads")
+(UPLOADS_DIR / "tutors" / "photos").mkdir(parents=True, exist_ok=True)
 (UPLOADS_DIR / "tutors" / "videos").mkdir(parents=True, exist_ok=True)
 
 print(Base.metadata.tables.keys())

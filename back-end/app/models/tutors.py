@@ -1,4 +1,4 @@
-from sqlalchemy import Enum, Integer, String, TIMESTAMP, Text
+from sqlalchemy import Enum, Integer, String, TIMESTAMP
 from app.database import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING, Optional, List
@@ -23,7 +23,7 @@ class Tutor(Base):
     password: Mapped[str] = mapped_column(String, nullable=False)
     date_birth: Mapped[date] = mapped_column(TIMESTAMP, nullable=False)
     phone_number: Mapped[Optional[str]] = mapped_column(String(20),nullable=False)
-    tutor_photo: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    tutor_photo: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     tutor_video: Mapped[Optional[str]] = mapped_column(String,nullable=True)
     bio: Mapped[str] = mapped_column(String(500),nullable=True)
     total_experience_years: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
