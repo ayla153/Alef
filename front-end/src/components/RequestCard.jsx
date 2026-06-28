@@ -1,6 +1,6 @@
 // src/components/RequestCard.jsx
 import {
-  FaUserGraduate,
+  FaUser,
   FaBook,
   FaClock,
   FaVenusMars,
@@ -8,45 +8,41 @@ import {
   FaCalendarAlt,
   FaMoneyBillWave,
   FaChalkboard,
-  FaTag,
-  FaInfoCircle,
   FaCheckCircle,
   FaExclamationCircle,
+  FaTag,
   FaGlobe,
   FaLock,
   FaStar,
   FaRegStar,
   FaBriefcase,
   FaHourglassHalf,
+  FaClipboardList,
+  FaUserGraduate,
 } from 'react-icons/fa';
 import '../styles/RequestCard.css';
-
-// ─── دوال الترجمة ──────────────────────────────────────────
-const tuitionLabel = (type) => {
-  if (type === 'online') return 'أونلاين';
-  if (type === 'offline') return 'حضوري';
-  if (type === 'both') return 'أونلاين + حضوري';
-  return 'غير محدد';
-};
-
-const genderLabel = (g) => {
-  if (g === 'male') return 'ذكر';
-  if (g === 'female') return 'أنثى';
-  return 'غير محدد';
-};
+import {
+  tuitionTypeAr,
+  genderPrefAr,
+  leadStatusAr,
+  translateSubject,
+  translateLevel,
+  formatCurrency,
+  formatDate,
+} from '../utils/translations';
 
 const statusInfo = (lead) => {
   if (!lead.accepting_applications) {
     return { label: 'الأماكن ممتلئة', cls: 'slots-full', icon: FaExclamationCircle };
   }
   if (lead.lead_status === 'open') {
-    return { label: 'مفتوح للعروض', cls: 'open', icon: FaCheckCircle };
+    return { label: leadStatusAr.open, cls: 'open', icon: FaCheckCircle };
   }
   if (lead.lead_status === 'closed_matched') {
-    return { label: 'تم التطابق', cls: 'matched', icon: FaStar };
+    return { label: leadStatusAr.closed_matched, cls: 'matched', icon: FaStar };
   }
   if (lead.lead_status === 'closed_shortlist') {
-    return { label: 'القائمة المختصرة', cls: 'shortlist', icon: FaRegStar };
+    return { label: leadStatusAr.closed_shortlist, cls: 'shortlist', icon: FaRegStar };
   }
   return { label: lead.lead_status || 'مغلق', cls: 'closed', icon: FaExclamationCircle };
 };
@@ -64,43 +60,40 @@ export default function RequestCard({ request, onSubmitOffer, onAcceptContact })
     weekly_classes,
     created_at,
     preferred_gender,
-    subject_id,
+    subjectTitle,
+    levelTitle,
     accepting_applications,
     pending_offer_count,
     max_applications,
     lead_status,
     student_phone_number,
     expired_at,
-    subjectTitle,
-    levelTitle,
     isPrivate,
   } = request;
+
+  // ترجمة المادة والمستوى
+  const translatedSubject = subjectTitle ? translateSubject(subjectTitle) : 'غير محددة';
+  const translatedLevel = levelTitle ? translateLevel(levelTitle) : '';
 
   const { label: statusLabel, cls: statusClass, icon: StatusIcon } = statusInfo(request);
   const isOpen = lead_status === 'open' && accepting_applications;
   const isMatched = lead_status === 'closed_matched';
   const isShortlist = lead_status === 'closed_shortlist';
 
-  // تنسيق التاريخ
-  const formatDate = (date) => {
-    if (!date) return '—';
-    return new Date(date).toLocaleDateString('ar-SA', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
+  const budgetDisplay =
+    min_expected_fee != null && max_expected_fee != null
+      ? `${formatCurrency(min_expected_fee)} – ${formatCurrency(max_expected_fee)}`
+      : 'غير محدد';
+
+  const tuitionText = tuitionTypeAr[tution_type] || tution_type || 'غير محدد';
+  const genderText = preferred_gender ? genderPrefAr[preferred_gender] || preferred_gender : null;
 
   return (
     <div className={`request-card-premium ${isPrivate ? 'private' : 'public'} ${statusClass}`}>
-      {/* ─── الشارة العلوية (نوع الطلب + الحالة) ─── */}
+      {/* ─── شريط النوع والحالة ─── */}
       <div className="card-top-bar">
         <div className="type-badge-wrapper">
-          {isPrivate ? (
-            <FaLock className="type-icon private-icon" />
-          ) : (
-            <FaGlobe className="type-icon public-icon" />
-          )}
+          {isPrivate ? <FaLock className="type-icon private-icon" /> : <FaGlobe className="type-icon public-icon" />}
           <span className="type-label">{isPrivate ? 'طلب خاص' : 'طلب عام'}</span>
         </div>
         <div className={`status-badge-premium ${statusClass}`}>
@@ -111,6 +104,7 @@ export default function RequestCard({ request, onSubmitOffer, onAcceptContact })
 
       {/* ─── العنوان ─── */}
       <div className="card-title-section">
+        <FaUser className="title-user-icon" />
         <h3 className="request-title">{title}</h3>
         {foundation_tution && (
           <span className="foundation-badge">
@@ -123,50 +117,63 @@ export default function RequestCard({ request, onSubmitOffer, onAcceptContact })
       <div className="subject-level-row">
         <div className="subject-badge">
           <FaBook className="badge-icon" />
-          <span>{subjectTitle || `مادة #${subject_id}`}</span>
+          <span className="badge-label">المادة:</span>
+          <span className="badge-value">{translatedSubject}</span>
         </div>
-        {levelTitle && (
+        {translatedLevel && (
           <div className="level-badge">
             <FaUserGraduate className="badge-icon" />
-            <span>{levelTitle}</span>
+            <span className="badge-label">المستوى:</span>
+            <span className="badge-value">{translatedLevel}</span>
           </div>
         )}
       </div>
+
+      {/* ─── قسم الوصف (بارز جداً) ─── */}
+      {description && (
+        <div className="description-premium-section">
+          <div className="description-header">
+            <FaClipboardList className="description-icon" />
+            <span className="description-title">تفاصيل الطلب</span>
+          </div>
+          <p className="description-text">{description}</p>
+        </div>
+      )}
 
       {/* ─── شبكة المعلومات السريعة ─── */}
       <div className="quick-info-grid">
         <div className="info-item">
           <FaChalkboard className="info-icon" />
-          <span className="info-text">{tuitionLabel(tution_type)}</span>
+          <span className="info-label">طريقة التدريس:</span>
+          <span className="info-text">{tuitionText}</span>
         </div>
         <div className="info-item">
           <FaClock className="info-icon" />
+          <span className="info-label">عدد الحصص:</span>
           <span className="info-text">{weekly_classes} حصة/أسبوع</span>
         </div>
         <div className="info-item">
           <FaRegFileAlt className="info-icon" />
-          <span className="info-text">{help_type}</span>
+          <span className="info-label">نوع المساعدة:</span>
+          <span className="info-text">{help_type || 'غير محدد'}</span>
         </div>
-        {preferred_gender && (
+        {genderText && (
           <div className="info-item">
             <FaVenusMars className="info-icon" />
-            <span className="info-text">{genderLabel(preferred_gender)}</span>
+            <span className="info-label">الجنس المفضل:</span>
+            <span className="info-text">{genderText}</span>
           </div>
         )}
       </div>
 
-      {/* ─── تفاصيل إضافية (الميزانية، العروض، التاريخ) ─── */}
+      {/* ─── تفاصيل إضافية ─── */}
       <div className="details-premium-grid">
         <div className="detail-premium-item">
           <div className="detail-label-wrapper">
             <FaMoneyBillWave className="detail-icon" />
             <span className="detail-label">الميزانية المتوقعة</span>
           </div>
-          <span className="detail-value highlight">
-            {min_expected_fee != null && max_expected_fee != null
-              ? `${min_expected_fee.toLocaleString('ar-SA')} – ${max_expected_fee.toLocaleString('ar-SA')} ل.س`
-              : 'غير محدد'}
-          </span>
+          <span className="detail-value highlight">{budgetDisplay}</span>
         </div>
 
         <div className="detail-premium-item">
@@ -204,18 +211,7 @@ export default function RequestCard({ request, onSubmitOffer, onAcceptContact })
         )}
       </div>
 
-      {/* ─── قسم الوصف (مُبرَز) ─── */}
-      {description && (
-        <div className="description-premium-section">
-          <div className="description-header">
-            <FaInfoCircle className="description-icon" />
-            <span className="description-title">تفاصيل الطلب</span>
-          </div>
-          <p className="description-text">{description}</p>
-        </div>
-      )}
-
-      {/* ─── رقم الطالب (يظهر بعد الكشف) ─── */}
+      {/* ─── رقم الطالب ─── */}
       {student_phone_number && (
         <div className="phone-reveal-premium">
           <FaUserGraduate className="phone-icon" />
@@ -227,36 +223,26 @@ export default function RequestCard({ request, onSubmitOffer, onAcceptContact })
       {/* ─── أزرار الإجراء ─── */}
       <div className="card-actions-premium">
         {!isPrivate && accepting_applications && onSubmitOffer && (
-          <button
-            className="action-btn-premium offer-btn"
-            onClick={() => onSubmitOffer(post_requirements_id)}
-          >
-            <FaMoneyBillWave className="btn-icon" />
-            تقديم عرض
+          <button className="action-btn-premium offer-btn" onClick={() => onSubmitOffer(post_requirements_id)}>
+            <FaMoneyBillWave className="btn-icon" /> تقديم عرض
           </button>
         )}
 
         {isPrivate && lead_status === 'open' && onAcceptContact && (
-          <button
-            className="action-btn-premium accept-btn"
-            onClick={() => onAcceptContact(post_requirements_id)}
-          >
-            <FaCheckCircle className="btn-icon" />
-            أوافق على التواصل
+          <button className="action-btn-premium accept-btn" onClick={() => onAcceptContact(post_requirements_id)}>
+            <FaCheckCircle className="btn-icon" /> أوافق على التواصل
           </button>
         )}
 
         {isMatched && (
           <div className="matched-badge-premium">
-            <FaStar className="matched-icon" />
-            تم التطابق
+            <FaStar className="matched-icon" /> تم التطابق
           </div>
         )}
 
         {isShortlist && (
           <div className="shortlist-badge-premium">
-            <FaRegStar className="shortlist-icon" />
-            في القائمة المختصرة
+            <FaRegStar className="shortlist-icon" /> في القائمة المختصرة
           </div>
         )}
       </div>

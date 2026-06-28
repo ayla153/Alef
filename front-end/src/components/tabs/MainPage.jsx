@@ -1,17 +1,23 @@
 // src/Pages/teacher/MainPage.jsx
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../../styles/MainPage.css';
 import StatisticsCard from '../common/StatisticsCard';
 import {
   FaPlusCircle, FaClipboardList, FaUserEdit, FaEnvelope, FaClock,
   FaStar, FaCheckCircle, FaHandHoldingHeart, FaRegClock, FaBolt,
-  FaChartLine, FaBell, FaTimesCircle, FaLock,
+  FaChartLine, FaBell, FaTimesCircle, FaTimes, FaBook, FaUserGraduate,FaInfoCircle,
 } from 'react-icons/fa';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { getMyProfile, getMyStats, getMyRecentRequests, getMyRecentActivity } from '../../api/tutorProfile';
 import { formatRelativeTime } from '../../utils/formatRelativeTime';
 
-// ─── أيقونة النشاط حسب النوع ────────────────────────────────────────────────
+const availableSubjects = [
+  'الرياضيات', 'اللغة العربية', 'اللغة الانكليزية', 'اللغة الفرنسية',
+  'العلوم', 'الفيزياء', 'الكيمياء', 'التربية الاسلامية',
+  'التاريخ', 'الجغرافية', 'الوطنية', 'معلوماتية',
+];
+
 function iconForActivity(type) {
   if (type === 'private_lead_received') return { icon: <FaEnvelope />, color: '#6366f1' };
   if (type === 'private_lead_accepted' || type === 'offer_accepted' || type === 'contact_shared')
@@ -21,7 +27,6 @@ function iconForActivity(type) {
   return { icon: <FaBell />, color: '#f59e0b' };
 }
 
-// ─── حالة الطلب → نص عربي ────────────────────────────────────────────────────
 function leadStatusLabel(status) {
   const map = {
     open: 'مفتوح',
@@ -34,12 +39,18 @@ function leadStatusLabel(status) {
 }
 
 export default function MainPage() {
+  const navigate = useNavigate();
+
   const [tutorName, setTutorName]           = useState('');
   const [stats, setStats]                   = useState(null);
   const [weeklyData, setWeeklyData]         = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
   const [recentRequests, setRecentRequests] = useState([]);
   const [isLoading, setIsLoading]           = useState(true);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedSubject, setSelectedSubject] = useState('');
+  const [subjectYears, setSubjectYears] = useState(0);
 
   const fetchDashboard = async () => {
     setIsLoading(true);
@@ -53,7 +64,6 @@ export default function MainPage() {
 
       setTutorName(profileRes.data.first_name || '');
 
-      // ─── إحصائيات ─────────────────────────────────────────────────────────
       const s = statsRes.data;
       setStats({
         newCount:      s.new_requests,
@@ -62,14 +72,10 @@ export default function MainPage() {
         rating:        s.average_rating ?? 0,
       });
 
-      // ─── رسم بياني أسبوعي ─────────────────────────────────────────────────
-      // weekly_activity: [{ day: "السبت", count: 2 }, ...]
       setWeeklyData(
         (s.weekly_activity || []).map((p) => ({ day: p.day, requests: p.count }))
       );
 
-      // ─── نشاط حديث ────────────────────────────────────────────────────────
-      // recent_activity: [{ type, text, timestamp }, ...]
       setRecentActivity(
         (s.recent_activity || []).slice(0, 5).map((item, idx) => ({
           id: idx,
@@ -79,8 +85,6 @@ export default function MainPage() {
         }))
       );
 
-      // ─── آخر الطلبات ──────────────────────────────────────────────────────
-      // TutorRecentRequestsOut.items: [{ lead_id, title, subject, level, is_public, lead_status, student_name, created_at }]
       setRecentRequests((requestsRes.data?.items || []).slice(0, 3));
 
     } catch (err) {
@@ -94,6 +98,28 @@ export default function MainPage() {
     const id = setTimeout(fetchDashboard, 0);
     return () => clearTimeout(id);
   }, []);
+
+  const handleAddSubject = () => {
+    if (!selectedSubject) {
+      alert('الرجاء اختيار مادة');
+      return;
+    }
+    navigate('/profile', {
+      state: {
+        addSubject: { name: selectedSubject, years: subjectYears || 0 },
+        startEditing: true,
+      },
+    });
+    setIsModalOpen(false);
+    setSelectedSubject('');
+    setSubjectYears(0);
+  };
+
+  const openModal = () => {
+    setIsModalOpen(true);
+    setSelectedSubject('');
+    setSubjectYears(0);
+  };
 
   return (
     <div className="con fade-in">
@@ -115,17 +141,17 @@ export default function MainPage() {
       </div>
 
       <div className="bottom-row">
-        {/* ─── عمود يسار ─── */}
         <div className="left-column">
 
-          {/* آخر الطلبات */}
           <div className="LastRequests">
             <div className="LastRequestsTitle">
               <div className="RT">
                 <FaRegClock className="title-icon" />
                 الطلبات الأخيرة
               </div>
-              <button className="allReqBtn">عرض جميع الطلبات</button>
+              <button className="allReqBtn" onClick={() => navigate('/requests')}>
+                عرض جميع الطلبات
+              </button>
             </div>
             <div className="RecentRequestsCon">
               {isLoading ? (
@@ -155,35 +181,6 @@ export default function MainPage() {
             </div>
           </div>
 
-          {/* ⚠️ "أفضل المواد طلباً" — لا يوجد endpoint مخصص لها حالياً */}
-          <div className="top-subjects-card">
-            <div className="top-subjects-header">
-              <FaLock className="top-icon" style={{ color: '#94a3b8' }} />
-              <h3 style={{ color: '#94a3b8' }}>أفضل المواد طلباً</h3>
-            </div>
-            <p className="hint" style={{ padding: '1rem' }}>
-              ⚠️ يحتاج هذا القسم إلى endpoint تحليلات من الباك إند — غير متوفر حالياً.
-            </p>
-          </div>
-        </div>
-
-        {/* ─── عمود يمين ─── */}
-        <div className="right-column">
-
-          {/* إجراءات سريعة */}
-          <div className="quick-actions-card">
-            <div className="quick-actions-header">
-              <FaBolt className="bolt-icon" />
-              <h3>إجراءات سريعة</h3>
-            </div>
-            <div className="quick-actions-container">
-              <button className="quick-action-btn"><FaPlusCircle  className="action-icon" /> إضافة مادة</button>
-              <button className="quick-action-btn"><FaClipboardList className="action-icon" /> مراجعة الطلبات</button>
-              <button className="quick-action-btn"><FaUserEdit    className="action-icon" /> تعديل الملف الشخصي</button>
-            </div>
-          </div>
-
-          {/* رسم بياني أسبوعي */}
           <div className="chart-card">
             <div className="chart-header">
               <FaChartLine className="chart-icon" />
@@ -202,7 +199,31 @@ export default function MainPage() {
             </div>
           </div>
 
-          {/* نشاط حديث */}
+        </div>
+
+        <div className="right-column">
+
+          <div className="quick-actions-card">
+            <div className="quick-actions-header">
+              <FaBolt className="bolt-icon" />
+              <h3>إجراءات سريعة</h3>
+            </div>
+            <div className="quick-actions-container">
+              <button className="quick-action-btn" onClick={openModal}>
+                <FaPlusCircle className="action-icon" /> إضافة مادة
+              </button>
+              <button className="quick-action-btn" onClick={() => navigate('/requests', { state: { filter: 'private' } })}>
+                <FaClipboardList className="action-icon" /> مراجعة الطلبات
+              </button>
+              <button 
+                className="quick-action-btn" 
+                onClick={() => navigate('/profile', { state: { startEditing: true } })}
+              >
+                <FaUserEdit className="action-icon" /> تعديل الملف الشخصي
+              </button>
+            </div>
+          </div>
+
           <div className="recent-activity-card">
             <div className="recent-activity-header">
               <FaBell className="activity-icon" />
@@ -229,6 +250,60 @@ export default function MainPage() {
 
         </div>
       </div>
+
+      {/* ─── مودال إضافة مادة ─── */}
+      {isModalOpen && (
+        <div className="modal-overlay-new" onClick={() => setIsModalOpen(false)}>
+          <div className="modal-box-new" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header-new">
+              <h3>
+                <FaPlusCircle className="modal-header-icon" /> إضافة مادة جديدة
+              </h3>
+              <button className="close-modal-btn-new" onClick={() => setIsModalOpen(false)}>
+                <FaTimes />
+              </button>
+            </div>
+
+            <div className="modal-body-new">
+              <div className="form-group-new">
+                <label><FaBook className="field-icon" /> اختر المادة</label>
+                <select
+                  value={selectedSubject}
+                  onChange={(e) => setSelectedSubject(e.target.value)}
+                >
+                  <option value="">-- اختر مادة --</option>
+                  {availableSubjects.map((sub) => (
+                    <option key={sub} value={sub}>{sub}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group-new">
+                <label><FaUserGraduate className="field-icon" /> سنوات الخبرة في هذه المادة</label>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="مثال: 3"
+                  value={subjectYears}
+                  onChange={(e) => setSubjectYears(Number(e.target.value))}
+                />
+              </div>
+
+              <div className="modal-hint-new">
+                <FaInfoCircle className="hint-icon" />
+                <span>سيتم إضافة المادة إلى ملفك الشخصي وتفعيل وضع التعديل تلقائياً.</span>
+              </div>
+            </div>
+
+            <div className="modal-footer-new">
+              <button className="btn-cancel-new" onClick={() => setIsModalOpen(false)}>إلغاء</button>
+              <button className="btn-add-new" onClick={handleAddSubject}>
+                <FaPlusCircle /> إضافة
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

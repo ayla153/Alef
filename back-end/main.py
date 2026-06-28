@@ -24,6 +24,7 @@ from app.models import cities  # noqa: F401 — triggers dynamic model imports
 from pathlib import Path
 
 from fastapi.staticfiles import StaticFiles
+import os
 
 UPLOADS_DIR = Path("uploads")
 (UPLOADS_DIR / "tutors" / "photos").mkdir(parents=True, exist_ok=True)
@@ -49,7 +50,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
+os.makedirs("uploads", exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.include_router(tutors_router)
 app.include_router(admin_router)
 app.include_router(subject_router)

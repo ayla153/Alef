@@ -1,4 +1,8 @@
+<<<<<<< HEAD
+import  { useState } from "react";
+=======
 import React, { useState, useEffect } from "react";
+>>>>>>> 08fb0ef8590864a2a7562696d77c458ea0db2dda
 import "../../styles/sstyle/CreateLeadStep1.css";
 import Header from "../../components/Header";
 import api from "../../api/api.js";

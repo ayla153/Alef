@@ -1,6 +1,6 @@
 /* src/styles/RequestCard.css */
-/* ─── تصميم فاخر جداً مع تفاصيل دقيقة ─── */
 
+/* ─── البطاقة الأساسية ─── */
 .request-card-premium {
   background: #ffffff;
   border-radius: 20px;
@@ -12,6 +12,7 @@
   overflow: hidden;
 }
 
+/* ─── شريط علوي رفيع (بدلاً من الحواف الجانبية) ─── */
 .request-card-premium::before {
   content: '';
   position: absolute;
@@ -34,13 +35,13 @@
   opacity: 1;
 }
 
-/* ─── شريط الحالة العلوي ─── */
+/* ─── شريط النوع والحالة ─── */
 .card-top-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
   border-bottom: 1px solid #f0f4f8;
 }
 
@@ -70,7 +71,6 @@
   color: #4a5a6e;
 }
 
-/* ─── شارة الحالة ─── */
 .status-badge-premium {
   display: flex;
   align-items: center;
@@ -82,11 +82,9 @@
   background: #f0f4f8;
   color: #4a5a6e;
 }
-
 .status-badge-premium .status-icon {
   font-size: 0.8rem;
 }
-
 .status-badge-premium.open {
   background: #e8f5e9;
   color: #2e7d32;
@@ -116,16 +114,18 @@
   margin-bottom: 14px;
   flex-wrap: wrap;
 }
-
+.title-user-icon {
+  color: #2e86de;
+  font-size: 1.2rem;
+}
 .request-title {
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: #1a1a2e;
   margin: 0;
   flex: 1;
   line-height: 1.4;
 }
-
 .foundation-badge {
   display: inline-flex;
   align-items: center;
@@ -149,7 +149,6 @@
   gap: 10px;
   margin-bottom: 16px;
 }
-
 .subject-badge,
 .level-badge {
   display: inline-flex;
@@ -163,10 +162,50 @@
   color: #2d3e50;
   border: 1px solid #edf2f7;
 }
-
 .badge-icon {
   font-size: 0.75rem;
   color: #2e86de;
+}
+.badge-label {
+  font-weight: 600;
+  color: #4a5a6e;
+  margin-left: 2px;
+}
+.badge-value {
+  font-weight: 400;
+  color: #1a1a2e;
+}
+
+/* ─── قسم الوصف (مُبرَز) ─── */
+.description-premium-section {
+  background: linear-gradient(135deg, #f0f7ff 0%, #e6f0fa 100%);
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 18px;
+  border-right: 5px solid #2e86de;
+}
+.description-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.description-icon {
+  color: #2e86de;
+  font-size: 1.1rem;
+}
+.description-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #1a3a5c;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.description-text {
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: #1a1a2e;
+  margin: 0;
 }
 
 /* ─── شبكة المعلومات السريعة ─── */
@@ -179,38 +218,39 @@
   border-bottom: 1px solid #f0f4f8;
   margin-bottom: 16px;
 }
-
 .info-item {
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 0.85rem;
   color: #4a5a6e;
+  flex-wrap: wrap;
 }
-
 .info-item .info-icon {
   color: #2e86de;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
 }
-
+.info-item .info-label {
+  font-weight: 600;
+  color: #2d3e50;
+}
 .info-item .info-text {
   font-weight: 400;
+  color: #1a1a2e;
 }
 
-/* ─── تفاصيل إضافية (شبكة منسقة) ─── */
+/* ─── تفاصيل إضافية ─── */
 .details-premium-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px 20px;
   margin-bottom: 18px;
 }
-
 .detail-premium-item {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
-
 .detail-label-wrapper {
   display: flex;
   align-items: center;
@@ -221,23 +261,19 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-
 .detail-icon {
   font-size: 0.7rem;
   color: #2e86de;
 }
-
 .detail-value {
   font-size: 0.92rem;
   font-weight: 500;
   color: #1a1a2e;
 }
-
 .detail-value.highlight {
   color: #2e86de;
   font-weight: 600;
 }
-
 .slots-available {
   color: #2e7d32;
   font-size: 0.75rem;
@@ -249,45 +285,7 @@
   font-weight: 600;
 }
 
-/* ─── قسم الوصف (مُبرَز جداً) ─── */
-.description-premium-section {
-  background: linear-gradient(135deg, #f8fafc 0%, #edf2f9 100%);
-  border-radius: 16px;
-  padding: 16px 20px;
-  margin-bottom: 18px;
-  border-right: 4px solid #2e86de;
-  position: relative;
-}
-
-.description-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.description-icon {
-  color: #2e86de;
-  font-size: 0.9rem;
-}
-
-.description-title {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #2d3e50;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.description-text {
-  font-size: 0.92rem;
-  line-height: 1.7;
-  color: #1a1a2e;
-  margin: 0;
-  padding-right: 4px;
-}
-
-/* ─── كشف رقم الطالب ─── */
+/* ─── رقم الطالب ─── */
 .phone-reveal-premium {
   display: flex;
   align-items: center;
@@ -298,18 +296,15 @@
   margin-bottom: 16px;
   border: 1px solid #c8e6c9;
 }
-
 .phone-icon {
   color: #2e7d32;
   font-size: 0.9rem;
 }
-
 .phone-label {
   font-weight: 600;
   color: #2d3e50;
   font-size: 0.85rem;
 }
-
 .phone-number {
   font-weight: 700;
   color: #1a1a2e;
@@ -325,7 +320,6 @@
   gap: 12px;
   margin-top: 6px;
 }
-
 .action-btn-premium {
   display: inline-flex;
   align-items: center;
@@ -341,11 +335,9 @@
   justify-content: center;
   min-width: 140px;
 }
-
 .action-btn-premium .btn-icon {
   font-size: 0.9rem;
 }
-
 .action-btn-premium.offer-btn {
   background: linear-gradient(135deg, #2e86de, #1f6eb5);
   color: #fff;
@@ -358,7 +350,6 @@
 .action-btn-premium.offer-btn:active {
   transform: translateY(0);
 }
-
 .action-btn-premium.accept-btn {
   background: linear-gradient(135deg, #27ae60, #1e8449);
   color: #fff;
@@ -372,7 +363,7 @@
   transform: translateY(0);
 }
 
-/* ─── حالات خاصة ─── */
+/* ─── حالات خاصة (بدلاً من الحواف الجانبية) ─── */
 .matched-badge-premium,
 .shortlist-badge-premium {
   display: inline-flex;
@@ -385,7 +376,6 @@
   flex: 1;
   justify-content: center;
 }
-
 .matched-badge-premium {
   background: #e3f2fd;
   color: #0d47a1;
@@ -393,7 +383,6 @@
 .matched-icon {
   color: #f9a825;
 }
-
 .shortlist-badge-premium {
   background: #f3e5f5;
   color: #6a1b9a;
@@ -402,60 +391,32 @@
   color: #9c27b0;
 }
 
-/* ─── تلوين بطاقة خاص / عام ─── */
-.request-card-premium.private {
-  border-left: 4px solid #8e44ad;
-}
-.request-card-premium.public {
-  border-left: 4px solid #2e86de;
-}
-
-/* ─── تلوين حسب الحالة (ظل خفيف) ─── */
-.request-card-premium.open {
-  border-left-color: #2e7d32;
-}
-.request-card-premium.slots-full {
-  border-left-color: #e65100;
-}
-.request-card-premium.closed {
-  border-left-color: #c62828;
-}
-.request-card-premium.matched {
-  border-left-color: #0d47a1;
-}
-.request-card-premium.shortlist {
-  border-left-color: #6a1b9a;
-}
+/* ─── تم إزالة جميع الحواف الجانبية الملونة ─── */
+/* لم تعد هناك كلاسات: .request-card-premium.private, .request-card-premium.public, إلخ */
 
 /* ─── استجابة للشاشات الصغيرة ─── */
 @media (max-width: 600px) {
   .request-card-premium {
     padding: 18px 16px;
   }
-
   .details-premium-grid {
     grid-template-columns: 1fr;
     gap: 8px;
   }
-
   .quick-info-grid {
     gap: 8px 14px;
   }
-
   .action-btn-premium {
     flex: 1 1 100%;
     min-width: unset;
   }
-
   .card-top-bar {
     flex-wrap: wrap;
     gap: 8px;
   }
-
   .subject-level-row {
     gap: 6px;
   }
-
   .request-title {
     font-size: 1rem;
   }
