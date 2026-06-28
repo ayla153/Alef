@@ -102,6 +102,7 @@ class TutorSubjectSelection(BaseModel):
     primary_stage: bool = False
     elementary_stage: bool = False
     high_school_stage: bool = False
+    price_per_hour: int = Field(..., ge=0)
 
 
 class TutorRegisterStep2(BaseModel):
@@ -114,9 +115,6 @@ class TutorRegisterStep2(BaseModel):
 class TutorRegisterStep3(BaseModel):
     tution_type: TuitionTypeEnum
     total_experience_years: int | None = Field(None, ge=0)
-    price_stage_1: int | None = Field(None, ge=0)
-    price_stage_2: int | None = Field(None, ge=0)
-    price_stage_3: int | None = Field(None, ge=0)
 
 
 class TutorRegisterStep4(BaseModel):
