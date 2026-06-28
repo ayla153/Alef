@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from pathlib import Path
+import base64
 import re
 import shutil
 
@@ -171,6 +172,48 @@ def _sanitize_filename_base(value: str) -> str:
     return sanitized.strip("_") or "tutor"
 
 
+_PHOTO_MIME_BY_EXT = {
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".gif": "image/gif",
+}
+_MAX_PHOTO_BYTES = 2 * 1024 * 1024
+
+
+def _is_data_url(value: str | None) -> bool:
+    return bool(value and value.startswith("data:"))
+
+
+def _cleanup_legacy_media_file(stored_value: str | None) -> None:
+    """Remove old on-disk media when migrating from file paths to DB data URLs."""
+    if not stored_value or _is_data_url(stored_value):
+        return
+    _delete_existing_file(stored_value)
+
+
+def _encode_image_upload_as_data_url(upload_file: UploadFile) -> str:
+    filename = Path(upload_file.filename or "").name
+    extension = Path(filename).suffix.lower()
+    mime = _PHOTO_MIME_BY_EXT.get(extension)
+    if mime is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="نوع الصورة غير مدعوم. المسموح: jpg, jpeg, png, gif",
+        )
+
+    upload_file.file.seek(0)
+    raw = upload_file.file.read()
+    if len(raw) > _MAX_PHOTO_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="الصورة كبيرة جداً. الحد الأقصى ٢ ميغابايت.",
+        )
+
+    encoded = base64.b64encode(raw).decode("ascii")
+    return f"data:{mime};base64,{encoded}"
+
+
 def _delete_existing_file(file_path: str | None) -> None:
     if not file_path:
         return
@@ -217,13 +260,12 @@ def update_tutor_photo(db: Session, tutor_id: int, file: UploadFile | str | None
     if not tutor:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tutor not found")
     if _is_delete_upload_request(file):
-        _delete_existing_file(tutor.tutor_photo)
+        _cleanup_legacy_media_file(tutor.tutor_photo)
         tutor.tutor_photo = None
     else:
         upload_file = _ensure_upload_file(file)
-        _delete_existing_file(tutor.tutor_photo)
-        base_name = _sanitize_filename_base(f"{tutor.first_name}_{tutor.last_name}")
-        tutor.tutor_photo = _save_upload_file(upload_file, "uploads/tutors/photos", base_name, {".jpg", ".jpeg", ".png", ".gif"})
+        _cleanup_legacy_media_file(tutor.tutor_photo)
+        tutor.tutor_photo = _encode_image_upload_as_data_url(upload_file)
     db.commit()
     db.refresh(tutor)
     return _tutor_to_out(tutor)

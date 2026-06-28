@@ -34,7 +34,7 @@ MAX_PUBLIC_PENDING_OFFERS = 5
 LEAD_AUTO_CLOSE_DAYS = 10
 LEAD_DEFAULT_EXPIRY_DAYS = 30
 SUBJECT_COOLDOWN_DAYS = 14
-MAX_ACTIVE_PRIVATE_LEADS = 1  # private lead (lead_targets row): max one open per student (v1)
+MAX_ACTIVE_PRIVATE_LEADS = 3  # private lead (lead_targets row): max three open per student (v1)
 OFFERS_PER_TUTOR_PER_LEAD = 1
 MAX_PRIVATE_TARGETS_PER_LEAD = 1  # private lead: exactly one target tutor per lead
 
