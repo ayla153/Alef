@@ -26,6 +26,8 @@ from app.schemas.tutors import (
     TutorRecentRequestOut,
     TutorRecentRequestsOut,
     TutorStatsOut,
+    TopTutorItemOut,
+    TopTutorsOut,
 )
 
 from app.schemas.enums import LeadApplicationStatusEnum, LeadStatusEnum, NotificationType
@@ -164,6 +166,53 @@ def get_all_tutors(
         .all()
     )
     return [_tutor_to_out(tutor) for tutor in tutors]
+
+
+def get_top_tutors(db: Session, limit: int = 10) -> TopTutorsOut:
+    """Public leaderboard: verified, non-banned tutors ranked by rating then reviews."""
+    average_rating = func.coalesce(func.avg(Review.number_of_stars), 0.0)
+    reviews_count = func.count(Review.review_id)
+
+    rows = (
+        db.query(
+            Tutor,
+            average_rating.label("average_rating"),
+            reviews_count.label("reviews_count"),
+        )
+        .outerjoin(Review, Review.tutor_id == Tutor.tutor_id)
+        .filter(Tutor.verified.is_(True), Tutor.is_banned.is_(False))
+        .group_by(Tutor.tutor_id)
+        .order_by(
+            average_rating.desc(),
+            reviews_count.desc(),
+            Tutor.total_experience_years.desc().nulls_last(),
+            Tutor.tutor_id.asc(),
+        )
+        .limit(limit)
+        .all()
+    )
+
+    items: list[TopTutorItemOut] = []
+    for rank, (tutor, avg, count) in enumerate(rows, start=1):
+        reviews_n = int(count or 0)
+        avg_f = round(float(avg), 1) if reviews_n > 0 else None
+        experience = tutor.total_experience_years or 0
+        rank_score = round((avg_f or 0) * 10 + reviews_n + experience * 0.5, 2)
+        items.append(
+            TopTutorItemOut(
+                tutor_id=tutor.tutor_id,
+                first_name=tutor.first_name,
+                last_name=tutor.last_name,
+                tutor_photo=tutor.tutor_photo,
+                average_rating=avg_f,
+                reviews_count=reviews_n,
+                total_experience_years=tutor.total_experience_years,
+                rank=rank,
+                rank_score=rank_score,
+            )
+        )
+
+    return TopTutorsOut(items=items)
 
 
 def _sanitize_filename_base(value: str) -> str:

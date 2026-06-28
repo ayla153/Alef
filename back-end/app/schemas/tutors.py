@@ -327,3 +327,23 @@ class TutorStatsOut(BaseModel):
     average_rating: Optional[float]
     weekly_activity: List[WeeklyActivityPoint]
     recent_activity: List[RecentActivityItem]
+
+
+class TopTutorItemOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    tutor_id: int
+    first_name: str
+    last_name: str
+    tutor_photo: Optional[str] = None
+    average_rating: Optional[float] = None
+    reviews_count: int = 0
+    total_experience_years: Optional[int] = None
+    rank: int
+    rank_score: float
+
+
+class TopTutorsOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    items: List[TopTutorItemOut]
