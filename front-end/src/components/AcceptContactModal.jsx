@@ -49,7 +49,9 @@ export default function AcceptContactModal({ lead, onClose, onSubmit }) {
         <div className="accept-contact-warning">
           <FaExclamationTriangle className="warning-icon" />
           <p>
-            هذا طلب خاص موجّه إليك. بالموافقة، سيتم مشاركة بيانات التواصل مع الطالب وإغلاق الطلب.
+            هذا طلب خاص موجّه إليك
+            {lead.student_name ? ` من ${lead.student_name}` : ''}.
+            بالموافقة، سيتم مشاركة بيانات التواصل مع الطالب وإغلاق الطلب.
           </p>
         </div>
 

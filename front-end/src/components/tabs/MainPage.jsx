@@ -44,7 +44,7 @@ function statusClass(status) {
   return map[status] || 'closed';
 }
 
-export default function MainPage({ onGoToRequests, onGoToProfile, onGoToLeadDetail }) {
+export default function MainPage({ onGoToRequests, onGoToMyOffers, onGoToContacts, onGoToProfile, onGoToLeadDetail }) {
   const [tutorName, setTutorName] = useState('');
   const [stats, setStats] = useState(null);
   const [weeklyData, setWeeklyData] = useState([]);
@@ -153,7 +153,6 @@ export default function MainPage({ onGoToRequests, onGoToProfile, onGoToLeadDeta
     const level = levelsList.find((l) => String(l.level_id) === String(selectedLevelId));
 
     onGoToProfile?.({
-      startEditing: true,
       addSubject: {
         name: subject?.subject_title || '',
         levelName: level?.level_title || '',
@@ -198,14 +197,16 @@ export default function MainPage({ onGoToRequests, onGoToProfile, onGoToLeadDeta
           count={isLoading ? '...' : (stats?.pendingCount ?? 0)}
           bgcolor="#e0e7ff"
           hcolor="#6366f1"
+          onClick={() => onGoToMyOffers?.()}
         />
         <StatisticsCard
           title="تواصل ناجح"
-          subtitle="عروض قبلها الطالب"
+          subtitle="اضغط لعرض أرقام الطلاب"
           icon={<FaCheckCircle style={{ color: '#10b981' }} />}
           count={isLoading ? '...' : (stats?.acceptedCount ?? 0)}
           bgcolor="#d1fae5"
           hcolor="#10b981"
+          onClick={() => onGoToContacts?.()}
         />
         <StatisticsCard
           title="التقييم"
@@ -245,7 +246,7 @@ export default function MainPage({ onGoToRequests, onGoToProfile, onGoToLeadDeta
                     key={leadId}
                     type="button"
                     className="recent-request-item recent-request-item-clickable"
-                    onClick={() => onGoToLeadDetail?.(leadId)}
+                    onClick={() => onGoToLeadDetail?.(leadId, req.is_public)}
                   >
                     <div className="rr-top">
                       <span className={`rr-type-badge ${req.is_public ? 'public' : 'private'}`}>
@@ -315,9 +316,12 @@ export default function MainPage({ onGoToRequests, onGoToProfile, onGoToLeadDeta
                 <FaPlusCircle className="action-icon" /> إضافة مادة
               </button>
               <button type="button" className="quick-action-btn" onClick={() => onGoToRequests?.('private')}>
-                <FaClipboardList className="action-icon" /> مراجعة الطلبات الخاصة
+                <FaClipboardList className="action-icon" /> الطلبات الخاصة
               </button>
-              <button type="button" className="quick-action-btn" onClick={() => onGoToProfile?.({ startEditing: true })}>
+              <button type="button" className="quick-action-btn" onClick={() => onGoToMyOffers?.()}>
+                <FaEnvelope className="action-icon" /> عروضي
+              </button>
+              <button type="button" className="quick-action-btn" onClick={() => onGoToProfile?.()}>
                 <FaUserEdit className="action-icon" /> تعديل الملف الشخصي
               </button>
             </div>

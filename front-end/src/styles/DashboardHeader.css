@@ -46,3 +46,28 @@
     gap: 0.5rem;
   }
 }
+
+.dashboard-nav-header {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.dashboard-nav-tabs {
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.dashboard-nav-tabs button {
+  font-size: 0.78rem;
+  padding: 0.35rem 0.65rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .dashboard-nav-tabs {
+    order: 3;
+    width: 100%;
+    margin-top: 0.25rem;
+  }
+}

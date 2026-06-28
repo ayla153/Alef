@@ -4,6 +4,9 @@ import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-
 import DashboardHeader from '../../components/common/DashboardHeader';
 import MainPage from '../../components/tabs/MainPage';
 import Requests from '../../components/tabs/Requests';
+import PrivateRequests from '../../components/tabs/PrivateRequests';
+import MyOffers from '../../components/tabs/MyOffers';
+import MyContacts from '../../components/tabs/MyContacts';
 import Footer from '../../components/common/Footer';
 import TeachersTab from '../../components/tabs/TeacherTab';
 import TutorProfile from './TutorProfile';
@@ -16,14 +19,18 @@ import { consumeTutorFreshLogin, seedDashboardAsCurrentEntry } from '../../utils
 
 const TAB_PATHS = {
   home: '/dashboard/home',
-  requets: '/dashboard/requests',
+  publicRequests: '/dashboard/requests',
+  privateRequests: '/dashboard/private-requests',
+  myOffers: '/dashboard/offers',
   teachers: '/dashboard/teachers',
   profile: '/dashboard/profile',
   Notifications: '/dashboard/notifications',
 };
 
 function tabFromPath(pathname) {
-  if (pathname.includes('/requests')) return 'requets';
+  if (pathname.includes('/private-requests')) return 'privateRequests';
+  if (pathname.includes('/offers')) return 'myOffers';
+  if (pathname.includes('/requests')) return 'publicRequests';
   if (pathname.includes('/teachers')) return 'teachers';
   if (pathname.includes('/profile')) return 'profile';
   if (pathname.includes('/notifications')) return 'Notifications';
@@ -50,11 +57,19 @@ export default function Dashboard() {
   };
 
   const goToRequests = (filter = 'all') => {
-    if (filter && filter !== 'all') {
-      navigate('/dashboard/requests', { state: { filter } });
-    } else {
-      navigate('/dashboard/requests');
+    if (filter === 'private') {
+      navigate('/dashboard/private-requests');
+      return;
     }
+    navigate('/dashboard/requests');
+  };
+
+  const goToMyOffers = () => {
+    navigate('/dashboard/offers');
+  };
+
+  const goToContacts = () => {
+    navigate('/dashboard/private-requests/contacts');
   };
 
   const goToProfile = (intent = null) => {
@@ -62,8 +77,12 @@ export default function Dashboard() {
     navigate('/dashboard/profile');
   };
 
-  const goToLeadDetail = (leadId) => {
-    navigate(`/dashboard/requests/${leadId}`);
+  const goToLeadDetail = (leadId, isPublic = true) => {
+    navigate(
+      isPublic
+        ? `/dashboard/requests/${leadId}`
+        : `/dashboard/private-requests/${leadId}`
+    );
   };
 
   return (
@@ -77,6 +96,8 @@ export default function Dashboard() {
             element={
               <MainPage
                 onGoToRequests={goToRequests}
+                onGoToMyOffers={goToMyOffers}
+                onGoToContacts={goToContacts}
                 onGoToProfile={goToProfile}
                 onGoToLeadDetail={goToLeadDetail}
               />
@@ -84,6 +105,10 @@ export default function Dashboard() {
           />
           <Route path="requests/:leadId" element={<Requests />} />
           <Route path="requests" element={<Requests />} />
+          <Route path="private-requests/contacts/:leadId?" element={<MyContacts />} />
+          <Route path="private-requests/:leadId" element={<PrivateRequests />} />
+          <Route path="private-requests" element={<PrivateRequests />} />
+          <Route path="offers" element={<MyOffers />} />
           <Route path="teachers" element={<TeachersTab />} />
           <Route
             path="profile"

@@ -101,10 +101,6 @@ export default function TutorProfile({ profileIntent = null, onIntentConsumed })
 
     let nextProfile = mappedProfile;
 
-    if (intent.startEditing) {
-      setIsEditing(true);
-    }
-
     if (intent.addSubject) {
       const { name, years, levelName } = intent.addSubject;
       const label = levelName ? `${name} — ${levelName}` : name;
@@ -359,32 +355,43 @@ export default function TutorProfile({ profileIntent = null, onIntentConsumed })
     <div className="page-container2">
       <div className="profile-full-wrapper">
 
-        <div className="profile-header">
-          <h1>الملف الشخصي</h1>
-          <p>{isEditing ? 'عدّل بياناتك ثم احفظ التغييرات' : 'عرض بياناتك كما تظهر للطلاب'}</p>
+        <div className="profile-header-row">
+          <div className="profile-header">
+            <h1>الملف الشخصي</h1>
+            <p>{isEditing ? 'عدّل بياناتك ثم احفظ التغييرات' : 'عرض بياناتك كما تظهر للطلاب'}</p>
+          </div>
+          {!isEditing && (
+            <button type="button" className="profile-edit-trigger" onClick={handleStartEdit}>
+              <FaEdit /> تعديل البيانات
+            </button>
+          )}
         </div>
 
         {saveError && <p className="error-text">{saveError}</p>}
 
-        <div className="action-buttons top-buttons">
-          {isEditing ? (
-            <>
-              <button className="save-btn" onClick={handleSave} disabled={!hasChanges || isSaving}>
-                <FaSave /> {isSaving ? 'جارِ الحفظ...' : 'حفظ التغييرات'}
+        {isEditing && (
+          <div className="profile-edit-toolbar">
+            <span className="profile-edit-toolbar-label">وضع التعديل</span>
+            <div className="profile-edit-toolbar-actions">
+              <button
+                type="button"
+                className="profile-save-btn"
+                onClick={handleSave}
+                disabled={!hasChanges || isSaving}
+              >
+                <FaSave /> {isSaving ? 'جارِ الحفظ...' : 'حفظ'}
               </button>
-              <button className="cancel-btn" onClick={handleCancel} disabled={isSaving}>
-                <FaUndo /> إلغاء التعديل
+              <button
+                type="button"
+                className="profile-cancel-btn"
+                onClick={handleCancel}
+                disabled={isSaving}
+              >
+                <FaUndo /> إلغاء
               </button>
-            </>
-          ) : (
-            <>
-              <button type="button" className="edit-profile-btn" onClick={handleStartEdit}>
-                <FaEdit /> تعديل الملف الشخصي
-              </button>
-              <LogoutButton variant="compact" />
-            </>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
 
         <div className="profile-grid">
           {/* ─── Sidebar ─── */}
@@ -552,6 +559,12 @@ export default function TutorProfile({ profileIntent = null, onIntentConsumed })
 
           </div>
         </div>
+
+        {!isEditing && (
+          <div className="profile-logout-footer">
+            <LogoutButton variant="square" />
+          </div>
+        )}
       </div>
     </div>
   );
