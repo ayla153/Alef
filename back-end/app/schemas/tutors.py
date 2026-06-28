@@ -241,6 +241,10 @@ class UpdateTutorRequest(BaseModel):
         if value is None:
             return value
         allowed_values = ['online', 'offline', 'both']
+        if isinstance(value, str):
+            if value not in allowed_values:
+                raise ValueError(f"Tuition type must be one of: {', '.join(allowed_values)}")
+            return TuitionTypeEnum(value)
         if value.value not in allowed_values:
             raise ValueError(f"Tuition type must be one of: {', '.join(allowed_values)}")
         return value

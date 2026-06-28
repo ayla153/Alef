@@ -185,6 +185,7 @@ def _delete_existing_file(file_path: str | None) -> None:
 def _save_upload_file(upload_file: UploadFile, folder: str, dest_filename: str, allowed_ext: set[str]) -> str:
     filename = Path(upload_file.filename).name
     extension = Path(filename).suffix.lower()
+
     if extension not in allowed_ext:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -193,11 +194,15 @@ def _save_upload_file(upload_file: UploadFile, folder: str, dest_filename: str, 
 
     target_dir = Path(folder)
     target_dir.mkdir(parents=True, exist_ok=True)
+
     dest_file = target_dir / f"{dest_filename}{extension}"
+
     with dest_file.open("wb") as buffer:
         upload_file.file.seek(0)
         shutil.copyfileobj(upload_file.file, buffer)
-    return str(dest_file).replace("\\", "/")
+
+    path = str(dest_file).replace("\\", "/")
+    return f"/{path}"
 
 
 def _is_delete_upload_request(file: UploadFile | str | None) -> bool:
