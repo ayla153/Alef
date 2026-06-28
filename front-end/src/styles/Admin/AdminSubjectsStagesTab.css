@@ -187,6 +187,13 @@
   color: #ef4444;
 }
 
+.empty-hint {
+  grid-column: 1 / -1;
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+}
+
 @media (max-width: 768px) {
   .items-grid {
     grid-template-columns: 1fr;

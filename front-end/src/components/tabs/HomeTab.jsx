@@ -5,26 +5,25 @@ import TeacherCard from '../TeacherCard';
 import FAQItem from '../FAQItem';
 import '../../styles/HomeTab.css';
 import studentImage from '../../assets/homePageImage.png';
+import { getTopTutors, getPublicTutorById } from '../../api/publicTutors';
 
-const BASE_URL = 'http://localhost:8000';
-
-function mapTutorToTeacher(tutor) {
-  const subjects = tutor.tutor_subjects?.map(s => s.subject?.subject_title).filter(Boolean) ?? [];
+function mapTutorToTeacher(tutor, rankMeta = {}) {
+  const subjects = tutor.tutor_subjects?.map((s) => s.subject?.subject_title).filter(Boolean) ?? [];
 
   const modes = [];
   if (tutor.tution_type === 'online' || tutor.tution_type === 'both') modes.push('online');
   if (tutor.tution_type === 'offline' || tutor.tution_type === 'both') modes.push('offline');
 
-  const onlineSubject = tutor.tutor_subjects?.find(s =>
-    tutor.tution_type === 'online' || tutor.tution_type === 'both'
+  const onlineSubject = tutor.tutor_subjects?.find(
+    () => tutor.tution_type === 'online' || tutor.tution_type === 'both',
   );
-  const offlineSubject = tutor.tutor_subjects?.find(s =>
-    tutor.tution_type === 'offline' || tutor.tution_type === 'both'
+  const offlineSubject = tutor.tutor_subjects?.find(
+    () => tutor.tution_type === 'offline' || tutor.tution_type === 'both',
   );
 
   const avgRating = tutor.reviews?.length
     ? (tutor.reviews.reduce((sum, r) => sum + r.number_of_stars, 0) / tutor.reviews.length).toFixed(1)
-    : 0;
+    : rankMeta.average_rating ?? 0;
 
   return {
     id: tutor.tutor_id,
@@ -32,13 +31,36 @@ function mapTutorToTeacher(tutor) {
     image: tutor.tutor_photo || 'https://via.placeholder.com/80',
     subtitle: tutor.bio ?? '',
     stage: tutor.bio ?? '',
+    bio: tutor.bio ?? '',
     rating: avgRating,
-    reviews: tutor.reviews?.length ?? 0,
-    experience: tutor.total_experience_years ?? 0,
+    reviews: tutor.reviews?.length ?? rankMeta.reviews_count ?? 0,
+    experience: tutor.total_experience_years ?? rankMeta.total_experience_years ?? 0,
     subjects,
     modes,
     onlinePrice: onlineSubject?.price_per_hour ?? 0,
     offlinePrice: offlineSubject?.price_per_hour ?? 0,
+    rank: rankMeta.rank,
+    rankScore: rankMeta.rank_score,
+  };
+}
+
+function mapTopRankToTeacher(item) {
+  return {
+    id: item.tutor_id,
+    name: `${item.first_name} ${item.last_name}`,
+    image: item.tutor_photo || 'https://via.placeholder.com/80',
+    subtitle: '',
+    stage: `${item.total_experience_years ?? 0} سنوات خبرة`,
+    bio: '',
+    rating: item.average_rating ?? '—',
+    reviews: item.reviews_count ?? 0,
+    experience: item.total_experience_years ?? 0,
+    subjects: [],
+    modes: [],
+    onlinePrice: 0,
+    offlinePrice: 0,
+    rank: item.rank,
+    rankScore: item.rank_score,
   };
 }
 
@@ -49,20 +71,47 @@ export default function HomeTab({ onViewProfile }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchTutors = async () => {
+    const fetchTopTutors = async () => {
       try {
-        const res = await fetch(`${BASE_URL}/tutors/?page=1&page_size=4`);
-        if (!res.ok) throw new Error('فشل جلب البيانات');
-        const data = await res.json();
-        setTeachers(data.map(mapTutorToTeacher));
+        const { data: report } = await getTopTutors({ limit: 10 });
+        const rankedItems = report?.items ?? [];
+
+        if (rankedItems.length === 0) {
+          setTeachers([]);
+          return;
+        }
+
+        const profiles = await Promise.all(
+          rankedItems.map((item) =>
+            getPublicTutorById(item.tutor_id)
+              .then((res) => res.data)
+              .catch(() => null),
+          ),
+        );
+
+        setTeachers(
+          rankedItems.map((item, index) => {
+            const profile = profiles[index];
+            if (profile) {
+              return mapTutorToTeacher(profile, {
+                rank: item.rank,
+                rank_score: item.rank_score,
+                average_rating: item.average_rating,
+                reviews_count: item.reviews_count,
+                total_experience_years: item.total_experience_years,
+              });
+            }
+            return mapTopRankToTeacher(item);
+          }),
+        );
       } catch (err) {
-        setError(err.message);
+        setError(err.response?.data?.detail || err.message || 'فشل جلب البيانات');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTutors();
+    fetchTopTutors();
   }, []);
 
   return (
@@ -103,15 +152,27 @@ export default function HomeTab({ onViewProfile }) {
         <div className="bestTutors">
           <div>نخبة من المعلمين المتميزين</div>
           <div className="bestTutorssubtitle">
-            اختر المعلم الأنسب لك من بين مجموعة واسعة من الخبراء في جميع المجالات الدراسية
+            أفضل 10 معلمين موثّقين — مرتّبين حسب التقييمات وخبرة التدريس
           </div>
         </div>
 
         <div className="bestTutorsContainer">
           {loading && <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>جاري التحميل...</p>}
           {error && <p style={{ textAlign: 'center', color: 'var(--text-danger)' }}>{error}</p>}
-          {!loading && !error && teachers.map(teacher => (
-            <TeacherCard key={teacher.id} teacher={teacher} />
+          {!loading && !error && teachers.length === 0 && (
+            <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>لا يوجد معلمون موثّقون حالياً</p>
+          )}
+          {!loading && !error && teachers.map((teacher) => (
+            <div key={teacher.id} className="top-tutor-card-wrap">
+              {teacher.rank != null && (
+                <span className="top-tutor-rank">#{teacher.rank}</span>
+              )}
+              <TeacherCard
+                teacher={teacher}
+                showFavorite={false}
+                onViewProfile={onViewProfile}
+              />
+            </div>
           ))}
         </div>
       </div>

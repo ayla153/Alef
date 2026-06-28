@@ -123,7 +123,11 @@ export default function TutorLogin() {
               <label className="signuplable" htmlFor="password">
                 <FaLock className="input-icon" /> كلمة السِّر
               </label>
-              <Link to="/otp" className="forgot-link">
+              <Link
+                to="/forgot-password"
+                state={{ returnTo: "/tutor/login", email }}
+                className="forgot-link"
+              >
                 هل نسيت كلمة السر ؟
               </Link>
             </div>

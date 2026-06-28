@@ -8,6 +8,8 @@ const TeacherCard = ({
   teacher,
   mode = "view",
   onSelect,
+  onViewProfile,
+  showFavorite = true,
   isFavorite = false,
   favoriteId = null,
   onFavoriteChange,
@@ -18,7 +20,10 @@ const TeacherCard = ({
   const navigate = useNavigate();
 
   const handleViewProfile = () => {
-    // teacher.id هو نفسه tutor_id القادم من الباك (تم تحويله بـ TutorsPage)
+    if (onViewProfile) {
+      onViewProfile(teacher);
+      return;
+    }
     navigate(`/tutor/${teacher.id}`);
   };
 
@@ -74,9 +79,11 @@ const TeacherCard = ({
         </div>
 
         {/* Bookmark */}
-        <button className="tc-fav-btn" onClick={handleToggleSave} disabled={busy}>
-          {saved ? <FaBookmark color="#2563eb" /> : <FaRegBookmark />}
-        </button>
+        {showFavorite && (
+          <button className="tc-fav-btn" onClick={handleToggleSave} disabled={busy}>
+            {saved ? <FaBookmark color="#2563eb" /> : <FaRegBookmark />}
+          </button>
+        )}
       </div>
 
       {/* subjects */}
