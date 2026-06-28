@@ -1,50 +1,33 @@
-// src/components/OfferModalNew.jsx
 import { useState } from 'react';
 import {
   FaTimes,
-  FaPaperPlane,
+  FaCheckCircle,
   FaMoneyBillWave,
   FaFileAlt,
+  FaPaperPlane,
   FaBook,
-  FaChalkboard,
-  FaClock,
   FaUserGraduate,
-  FaTag,
   FaClipboardList,
+  FaExclamationTriangle,
 } from 'react-icons/fa';
 import '../styles/OfferModalNew.css';
 
-export default function OfferModalNew({ lead, onClose, onSubmit }) {
+export default function AcceptContactModal({ lead, onClose, onSubmit }) {
   const [fee, setFee] = useState('');
   const [note, setNote] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const tuitionLabel = (type) => {
-    const map = {
-      online: 'أونلاين',
-      offline: 'حضوري',
-      both: 'أونلاين وحضوري',
-    };
-    return map[type] || 'غير محدد';
-  };
-
   const handleSubmit = async () => {
-    // جميع الحقول مطلوبة حسب الباك إند (OfferIn)
-    if (!fee || !note || !message) {
-      setError('جميع الحقول مطلوبة');
-      return;
-    }
     setLoading(true);
     setError('');
     try {
-      await onSubmit(lead.post_requirements_id, {
-        proposed_fee: Number(fee),
-        first_session_note: note,
-        message,
-      });
-      // سيتم الإغلاق والتحديث من خارج المودال
+      const payload = {};
+      if (fee !== '') payload.proposed_fee = Number(fee);
+      if (note.trim()) payload.first_session_note = note.trim();
+      if (message.trim()) payload.message = message.trim();
+      await onSubmit(lead.post_requirements_id, Object.keys(payload).length ? payload : null);
     } catch (err) {
       setError(err.message || 'حدث خطأ، حاول مجدداً');
       setLoading(false);
@@ -54,28 +37,27 @@ export default function OfferModalNew({ lead, onClose, onSubmit }) {
   return (
     <div className="offer-modal-overlay" onClick={onClose}>
       <div className="offer-modal-container" onClick={(e) => e.stopPropagation()}>
-        {/* ─── رأس المودال ─── */}
         <div className="offer-modal-header">
           <h2>
-            <FaPaperPlane className="header-icon" /> تقديم عرض جديد
+            <FaCheckCircle className="header-icon" style={{ color: '#10b981' }} /> تأكيد قبول التواصل
           </h2>
           <button className="close-btn" onClick={onClose} disabled={loading}>
             <FaTimes />
           </button>
         </div>
 
-        {/* ─── تفاصيل الطلب ─── */}
+        <div className="accept-contact-warning">
+          <FaExclamationTriangle className="warning-icon" />
+          <p>
+            هذا طلب خاص موجّه إليك. بالموافقة، سيتم مشاركة بيانات التواصل مع الطالب وإغلاق الطلب.
+          </p>
+        </div>
+
         <div className="offer-lead-card">
           <div className="lead-title-row">
             <FaClipboardList className="info-icon" />
             <span className="lead-title">{lead.title}</span>
           </div>
-          {lead.description && (
-            <div className="offer-lead-description">
-              <span className="description-label">تفاصيل الطلب:</span>
-              <p className="description-body">{lead.description}</p>
-            </div>
-          )}
           <div className="lead-details-grid">
             <div className="detail-item">
               <FaBook className="detail-icon" />
@@ -89,28 +71,16 @@ export default function OfferModalNew({ lead, onClose, onSubmit }) {
                 <span className="detail-value">{lead.levelTitle}</span>
               </div>
             )}
-            <div className="detail-item">
-              <FaMoneyBillWave className="detail-icon" />
-              <span className="detail-label">الميزانية المتوقعة:</span>
-              <span className="detail-value">
-                {lead.min_expected_fee?.toLocaleString()} – {lead.max_expected_fee?.toLocaleString()} ل.س
-              </span>
-            </div>
-            <div className="detail-item">
-              <FaChalkboard className="detail-icon" />
-              <span className="detail-label">طريقة التدريس:</span>
-              <span className="detail-value">{tuitionLabel(lead.tution_type)}</span>
-            </div>
-            <div className="detail-item">
-              <FaClock className="detail-icon" />
-              <span className="detail-label">عدد الحصص:</span>
-              <span className="detail-value">{lead.weekly_classes} حصة/أسبوع</span>
-            </div>
-            <div className="detail-item">
-              <FaTag className="detail-icon" />
-              <span className="detail-label">نوع المساعدة:</span>
-              <span className="detail-value">{lead.help_type}</span>
-            </div>
+            {lead.min_expected_fee != null && lead.max_expected_fee != null && (
+              <div className="detail-item">
+                <FaMoneyBillWave className="detail-icon" />
+                <span className="detail-label">الميزانية:</span>
+                <span className="detail-value">
+                  {lead.min_expected_fee.toLocaleString('ar-SA')} –{' '}
+                  {lead.max_expected_fee.toLocaleString('ar-SA')} ل.س
+                </span>
+              </div>
+            )}
           </div>
           {lead.description && (
             <div className="offer-lead-description">
@@ -122,16 +92,16 @@ export default function OfferModalNew({ lead, onClose, onSubmit }) {
 
         <hr className="modal-divider" />
 
-        {/* ─── حقول النموذج ─── */}
         <div className="offer-form">
+          <p className="optional-fields-hint">الحقول التالية اختيارية — يمكنك تركها فارغة:</p>
           <div className="form-group">
             <label>
-              <FaMoneyBillWave className="field-icon" /> الأجر المقترح (ل.س) <span className="required-star">*</span>
+              <FaMoneyBillWave className="field-icon" /> الأجر المقترح (ل.س)
             </label>
             <input
               type="number"
               min="0"
-              placeholder="مثال: 150000"
+              placeholder={`مثال: ${lead.max_expected_fee?.toLocaleString('ar-SA') || '150000'}`}
               value={fee}
               onChange={(e) => setFee(e.target.value)}
               disabled={loading}
@@ -139,7 +109,7 @@ export default function OfferModalNew({ lead, onClose, onSubmit }) {
           </div>
           <div className="form-group">
             <label>
-              <FaFileAlt className="field-icon" /> ملاحظة الحصة الأولى <span className="required-star">*</span>
+              <FaFileAlt className="field-icon" /> ملاحظة الحصة الأولى
             </label>
             <input
               type="text"
@@ -152,7 +122,7 @@ export default function OfferModalNew({ lead, onClose, onSubmit }) {
           </div>
           <div className="form-group">
             <label>
-              <FaPaperPlane className="field-icon" /> رسالة إلى الطالب <span className="required-star">*</span>
+              <FaPaperPlane className="field-icon" /> رسالة إلى الطالب
             </label>
             <textarea
               rows="3"
@@ -166,10 +136,13 @@ export default function OfferModalNew({ lead, onClose, onSubmit }) {
           {error && <p className="error-text">{error}</p>}
         </div>
 
-        {/* ─── أزرار الإجراء ─── */}
         <div className="offer-modal-actions">
-          <button className="submit-btn" onClick={handleSubmit} disabled={loading}>
-            <FaPaperPlane /> {loading ? 'جارٍ الإرسال...' : 'إرسال العرض'}
+          <button
+            className="submit-btn accept-contact-submit"
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            <FaCheckCircle /> {loading ? 'جارٍ التأكيد...' : 'نعم، أوافق على التواصل'}
           </button>
           <button className="cancel-btn" onClick={onClose} disabled={loading}>
             <FaTimes /> إلغاء

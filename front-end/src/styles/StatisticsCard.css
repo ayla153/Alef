@@ -1,6 +1,7 @@
 .requests-card {
   width: 300px;
-  height: 120px;
+  min-height: 120px;
+  height: auto;
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -10,11 +11,15 @@
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02);
   border: 1px solid #edf2f7;
   transition: all 0.2s ease;
-  cursor: pointer;
+  cursor: default;
   box-sizing: border-box;
 }
 
-.requests-card:hover {
+.requests-card.clickable {
+  cursor: pointer;
+}
+
+.requests-card.clickable:hover {
   transform: translateY(-3px);
   box-shadow: 0 16px 24px -8px rgba(0, 0, 0, 0.08);
   border-color: #cbdffc;
@@ -32,7 +37,7 @@
   transition: background 0.2s;
 }
 
-.requests-card:hover .card-icon-wrapper {
+.requests-card.clickable:hover .card-icon-wrapper {
   background: #e0e7ff;
 }
 
@@ -41,7 +46,7 @@
   transition: transform 0.15s;
 }
 
-.requests-card:hover .card-icon-wrapper svg {
+.requests-card.clickable:hover .card-icon-wrapper svg {
   transform: scale(1.03);
 }
 
@@ -51,13 +56,22 @@
 }
 
 .requests-card .card-title {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 900;
   color: #1e293b;
-  margin: 0 0 0.2rem 0;
+  margin: 0 0 0.15rem 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.requests-card .card-subtitle {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #64748b;
+  margin: 0 0 0.35rem 0;
+  line-height: 1.35;
+  white-space: normal;
 }
 
 .requests-card .card-count {

@@ -76,7 +76,7 @@ function mapTutorToProfile(tutor) {
   };
 }
 
-export default function TutorProfile() {
+export default function TutorProfile({ profileIntent = null, onIntentConsumed }) {
   const location = useLocation();
 
   const [tutorId, setTutorId]                     = useState(null);
@@ -92,8 +92,32 @@ export default function TutorProfile() {
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [isEditing, setIsEditing]     = useState(false);
   const fileInputRef       = useRef(null);
+  const appliedIntentRef   = useRef(null);
   const [selectedSubject, setSelectedSubject] = useState('');
   const [newSubjectYears, setNewSubjectYears] = useState(0);
+
+  const applyNavigationIntent = (intent, mappedProfile) => {
+    if (!intent) return mappedProfile;
+
+    let nextProfile = mappedProfile;
+
+    if (intent.startEditing) {
+      setIsEditing(true);
+    }
+
+    if (intent.addSubject) {
+      const { name, years, levelName } = intent.addSubject;
+      const label = levelName ? `${name} — ${levelName}` : name;
+      if (!mappedProfile.subjects.some((s) => s.name === label || s.name === name)) {
+        nextProfile = {
+          ...mappedProfile,
+          subjects: [...mappedProfile.subjects, { name: label, years: years || 0 }],
+        };
+      }
+    }
+
+    return nextProfile;
+  };
 
   // ─── جلب البيانات ────────────────────────────────────────────────────────
   const fetchProfile = async () => {
@@ -102,9 +126,17 @@ export default function TutorProfile() {
     try {
       const res    = await getMyProfile();
       const mapped = mapTutorToProfile(res.data);
+      const withIntent = applyNavigationIntent(location.state || profileIntent, mapped);
       setTutorId(res.data.tutor_id);
-      setProfileData(mapped);
-      setOriginalData(JSON.parse(JSON.stringify(mapped)));
+      setProfileData(withIntent);
+      setOriginalData(JSON.parse(JSON.stringify(withIntent)));
+
+      if (location.state) {
+        window.history.replaceState({}, document.title);
+      }
+      if (profileIntent) {
+        onIntentConsumed?.();
+      }
 
       if (mapped.profileImage) {
         const fullUrl = getFullImageUrl(mapped.profileImage);
@@ -113,33 +145,23 @@ export default function TutorProfile() {
         setProfileImagePreview(DEFAULT_AVATAR);
       }
 
-      // ─── معالجة الـ state الوارد من زر "إضافة مادة" أو "تعديل الملف الشخصي" ───
-      const { state } = location;
-      if (state) {
-        // تفعيل وضع التعديل
-        if (state.startEditing) {
-          setIsEditing(true);
-        }
-        // إضافة مادة جديدة
-        if (state.addSubject) {
-          const { name, years } = state.addSubject;
-          // تأكد من عدم تكرار المادة
-          if (!mapped.subjects.some(s => s.name === name)) {
-            const newSubjects = [...mapped.subjects, { name, years }];
-            setProfileData(prev => ({ ...prev, subjects: newSubjects }));
-            setOriginalData(prev => ({ ...prev, subjects: newSubjects }));
-          }
-        }
-        // ننظف الـ state بعد الاستخدام (لتجنب إعادة التفعيل عند تحديث الصفحة)
-        window.history.replaceState({}, document.title);
-      }
-
     } catch (err) {
       setLoadError(getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!profileIntent || !profileData) return;
+    if (appliedIntentRef.current === profileIntent) return;
+
+    appliedIntentRef.current = profileIntent;
+    const updated = applyNavigationIntent(profileIntent, profileData);
+    setProfileData(updated);
+    setOriginalData(JSON.parse(JSON.stringify(updated)));
+    onIntentConsumed?.();
+  }, [profileIntent, profileData, onIntentConsumed]);
 
   useEffect(() => {
     const id = setTimeout(fetchProfile, 0);
