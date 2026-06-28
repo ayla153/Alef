@@ -25,6 +25,8 @@ from app.schemas.tutors import (
     TutorRecentRequestOut,
     TutorRecentRequestsOut,
     TutorStatsOut,
+    TopTutorRankOut,
+    TopTutorsReportOut,
 )
 
 from app.schemas.enums import LeadApplicationStatusEnum, LeadStatusEnum, NotificationType
@@ -504,4 +506,92 @@ def get_tutor_dashboard_stats(db: Session, tutor_id: int) -> TutorStatsOut:
         average_rating=_get_average_rating(db, tutor_id),
         weekly_activity=_get_weekly_activity(db, tutor_id, since),
         recent_activity=_get_recent_activity(db, tutor_id),
+    )
+
+
+# Aleph Rank Score (ARS): blends rating quality, experience, and review volume.
+#   ARS = (0.70 × R + 0.30 × E) × B
+#   R = average stars (1–5); 3.0 baseline when a tutor has no reviews yet
+#   E = min(years, 25) / 25 × 5  (experience normalized to a 0–5 scale)
+#   B = 1 + min(reviews_count, 50) / 50 × 0.20  (up to +20% credibility boost)
+_TOP_TUTORS_SCORING_FORMULA = (
+    "ARS = (0.70 × rating + 0.30 × experience_norm) × review_boost; "
+    "rating defaults to 3.0 without reviews; experience_norm = min(years, 25)/25×5; "
+    "review_boost = 1 + min(reviews, 50)/50×0.20"
+)
+_RATING_WEIGHT = 0.70
+_EXPERIENCE_WEIGHT = 0.30
+_NEUTRAL_RATING_BASELINE = 3.0
+_EXPERIENCE_CAP_YEARS = 25
+_REVIEW_BOOST_CAP = 50
+_REVIEW_BOOST_MAX = 0.20
+
+
+def _calculate_tutor_rank_score(
+    average_rating: float | None,
+    reviews_count: int,
+    total_experience_years: int | None,
+) -> float:
+    rating_score = average_rating if average_rating is not None else _NEUTRAL_RATING_BASELINE
+    years = max(total_experience_years or 0, 0)
+    experience_score = min(years, _EXPERIENCE_CAP_YEARS) / _EXPERIENCE_CAP_YEARS * 5.0
+    review_boost = 1.0 + min(reviews_count, _REVIEW_BOOST_CAP) / _REVIEW_BOOST_CAP * _REVIEW_BOOST_MAX
+    return round(
+        (_RATING_WEIGHT * rating_score + _EXPERIENCE_WEIGHT * experience_score) * review_boost,
+        2,
+    )
+
+
+def get_top_tutors_report(db: Session, limit: int = 10) -> TopTutorsReportOut:
+    """Top verified tutors ranked by Aleph Rank Score (reviews + experience)."""
+    rows = (
+        db.query(
+            Tutor,
+            func.avg(Review.number_of_stars).label("avg_rating"),
+            func.count(Review.review_id).label("reviews_count"),
+        )
+        .outerjoin(Review, Review.tutor_id == Tutor.tutor_id)
+        .filter(
+            Tutor.verified.is_(True),
+            Tutor.is_banned.is_(False),
+        )
+        .group_by(Tutor.tutor_id)
+        .all()
+    )
+
+    ranked: list[tuple[Tutor, float | None, int, float]] = []
+    for tutor, avg_rating, reviews_count in rows:
+        avg = round(float(avg_rating), 1) if avg_rating is not None else None
+        count = int(reviews_count or 0)
+        score = _calculate_tutor_rank_score(avg, count, tutor.total_experience_years)
+        ranked.append((tutor, avg, count, score))
+
+    ranked.sort(
+        key=lambda row: (
+            -row[3],
+            -(row[1] or 0),
+            -row[2],
+            -(row[0].total_experience_years or 0),
+            -row[0].tutor_id,
+        )
+    )
+
+    items = [
+        TopTutorRankOut(
+            rank=index,
+            tutor_id=tutor.tutor_id,
+            first_name=tutor.first_name,
+            last_name=tutor.last_name,
+            tutor_photo=tutor.tutor_photo,
+            average_rating=avg,
+            reviews_count=count,
+            total_experience_years=tutor.total_experience_years,
+            rank_score=score,
+        )
+        for index, (tutor, avg, count, score) in enumerate(ranked[:limit], start=1)
+    ]
+
+    return TopTutorsReportOut(
+        scoring_formula=_TOP_TUTORS_SCORING_FORMULA,
+        items=items,
     )

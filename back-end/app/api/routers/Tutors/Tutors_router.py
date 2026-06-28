@@ -15,6 +15,7 @@ from app.schemas.tutors import (
     TutorStatsOut,
     RecentActivityOut,
     TutorRecentRequestsOut,
+    TopTutorsReportOut,
 )
 from app.services import tutor_service
 
@@ -66,6 +67,22 @@ def get_my_recent_activity(
     current_tutor: Tutor = Depends(get_current_tutor),
 ):
     return tutor_service.get_recent_activity(db, current_tutor.tutor_id, limit=3)
+
+
+@router.get(
+    "/top",
+    response_model=TopTutorsReportOut,
+    summary="Top tutors report",
+    description=(
+        "Public ranking of verified tutors by Aleph Rank Score — "
+        "a blend of average review rating, years of experience, and review volume."
+    ),
+)
+def get_top_tutors_report(
+    limit: int = Query(10, ge=1, le=50),
+    db: Session = Depends(get_db),
+):
+    return tutor_service.get_top_tutors_report(db, limit=limit)
 
 
 @router.get(

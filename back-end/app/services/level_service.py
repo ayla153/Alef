@@ -40,7 +40,7 @@ def create_level(db: Session, level_data: CreateLevel) -> LevelOut:
     if existing:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Level with title '{level_data.level_title}' already exists",
+            detail=f"مرحلة باسم «{level_data.level_title}» موجودة مسبقاً",
         )
 
     level = Level(
@@ -55,7 +55,7 @@ def create_level(db: Session, level_data: CreateLevel) -> LevelOut:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Level with this title already exists",
+            detail="مرحلة بهذا الاسم موجودة مسبقاً",
         )
 
     return _level_to_out(level)
@@ -71,7 +71,7 @@ def update_level(db: Session, level_id: int, level_data: UpdateLevelRequest) -> 
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=f"Level with title '{level_data.level_title}' already exists",
+                detail=f"مرحلة باسم «{level_data.level_title}» موجودة مسبقاً",
             )
 
     if level_data.level_title is not None:
