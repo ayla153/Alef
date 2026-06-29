@@ -410,7 +410,6 @@ def get_public_lead_detail_for_tutor(
     return PublicLeadTutorDetailOut(
         **card.model_dump(),
         peer_offers=peer_offers,
-        has_my_offer=card.has_my_offer,
     )
 
 
