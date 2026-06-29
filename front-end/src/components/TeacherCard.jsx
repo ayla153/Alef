@@ -4,6 +4,27 @@ import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api.js";
 
+// رابط الصورة الافتراضية (في حال فشل التحميل)
+const DEFAULT_AVATAR = 'https://ui-avatars.com/api/?name=مستخدم&background=3b82f6&color=fff&size=200';
+
+// رابط الباك إند الأساسي (من متغير البيئة أو افتراضي)
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+// دالة لتحويل الرابط النسبي إلى رابط مطلق
+const getFullImageUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  if (url.startsWith('/')) return `${BASE_URL}${url}`;
+  return `${BASE_URL}/${url}`;
+};
+
+// دالة لإضافة timestamp لمنع الكاش (اختياري)
+const addTimestamp = (url) => {
+  if (!url) return url;
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}t=${Date.now()}`;
+};
+
 const TeacherCard = ({
   teacher,
   mode = "view",
@@ -17,24 +38,24 @@ const TeacherCard = ({
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
 
+  // معالجة رابط الصورة: تحويل إلى مطلق + إضافة timestamp
+  const imageUrl = teacher.image ? addTimestamp(getFullImageUrl(teacher.image)) : DEFAULT_AVATAR;
+
   const handleViewProfile = () => {
-    // teacher.id هو نفسه tutor_id القادم من الباك (تم تحويله بـ TutorsPage)
     navigate(`/tutor/${teacher.id}`);
   };
 
   const handleToggleSave = async () => {
-    if (busy) return; // تجنّب الضغط المزدوج أثناء انتظار الرد
+    if (busy) return;
     setBusy(true);
 
     try {
       if (!saved) {
-        // إضافة للمفضلة
         const { data } = await api.post("/favorites/", { tutor_id: teacher.id });
         setSaved(true);
         setSavedFavoriteId(data.favorite_id);
         if (onFavoriteChange) onFavoriteChange(true, data.favorite_id);
       } else {
-        // حذف من المفضلة (يحتاج favorite_id لا tutor_id)
         if (savedFavoriteId != null) {
           await api.delete(`/favorites/${savedFavoriteId}`);
         }
@@ -54,9 +75,10 @@ const TeacherCard = ({
       {/* HEADER */}
       <div className="tc-card-header">
         <img
-          src={teacher.image || "https://via.placeholder.com/80"}
+          src={imageUrl}
           alt={teacher.name}
           className="tc-profile-img"
+          onError={(e) => { e.target.src = DEFAULT_AVATAR; }}
         />
 
         <div className="tc-info">

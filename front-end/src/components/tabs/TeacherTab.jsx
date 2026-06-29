@@ -1,5 +1,6 @@
+// src/Pages/teacher/TeacherTab.jsx
 import { useState, useEffect } from "react";
-import BesTutors from "../BesTutors";
+import TeacherCard from '../../components/TeacherCard3';
 import "../../styles/TeacherTab.css";
 import {  
   FaStar, 
@@ -11,7 +12,6 @@ import {
   FaBookmark 
 } from "react-icons/fa";
 import { getPublicTutors } from "../../api/publicTutors";
-import { isMarketplaceTutor } from "../../utils/adminTutorStatus";
 import { getErrorMessage } from "../../utils/apiErrors";
 
 function mapTutorToCard(tutor) {
@@ -53,7 +53,7 @@ function mapTutorToCard(tutor) {
   };
 }
 
-export default function TeachersTab({ setSelectedTeacher, setActiveTab }) {
+export default function TeachersTab() {
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedRating, setSelectedRating] = useState(0);
   const [selectedExperience, setSelectedExperience] = useState(0);
