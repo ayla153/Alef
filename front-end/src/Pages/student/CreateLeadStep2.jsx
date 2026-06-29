@@ -1,30 +1,93 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import "../../styles/sstyle/CreateLeadStep2.css";
 import Header from "../../components/Header";
 
-const SLIDER_MIN = 50;
-const SLIDER_MAX = 1000;
-const SLIDER_STEP = 10;
+const SLIDER_MIN = 10000;
+const SLIDER_MAX = 200000;
+const SLIDER_STEP = 5000;
+const THUMB_SIZE = 20;
+
+const clampBudget = (value) =>
+  Math.max(
+    SLIDER_MIN,
+    Math.min(Math.round(value / SLIDER_STEP) * SLIDER_STEP, SLIDER_MAX),
+  );
+
+const formatBudget = (value) => Number(value).toLocaleString("en-US");
+
+const getThumbCenter = (trackWidth, value) => {
+  const ratio = (value - SLIDER_MIN) / (SLIDER_MAX - SLIDER_MIN);
+  return ratio * (trackWidth - THUMB_SIZE) + THUMB_SIZE / 2;
+};
+
+const getTrackPercent = (trackWidth, value) => {
+  if (!trackWidth) {
+    return ((value - SLIDER_MIN) / (SLIDER_MAX - SLIDER_MIN)) * 100;
+  }
+
+  const center = getThumbCenter(trackWidth, value);
+  const trackStart = THUMB_SIZE / 2;
+  const trackLen = trackWidth - THUMB_SIZE;
+  return ((center - trackStart) / trackLen) * 100;
+};
+
+const getTrackGradient = (trackWidth, min, max) => {
+  const minPct = getTrackPercent(trackWidth, min);
+  const maxPct = getTrackPercent(trackWidth, max);
+  return `linear-gradient(to right, #dbeafe 0%, #dbeafe ${minPct}%, var(--primary) ${minPct}%, var(--primary) ${maxPct}%, #dbeafe ${maxPct}%, #dbeafe 100%)`;
+};
 
 const CreateLeadStep2 = ({ formData, updateForm, onNext, onBack }) => {
-  const [minBudget, setMinBudget] = useState(
-    formData.min_expected_fee ?? SLIDER_MIN,
+  const sliderRef = useRef(null);
+  const [trackWidth, setTrackWidth] = useState(0);
+  const [activeThumb, setActiveThumb] = useState(null);
+  const [trackGradient, setTrackGradient] = useState(
+    getTrackGradient(0, SLIDER_MIN, 100000),
   );
-  const [maxBudget, setMaxBudget] = useState(
-    formData.max_expected_fee ?? 500,
+
+  const [minBudget, setMinBudget] = useState(() =>
+    clampBudget(formData.min_expected_fee ?? SLIDER_MIN),
+  );
+  const [maxBudget, setMaxBudget] = useState(() =>
+    clampBudget(formData.max_expected_fee ?? 100000),
   );
   const [errors, setErrors] = useState({});
 
-  const minPercent =
-    ((minBudget - SLIDER_MIN) / (SLIDER_MAX - SLIDER_MIN)) * 100;
-  const maxPercent =
-    ((maxBudget - SLIDER_MIN) / (SLIDER_MAX - SLIDER_MIN)) * 100;
+  const updateTrack = useCallback(
+    (width, min, max) => {
+      setTrackWidth(width);
+      setTrackGradient(getTrackGradient(width, min, max));
+    },
+    [],
+  );
+
+  const updateRangeBar = useCallback(() => {
+    const node = sliderRef.current;
+    if (!node) return;
+    updateTrack(node.offsetWidth, minBudget, maxBudget);
+  }, [minBudget, maxBudget, updateTrack]);
+
+  useEffect(() => {
+    const node = sliderRef.current;
+    if (!node) return undefined;
+
+    updateRangeBar();
+
+    const observer = new ResizeObserver(updateRangeBar);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [updateRangeBar]);
 
   const syncBudget = (min, max) => {
-    const nextMin = Math.max(SLIDER_MIN, Math.min(min, SLIDER_MAX));
-    const nextMax = Math.max(SLIDER_MIN, Math.min(max, SLIDER_MAX));
+    const nextMin = clampBudget(min);
+    const nextMax = clampBudget(max);
     const safeMin = Math.min(nextMin, nextMax);
     const safeMax = Math.max(nextMin, nextMax);
+
+    const node = sliderRef.current;
+    if (node) {
+      updateTrack(node.offsetWidth, safeMin, safeMax);
+    }
 
     setMinBudget(safeMin);
     setMaxBudget(safeMax);
@@ -63,6 +126,8 @@ const CreateLeadStep2 = ({ formData, updateForm, onNext, onBack }) => {
       onNext();
     }
   };
+
+  const trackInset = THUMB_SIZE / 2;
 
   return (
     <div className="createLeadStep2_appContainer" dir="rtl">
@@ -135,18 +200,22 @@ const CreateLeadStep2 = ({ formData, updateForm, onNext, onBack }) => {
                     </span>
 
                     <span className="createLeadStep2_budgetValue">
-                      {minBudget} - {maxBudget} ل.س
+                      {formatBudget(minBudget)} - {formatBudget(maxBudget)} ل.س
                     </span>
                   </div>
 
                   <div className="createLeadStep2_sliderWrapper">
-                    <div className="createLeadStep2_dualSlider">
-                      <div className="createLeadStep2_dualSliderTrack" />
+                    <div
+                      className="createLeadStep2_dualSlider"
+                      ref={sliderRef}
+                      style={{ "--slider-thumb-size": `${THUMB_SIZE}px` }}
+                    >
                       <div
-                        className="createLeadStep2_dualSliderRange"
+                        className="createLeadStep2_dualSliderTrack"
                         style={{
-                          left: `${minPercent}%`,
-                          width: `${Math.max(0, maxPercent - minPercent)}%`,
+                          left: trackInset,
+                          width: trackWidth ? trackWidth - THUMB_SIZE : undefined,
+                          background: trackGradient,
                         }}
                       />
 
@@ -156,10 +225,17 @@ const CreateLeadStep2 = ({ formData, updateForm, onNext, onBack }) => {
                         max={SLIDER_MAX}
                         step={SLIDER_STEP}
                         value={minBudget}
-                        onChange={(e) =>
+                        onInput={(e) =>
                           syncBudget(Number(e.target.value), maxBudget)
                         }
-                        className="createLeadStep2_rangeSlider createLeadStep2_rangeSlider--min"
+                        onPointerDown={() => setActiveThumb("min")}
+                        onPointerUp={() => setActiveThumb(null)}
+                        onPointerCancel={() => setActiveThumb(null)}
+                        className={`createLeadStep2_rangeSlider createLeadStep2_rangeSlider--min${
+                          activeThumb === "min"
+                            ? " createLeadStep2_rangeSlider--active"
+                            : ""
+                        }`}
                         aria-label="الحد الأدنى للميزانية"
                       />
 
@@ -169,17 +245,24 @@ const CreateLeadStep2 = ({ formData, updateForm, onNext, onBack }) => {
                         max={SLIDER_MAX}
                         step={SLIDER_STEP}
                         value={maxBudget}
-                        onChange={(e) =>
+                        onInput={(e) =>
                           syncBudget(minBudget, Number(e.target.value))
                         }
-                        className="createLeadStep2_rangeSlider createLeadStep2_rangeSlider--max"
+                        onPointerDown={() => setActiveThumb("max")}
+                        onPointerUp={() => setActiveThumb(null)}
+                        onPointerCancel={() => setActiveThumb(null)}
+                        className={`createLeadStep2_rangeSlider createLeadStep2_rangeSlider--max${
+                          activeThumb === "max"
+                            ? " createLeadStep2_rangeSlider--active"
+                            : ""
+                        }`}
                         aria-label="الحد الأعلى للميزانية"
                       />
                     </div>
 
                     <div className="createLeadStep2_sliderLabels">
-                      <span>{SLIDER_MIN} ل.س</span>
-                      <span>{SLIDER_MAX} ل.س</span>
+                      <span>{formatBudget(SLIDER_MIN)} ل.س</span>
+                      <span>{formatBudget(SLIDER_MAX)} ل.س</span>
                     </div>
                   </div>
                 </div>
