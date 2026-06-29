@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { FaPlus, FaTrashAlt, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
 import '../../styles/Admin/AdminSubjectsStagesTab.css';
 import { getSubjects, createSubject, updateSubject, deleteSubject } from '../../api/adminSubjects';

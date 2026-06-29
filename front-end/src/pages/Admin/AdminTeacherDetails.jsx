@@ -88,10 +88,6 @@ export default function AdminTeacherDetails() {
             <span>الأسعار حسب المادة/المرحلة:</span> {teacher.stagesPrices.map((p) => `${p.stage}: ${p.price} ل.س`).join(' | ') || '—'}
           </div>
           <div className="info-row"><span>نبذة عن المعلم:</span> {teacher.bio || '—'}</div>
-          {/* ⚠️ الباك إند الحالي لا يرجّع رابط الشهادات ضمن بيانات المعلّم */}
-          <div className="info-row">
-            <span>الشهادات:</span> {teacher.certificates.length > 0 ? teacher.certificates.join(', ') : 'لا توجد بيانات متاحة'}
-          </div>
         </div>
 
         {teacher.is_banned ? (

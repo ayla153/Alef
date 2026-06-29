@@ -1,9 +1,7 @@
 import '../../styles/CreateAccountStep4.css';
-import logo from '../../assets/Alef-logo.jpg';
 import { useNavigate } from 'react-router-dom';
 import { FaLightbulb, FaFileAlt } from "react-icons/fa";
-import { useState, useRef } from 'react';
-import CertificatesUpload from '../../components/common/CertificatesUpload';
+import { useState } from 'react';
 import { registerTutorStep4 } from '../../api/tutorRegistration';
 import { getErrorMessage } from '../../utils/apiErrors';
 import Header from '../../components/common/Header';
@@ -12,42 +10,24 @@ import TutorRegistrationActions from '../../components/TutorRegistrationActions'
 export default function CreateAccountStep4() {
   const navigate = useNavigate();
   const [bio, setBio] = useState('');
-  const [validationError, setValidationError] = useState('');
   const [generalError, setGeneralError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const certificatesRef = useRef();
-
-  const validateForm = () => {
-    const filesCount = certificatesRef.current?.getFilesCount() || 0;
-    if (filesCount === 0) {
-      setValidationError('يرجى رفع شهادة واحدة على الأقل قبل المتابعة.');
-      return false;
-    }
-    setValidationError('');
-    return true;
-  };
 
   const handleNext = async () => {
     setGeneralError('');
-    if (!validateForm()) return;
-
-    const uploadedUrls = certificatesRef.current?.getUploadedUrls?.() || [];
-    const certificateUrl = uploadedUrls[0] || null;
-
     setIsSubmitting(true);
     try {
-      const response = await registerTutorStep4({
+      await registerTutorStep4({
         bio: bio.trim() || null,
         tutor_photo_url: null,
         tutor_video_url: null,
-        certificate_url: certificateUrl,
+        certificate_url: null, // الشهادة غير مطلوبة
       });
 
       localStorage.setItem('registration_type', 'tutor');
-      if (response.data?.email) {
-        localStorage.setItem('tutorEmail', response.data.email);
-      }
-
+      // يمكن حفظ البريد الإلكتروني إذا ورد من الرد
+      // لكن لا يوجد response.data?.email هنا لأن الـ API لا تعيده حالياً
+      // يمكن الاحتفاظ به لو كان موجوداً
       navigate('/otp');
     } catch (err) {
       setGeneralError(getErrorMessage(err));
@@ -65,7 +45,7 @@ export default function CreateAccountStep4() {
         <div className='content'>
           <div className="titleforstep1">
             <h2>أهلاً بكُم في مِنصَّتنا التَّعليميَّة !</h2>
-            <p className="welcom">اكتب نبذة عنك و ادخل شهاداتك</p>
+            <p className="welcom">اكتب نبذة عنك</p>
             <div className="progress-bar-wrapper">
               <p className="personalinfo">الخطوةُ 4 من 4 : التفاصيل المهنية</p>
               <div className="progress-bar">
@@ -77,7 +57,7 @@ export default function CreateAccountStep4() {
           <div className='step4content'>
             <div className='stp4tc'>
               <div className='stp4Title'>اللمسات الأخيرة</div>
-              <div className='stp4Subtitle'>نبذة عنك والشهادات الموثقة تساعدك على التميز أمام الطلاب.</div>
+              <div className='stp4Subtitle'>نبذة عنك تساعدك على التميز أمام الطلاب.</div>
             </div>
 
             <div className='advicesforCV'>
@@ -108,10 +88,7 @@ export default function CreateAccountStep4() {
               />
             </div>
 
-            <CertificatesUpload ref={certificatesRef} />
-
             {generalError && <div className="validation-error">{generalError}</div>}
-            {validationError && <div className="validation-error">{validationError}</div>}
 
             <TutorRegistrationActions
               onPrimary={handleNext}

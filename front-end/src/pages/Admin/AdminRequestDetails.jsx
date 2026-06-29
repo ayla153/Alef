@@ -189,17 +189,6 @@ export default function AdminRequestDetails() {
             <span>نبذة عنك:</span> {request.bio || '—'}
           </div>
         </div>
-
-        <div className="details-card">
-          <h2>الشهادات والمستندات</h2>
-          {request.certificates.length > 0 ? (
-            <ul>
-              {request.certificates.map((cert, idx) => <li key={idx}>{cert}</li>)}
-            </ul>
-          ) : (
-            <p className="details-empty">لا توجد بيانات شهادات متاحة حالياً</p>
-          )}
-        </div>
       </div>
     </div>
   );
