@@ -6,8 +6,8 @@ import Sidebar from "../../components/Sidebar";
 import api from "../../api/api";
 import { getAuthRole } from "../../api/authStorage";
 import { getPublicTutors } from "../../api/publicTutors";
+import { getSubjectPriceRange } from "../../api/tutorMapper";
 import { isMarketplaceTutor } from "../../utils/adminTutorStatus";
-import { resolveTutorPhotoUrl } from "../../utils/tutorPhoto";
 
 import "../../styles/sstyle/HomePage.css";
 
@@ -102,10 +102,13 @@ const HomePage = () => {
         });
 
         setTeachers(
-          tutorsData.map((t) => ({
+          tutorsData.map((t) => {
+            const { min: minPrice, max: maxPrice } = getSubjectPriceRange(t.tutor_subjects);
+            return {
             id: t.tutor_id,
             name: `${t.first_name} ${t.last_name}`,
             gender: t.gender,
+            tutorPhoto: t.tutor_photo,
             rating: t.reviews?.length
               ? (
                   t.reviews.reduce((s, r) => s + r.number_of_stars, 0) /
@@ -120,14 +123,13 @@ const HomePage = () => {
               t.tution_type === "both"
                 ? ["online", "offline"]
                 : [t.tution_type],
-            price: t.tutor_subjects?.[0]?.price_per_hour || 0,
-            image: resolveTutorPhotoUrl(t.tutor_photo, {
-              gender: t.gender,
-              tutorId: t.tutor_id,
-            }),
+            minPrice,
+            maxPrice,
+            price: minPrice,
             isFavorite: favMap[t.tutor_id] !== undefined,
             favoriteId: favMap[t.tutor_id] ?? null,
-          })),
+          };
+          }),
         );
 
         setFavCount(favsData.length);

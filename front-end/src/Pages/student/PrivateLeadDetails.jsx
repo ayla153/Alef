@@ -44,6 +44,76 @@ export default function PrivateLeadDetails({ lead }) {
   const tutorApp = lead.applications?.[0];
   const tutorPhone = tutorApp?.tutor_phone_number;
 
+  const tutorProfileId = lead.target_tutor_id || tutorApp?.tutor_id;
+
+  const goToTutorProfile = () => {
+    if (tutorProfileId) navigate(`/tutor/${tutorProfileId}`);
+  };
+
+  const renderTutorCard = ({ showOfferDetails = false } = {}) => {
+    const name = targetTutor
+      ? `${targetTutor.first_name || ""} ${targetTutor.last_name || ""}`.trim()
+      : tutorApp?.tutor_first_name || (tutorProfileId ? `معلم #${tutorProfileId}` : null);
+
+    if (!name) return null;
+
+    const photo = targetTutor
+      ? resolveTutorPhotoUrl(targetTutor.tutor_photo, {
+          gender: targetTutor.gender,
+          tutorId: targetTutor.tutor_id,
+        })
+      : resolveTutorPhotoUrl(null, { tutorId: tutorProfileId });
+
+    return (
+      <section
+        className={`pld-card pld-teacher-card ${tutorProfileId ? "pld-teacher-card-clickable" : ""}`}
+        role={tutorProfileId ? "button" : undefined}
+        tabIndex={tutorProfileId ? 0 : undefined}
+        onClick={tutorProfileId ? goToTutorProfile : undefined}
+        onKeyDown={
+          tutorProfileId
+            ? (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  goToTutorProfile();
+                }
+              }
+            : undefined
+        }
+      >
+        <div className="pld-teacher-avatar-wrapper">
+          <div className="pld-teacher-avatar">
+            <img src={photo} alt={name} />
+          </div>
+        </div>
+        <div className="pld-teacher-details">
+          <h3 className="pld-teacher-name">{name}</h3>
+          {showOfferDetails && tutorApp?.proposed_fee && (
+            <p className="pld-teacher-headline">
+              السعر المقترح: {tutorApp.proposed_fee} ل.س/ساعة
+            </p>
+          )}
+          {!showOfferDetails && targetTutor?.total_experience_years != null && (
+            <p className="pld-teacher-headline">
+              خبرة {targetTutor.total_experience_years} سنة
+            </p>
+          )}
+          {(showOfferDetails ? tutorApp?.message : targetTutor?.bio) && (
+            <p className="pld-teacher-bio">
+              {showOfferDetails ? tutorApp.message : targetTutor.bio}
+            </p>
+          )}
+          {tutorProfileId && (
+            <span className="pld-view-profile-hint">
+              <span className="material-symbols-outlined">open_in_new</span>
+              عرض الملف الشخصي للمعلم
+            </span>
+          )}
+        </div>
+      </section>
+    );
+  };
+
   const toggleModal = () => setIsModalOpen((prev) => !prev);
 
   const handleCloseLead = async (matched) => {
@@ -121,23 +191,7 @@ export default function PrivateLeadDetails({ lead }) {
               </div>
             </section>
 
-            {tutorApp && (
-              <section className="pld-card pld-teacher-card">
-                <div className="pld-teacher-details">
-                  <h3 className="pld-teacher-name">
-                    {tutorApp.tutor_first_name || `معلم #${tutorApp.tutor_id}`}
-                  </h3>
-                  {tutorApp.proposed_fee && (
-                    <p className="pld-teacher-headline">
-                      السعر المقترح: {tutorApp.proposed_fee} ل.س/ساعة
-                    </p>
-                  )}
-                  {tutorApp.message && (
-                    <p className="pld-teacher-bio">{tutorApp.message}</p>
-                  )}
-                </div>
-              </section>
-            )}
+            {renderTutorCard({ showOfferDetails: true })}
 
             <section className="pld-session-info-bar">
               <div className="pld-info-block">
@@ -282,35 +336,7 @@ export default function PrivateLeadDetails({ lead }) {
               </div>
             </section>
 
-            {/* كارت المعلم المستهدف */}
-            {targetTutor && (
-              <section className="pld-card pld-teacher-card">
-                <div className="pld-teacher-avatar-wrapper">
-                  <div className="pld-teacher-avatar">
-                    <img
-                      src={resolveTutorPhotoUrl(targetTutor.tutor_photo, {
-                        gender: targetTutor.gender,
-                        tutorId: targetTutor.tutor_id,
-                      })}
-                      alt={targetTutor.first_name}
-                    />
-                  </div>
-                </div>
-                <div className="pld-teacher-details">
-                  <h3 className="pld-teacher-name">
-                    {targetTutor.first_name} {targetTutor.last_name}
-                  </h3>
-                  {targetTutor.bio && (
-                    <p className="pld-teacher-bio">{targetTutor.bio}</p>
-                  )}
-                  {targetTutor.total_experience_years != null && (
-                    <p className="pld-teacher-headline">
-                      خبرة {targetTutor.total_experience_years} سنة
-                    </p>
-                  )}
-                </div>
-              </section>
-            )}
+            {renderTutorCard()}
 
             <section className="pld-card pld-search-status-card">
               <div className="pld-search-icon-wrapper">
@@ -344,15 +370,27 @@ export default function PrivateLeadDetails({ lead }) {
               </div>
             </section>
 
-            <section className="pld-card pld-contact-section">
-              <div className="pld-footer-actions">
+            <section className="pld-card pld-lead-actions-section">
+              <div className="pld-action-block pld-action-danger">
+                <div className="pld-action-block-content">
+                  <div className="pld-action-icon pld-action-icon-danger">
+                    <span className="material-symbols-outlined">delete_outline</span>
+                  </div>
+                  <div>
+                    <h3 className="pld-action-title">إلغاء الطلب</h3>
+                    <p className="pld-action-desc">
+                      إذا لم تعد بحاجة لهذا الطلب. سيتوقف إرساله للمعلم ولن يتمكن من الرد عليه.
+                    </p>
+                  </div>
+                </div>
                 <button
-                  className="pld-btn-secondary pld-text-danger"
+                  type="button"
+                  className="pld-btn-danger-outline"
                   disabled={actionLoading}
                   onClick={toggleModal}
                 >
                   <span className="material-symbols-outlined">cancel</span>
-                  إلغاء الطلب
+                  {actionLoading ? "جاري الإلغاء..." : "إلغاء الطلب نهائياً"}
                 </button>
               </div>
             </section>
@@ -405,7 +443,9 @@ export default function PrivateLeadDetails({ lead }) {
                 <span className="material-symbols-outlined">warning</span>
               </div>
               <h2>تأكيد إلغاء الطلب</h2>
-              <p>هل أنت متأكد أنك تريد إلغاء هذا الطلب؟</p>
+              <p>
+                سيتم إلغاء الطلب نهائياً ولن يتمكن المعلم من الرد عليه. لا يمكن التراجع بعد الإلغاء.
+              </p>
               <div className="pld-modal-actions-grid">
                 <button className="pld-modal-btn-cancel" onClick={toggleModal}>
                   تراجع

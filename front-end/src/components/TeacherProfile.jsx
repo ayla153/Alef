@@ -39,7 +39,7 @@ export default function TeacherProfile({ teacherData }) {
     age: teacherData.age || 30,
     rating: teacherData.rating || 0,
     reviewsCount: teacherData.reviews || 0,
-    avatar: resolveTutorPhotoUrl(teacherData.image, {
+    avatar: resolveTutorPhotoUrl(teacherData.tutorPhoto ?? teacherData.image, {
       gender: teacherData.gender,
       tutorId: teacherData.id,
     }),

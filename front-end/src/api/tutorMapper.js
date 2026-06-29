@@ -1,3 +1,30 @@
+/** أقل وأعلى سعر ساعة من مواد المعلّم (price_per_hour) */
+export function getSubjectPriceRange(tutorSubjects = []) {
+  const prices = (tutorSubjects || [])
+    .map((ts) => Number(ts?.price_per_hour))
+    .filter((p) => !Number.isNaN(p));
+  if (prices.length === 0) return { min: null, max: null };
+  return { min: Math.min(...prices), max: Math.max(...prices) };
+}
+
+/** يستنتج min/max من أي شكل بيانات كرت معلّم (جديد أو قديم) */
+export function resolveTeacherPrices(teacher = {}) {
+  if (teacher.minPrice != null || teacher.maxPrice != null) {
+    return { minPrice: teacher.minPrice, maxPrice: teacher.maxPrice };
+  }
+
+  const fromSubjects = getSubjectPriceRange(teacher.originalData?.tutor_subjects);
+  if (fromSubjects.min != null) {
+    return { minPrice: fromSubjects.min, maxPrice: fromSubjects.max };
+  }
+
+  const legacy = [teacher.onlinePrice, teacher.offlinePrice, teacher.price]
+    .map((p) => Number(p))
+    .filter((p) => !Number.isNaN(p));
+  if (legacy.length === 0) return { minPrice: null, maxPrice: null };
+  return { minPrice: Math.min(...legacy), maxPrice: Math.max(...legacy) };
+}
+
 // تحويل موحّد لبيانات المعلّم القادمة من الباك إند (TutorOut)
 // إلى الشكل الذي تتوقعه واجهات الأدمن (مستخدم بأكثر من صفحة لتفادي تكرار نفس المنطق)
 export function mapTutorToUI(tutor) {

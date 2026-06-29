@@ -26,6 +26,7 @@ function mapTutorToTeacherData(tutor) {
     id: tutor.tutor_id,
     name: `${tutor.first_name} ${tutor.last_name}`,
     gender: tutor.gender,
+    tutorPhoto: tutor.tutor_photo,
     image: resolveTutorPhotoUrl(tutor.tutor_photo, {
       gender: tutor.gender,
       tutorId: tutor.tutor_id,

@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import api from "../../api/api";
 import { getAuthRole } from "../../api/authStorage";
 import { getPublicTutors } from "../../api/publicTutors";
+import { getSubjectPriceRange } from "../../api/tutorMapper";
 import { isMarketplaceTutor } from "../../utils/adminTutorStatus";
-import { resolveTutorPhotoUrl } from "../../utils/tutorPhoto";
 
 import Header from "../../components/Header";
 import FiltersBar from "../../components/FiltersBar";
@@ -66,9 +66,7 @@ function TutorsPage() {
         const mappedTutors = tutorsData.map((tutor) => {
           const tutorSubjects = tutor.tutor_subjects || [];
 
-          const prices = tutorSubjects.map((subject) => subject.price_per_hour);
-
-          const minPrice = prices.length > 0 ? Math.min(...prices) : null;
+          const { min: minPrice, max: maxPrice } = getSubjectPriceRange(tutorSubjects);
 
           const stage = tutorSubjects.some((s) => s.high_stage)
             ? "ثانوي"
@@ -84,6 +82,7 @@ function TutorsPage() {
             name: `${tutor.first_name} ${tutor.last_name}`,
 
             gender: tutor.gender,
+            tutorPhoto: tutor.tutor_photo,
 
             subtitle: tutor.bio || "",
 
@@ -112,15 +111,13 @@ function TutorsPage() {
 
             offlinePrice: tutor.tution_type === "online" ? null : minPrice,
 
+            minPrice,
+            maxPrice,
+
             modes:
               tutor.tution_type === "both"
                 ? ["online", "offline"]
                 : [tutor.tution_type],
-
-            image: resolveTutorPhotoUrl(tutor.tutor_photo, {
-              gender: tutor.gender,
-              tutorId: tutor.tutor_id,
-            }),
 
             // حالة المفضلة الحقيقية القادمة من الباك، لتلوين البوكمارك من أول تحميل
             isFavorite: favMap[tutor.tutor_id] !== undefined,

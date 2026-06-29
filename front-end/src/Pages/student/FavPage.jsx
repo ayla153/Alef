@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Header from "../../components/Header";
 import TeacherCard from "../../components/TeacherCard";
 import api from "../../api/api.js";
-import { resolveTutorPhotoUrl } from "../../utils/tutorPhoto";
+import { getSubjectPriceRange } from "../../api/tutorMapper";
 import "../../styles/sstyle/FavPage.css";
 
 // نفس الترجمة المستخدمة بباقي الصفحات (TeacherProfile / TutorsPage)
@@ -19,8 +19,7 @@ const subjectTranslation = {
 // نفس منطق التحويل المستخدم في TutorsPage.jsx
 const mapTutorToTeacherCard = (tutor) => {
   const tutorSubjects = tutor.tutor_subjects || [];
-  const prices = tutorSubjects.map((s) => s.price_per_hour);
-  const minPrice = prices.length > 0 ? Math.min(...prices) : null;
+  const { min: minPrice, max: maxPrice } = getSubjectPriceRange(tutorSubjects);
 
   const stage = tutorSubjects.some((s) => s.high_stage)
     ? "ثانوي"
@@ -34,6 +33,7 @@ const mapTutorToTeacherCard = (tutor) => {
     id: tutor.tutor_id,
     name: `${tutor.first_name} ${tutor.last_name}`,
     gender: tutor.gender,
+    tutorPhoto: tutor.tutor_photo,
     subtitle: tutor.bio || "",
     rating: tutor.reviews?.length
       ? (
@@ -52,14 +52,12 @@ const mapTutorToTeacherCard = (tutor) => {
     stage,
     onlinePrice: tutor.tution_type === "offline" ? null : minPrice,
     offlinePrice: tutor.tution_type === "online" ? null : minPrice,
+    minPrice,
+    maxPrice,
     modes:
       tutor.tution_type === "both"
         ? ["online", "offline"]
         : [tutor.tution_type],
-    image: resolveTutorPhotoUrl(tutor.tutor_photo, {
-      gender: tutor.gender,
-      tutorId: tutor.tutor_id,
-    }),
     originalData: tutor,
   };
 };

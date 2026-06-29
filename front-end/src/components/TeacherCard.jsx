@@ -106,7 +106,7 @@ const TeacherCard = ({
 
       {/* subjects */}
       <div className="tc-tags">
-        {teacher.subjects.map((sub, i) => (
+        {(teacher.subjects || []).map((sub, i) => (
           <span key={i} className="tc-tag">
             {sub}
           </span>
@@ -121,6 +121,7 @@ const TeacherCard = ({
           }`}
         >
           <span className="tc-service-name online">أونلاين</span>
+          
         </div>
 
         <div
@@ -129,6 +130,7 @@ const TeacherCard = ({
           }`}
         >
           <span className="tc-service-name offline">حضوري</span>
+          
         </div>
       </div>
 

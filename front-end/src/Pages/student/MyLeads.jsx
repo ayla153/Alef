@@ -207,15 +207,6 @@ export default function MyLeads() {
     }
   };
 
-  const getBadgeIcon = (badgeType) => {
-    switch (badgeType) {
-      case "warning": return "schedule";
-      case "success": return "verified";
-      case "expired": return "event_busy";
-      default: return "info";
-    }
-  };
-
   if (loading) {
     return (
       <div className="app-container" dir="rtl">
@@ -294,10 +285,20 @@ export default function MyLeads() {
               const dimmed = isDimmed(lead);
               const isPrivate = lead.target_tutor_id != null;
 
+              const sessionLabel =
+                lead.tution_type === "online"
+                  ? "أونلاين"
+                  : lead.tution_type === "offline"
+                    ? "حضوري"
+                    : "أونلاين وحضوري";
+
+              const statusVariant =
+                lead.lead_status === "open" ? "open" : dimmed ? "expired" : config.statusColor;
+
               return (
                 <div
                   key={lead.post_requirements_id}
-                  className={`lead-card ${dimmed ? "expired-card" : ""}`}
+                  className={`lead-card lead-card--${statusVariant} ${dimmed ? "expired-card" : ""}`}
                 >
                   <div className="lead-right-side">
                     <div className={`subject-icon icon-${subjectColor}`}>
@@ -309,72 +310,45 @@ export default function MyLeads() {
                     <div className="subject-details">
                       <div className="subject-title-row">
                         <h3>{translatedTitle}</h3>
-                        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                          <span
-                            style={{
-                              fontSize: "11px",
-                              padding: "2px 8px",
-                              borderRadius: "99px",
-                              background: lead.target_tutor_id ? "#ede9fe" : "#dbeafe",
-                              color: lead.target_tutor_id ? "#7c3aed" : "#1d4ed8",
-                            }}
-                          >
-                            {lead.target_tutor_id ? "طلب خاص" : "طلب عام"}
-                          </span>
-                          <span className={`status-badge status-${config.statusColor}`}>
-                            {config.statusText}
-                          </span>
-                        </div>
+                        <span className={`lead-status-indicator lead-status-${config.statusColor}`}>
+                          <span className="lead-status-dot" aria-hidden="true" />
+                          <span className="lead-status-text">{config.statusText}</span>
+                        </span>
                       </div>
 
-                      <div className="subject-meta">
-                        <div className="meta-item">
-                          <span className="material-symbols-outlined">payments</span>
-                          <span>{lead.min_expected_fee} - {lead.max_expected_fee} ل.س / ساعة</span>
-                        </div>
-                        <div className="meta-item">
-                          <span className="material-symbols-outlined">
-                            {lead.tution_type === "online" ? "wifi" : lead.tution_type === "offline" ? "person_pin" : "devices"}
-                          </span>
-                          <span>
-                            {lead.tution_type === "online" ? "أونلاين" : lead.tution_type === "offline" ? "حضوري" : "أونلاين وحضوري"}
-                          </span>
-                        </div>
-                        {lead.help_type && (
-                          <div className="meta-item">
-                            <span className="material-symbols-outlined">help_outline</span>
-                            <span>{lead.help_type}</span>
-                          </div>
-                        )}
-                        {lead.weekly_classes && (
-                          <div className="meta-item">
-                            <span className="material-symbols-outlined">calendar_month</span>
-                            <span>{lead.weekly_classes} حصص/أسبوع</span>
-                          </div>
-                        )}
-                      </div>
+                      <p className="lead-card-summary">
+                        <span className={`lead-type-dot ${isPrivate ? "lead-type-private" : "lead-type-public"}`} />
+                        {isPrivate ? "طلب خاص" : "طلب عام"}
+                        <span className="lead-summary-sep">·</span>
+                        {lead.min_expected_fee}–{lead.max_expected_fee} ل.س/ساعة
+                        <span className="lead-summary-sep">·</span>
+                        {sessionLabel}
+                      </p>
+
+                      {isPrivate && (
+                        <button
+                          type="button"
+                          className="lead-tutor-link"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/tutor/${lead.target_tutor_id}`);
+                          }}
+                        >
+                          <span className="material-symbols-outlined">person</span>
+                          عرض ملف المعلم
+                        </button>
+                      )}
                     </div>
                   </div>
 
                   <div className="lead-left-side">
-                    <div className="badges-row">
-                      {config.badgeText && (
-                        <div className={`info-badge badge-${config.badgeType}`}>
-                          <span className="material-symbols-outlined">
-                            {getBadgeIcon(config.badgeType)}
-                          </span>
-                          <span>{config.badgeText}</span>
-                        </div>
-                      )}
-
-                      {!isPrivate && (
-                        <div className="info-badge badge-primary-light">
-                          <span className="material-symbols-outlined">groups</span>
-                          <span>{lead.pending_offer_count} عروض مستلمة</span>
-                        </div>
-                      )}
-                    </div>
-
+                    {!isPrivate && lead.pending_offer_count > 0 && (
+                      <div className="lead-offers-stat" title="عروض مستلمة">
+                        <span className="material-symbols-outlined">inbox</span>
+                        <span className="lead-offers-count">{lead.pending_offer_count}</span>
+                        <span className="lead-offers-label">عرض</span>
+                      </div>
+                    )}
                     <button
                       className={`action-btn ${config.buttonClass}`}
                       onClick={() => handleAction(lead)}

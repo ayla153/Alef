@@ -121,6 +121,8 @@
   background-color: #fff;
   border-radius: 16px;
   border: 1px solid var(--border-light);
+  border-inline-start-width: 4px;
+  border-inline-start-style: solid;
   padding: 24px;
   display: flex;
   flex-direction: row;
@@ -128,6 +130,30 @@
   justify-content: space-between;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   transition: all 0.2s;
+}
+
+.lead-card--open {
+  border-inline-start-color: var(--emerald-600);
+}
+
+.lead-card--expired {
+  border-inline-start-color: #94a3b8;
+}
+
+.lead-card--emerald {
+  border-inline-start-color: var(--emerald-600);
+}
+
+.lead-card--amber {
+  border-inline-start-color: var(--amber-600);
+}
+
+.lead-card--blue {
+  border-inline-start-color: var(--primary);
+}
+
+.lead-card--gray {
+  border-inline-start-color: #94a3b8;
 }
 
 .lead-card:hover {
@@ -174,7 +200,119 @@
   margin: 0;
 }
 
-/* شارات الحالات وتسمياتها داخل الكروت */
+.lead-card-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.lead-type-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.lead-type-private {
+  background-color: #8b5cf6;
+}
+
+.lead-type-public {
+  background-color: var(--primary);
+}
+
+.lead-summary-sep {
+  color: #cbd5e1;
+  user-select: none;
+}
+
+.lead-tutor-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.lead-tutor-link:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
+
+.lead-tutor-link .material-symbols-outlined {
+  font-size: 16px;
+}
+
+/* مؤشر الحالة — بدون pill badges */
+.lead-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.lead-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.lead-status-emerald .lead-status-dot { background-color: var(--emerald-600); }
+.lead-status-emerald .lead-status-text { color: var(--emerald-600); }
+
+.lead-status-amber .lead-status-dot { background-color: var(--amber-600); }
+.lead-status-amber .lead-status-text { color: var(--amber-600); }
+
+.lead-status-blue .lead-status-dot { background-color: var(--primary); }
+.lead-status-blue .lead-status-text { color: var(--primary); }
+
+.lead-status-gray .lead-status-dot { background-color: #94a3b8; }
+.lead-status-gray .lead-status-text { color: #64748b; }
+
+.lead-offers-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  background-color: #f8fafc;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.lead-offers-stat .material-symbols-outlined {
+  font-size: 18px;
+  color: var(--primary);
+}
+
+.lead-offers-count {
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--slate-900);
+  line-height: 1;
+}
+
+.lead-offers-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* legacy pill badges — kept for reference */
 .status-badge {
   padding: 4px 12px;
   border-radius: 9999px;
@@ -215,7 +353,8 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 16px;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .badges-row {

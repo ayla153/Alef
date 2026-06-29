@@ -76,6 +76,19 @@ export const formatHourlyPrice = (amount, enabled = true) => {
   return `${n.toLocaleString('ar-SY')} ل.س`;
 };
 
+/** نطاق سعر الساعة (أرخص مادة → أغلى مادة) بالليرة السورية */
+export const formatHourlyPriceRange = (min, max, enabled = true) => {
+  if (!enabled) return '—';
+  const lo = min ?? max;
+  const hi = max ?? min;
+  if (lo == null && hi == null) return '—';
+  const nMin = Number(lo);
+  const nMax = Number(hi);
+  if (Number.isNaN(nMin) || Number.isNaN(nMax)) return '—';
+  if (nMin === nMax) return `${nMin.toLocaleString('ar-SY')} ل.س`;
+  return `${nMin.toLocaleString('ar-SY')} - ${nMax.toLocaleString('ar-SY')} ل.س`;
+};
+
 export const formatDate = (dateString) => {
   if (!dateString) return '—';
   return new Date(dateString).toLocaleDateString('ar-SA', {
