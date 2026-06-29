@@ -3,7 +3,9 @@ import { isAuthenticated, getAuthRole } from '../api/authStorage';
 
 export default function ProtectedRoute({ children, role }) {
   if (!isAuthenticated()) {
-    return <Navigate to="/selection" replace />;
+    // Send guests to landing — not /selection — so Back from selection
+    // does not loop through dashboard/home and trap them on selection.
+    return <Navigate to="/" replace />;
   }
 
   const userRole = getAuthRole();

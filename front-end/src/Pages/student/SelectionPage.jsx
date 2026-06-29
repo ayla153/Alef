@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { isAuthenticated } from "../../api/authStorage";
+import { seedLandingBeforeSelection } from "../../utils/guestAuthNavigation";
 import "../../styles/sstyle/SelectionPage.css";
 
 const SelectionPage = () => {
@@ -7,6 +9,11 @@ const SelectionPage = () => {
   const location = useLocation();
 
   const mode = location.state?.mode || "register";
+
+  useEffect(() => {
+    if (isAuthenticated()) return;
+    seedLandingBeforeSelection();
+  }, []);
 
   const handleStudentClick = () => {
     if (mode === "login") {
@@ -25,7 +32,7 @@ const SelectionPage = () => {
   };
 
   const handleBackToLanding = () => {
-    navigate("/");
+    navigate("/", { replace: true });
   };
 
   return (

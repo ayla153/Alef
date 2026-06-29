@@ -1,8 +1,10 @@
 import { Navigate } from 'react-router-dom';
 import { isAuthenticated, getAuthRole } from '../api/authStorage';
-import { getLoginPathForRole } from '../utils/authRedirect';
+import { useGuestAuthHistoryGuard } from '../hooks/useGuestAuthHistoryGuard';
 
 export default function GuestRoute({ children }) {
+  useGuestAuthHistoryGuard();
+
   if (isAuthenticated()) {
     const role = getAuthRole();
     if (role === 'tutor') return <Navigate to="/dashboard/home" replace />;
