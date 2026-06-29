@@ -1003,3 +1003,180 @@ body {
   margin-top: 15px;
   gap: 10px;
 }
+
+/* =========================
+   Lead Actions Section
+========================= */
+.pld-lead-actions-section {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.pld-action-block {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+}
+
+.pld-action-primary {
+  background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%);
+  border: 1px solid #bfdbfe;
+}
+
+.pld-action-danger {
+  background-color: #fafafa;
+  border: 1px solid #f1f5f9;
+}
+
+.pld-action-block-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.pld-action-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pld-action-icon-primary {
+  background-color: #dbeafe;
+  color: #2563eb;
+}
+
+.pld-action-icon-danger {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.pld-action-icon .material-symbols-outlined {
+  font-size: 22px;
+}
+
+.pld-action-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 6px;
+}
+
+.pld-action-desc {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.pld-action-separator {
+  height: 1px;
+  background-color: #e2e8f0;
+  margin: 1rem 0;
+}
+
+.pld-btn-primary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  background-color: #2563eb;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  box-shadow: 0 4px 12px -2px rgba(37, 99, 235, 0.25);
+}
+
+.pld-btn-primary-action:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+
+.pld-btn-danger-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 20px;
+  border-radius: 10px;
+  background-color: #ffffff;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.pld-btn-danger-outline:hover:not(:disabled) {
+  background-color: #fef2f2;
+}
+
+.pld-btn-primary-action:disabled,
+.pld-btn-danger-outline:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pld-btn-primary-action .material-symbols-outlined,
+.pld-btn-danger-outline .material-symbols-outlined {
+  font-size: 18px;
+}
+
+/* Confirm modals */
+.pod-modal-confirm {
+  width: min(400px, 92vw);
+  text-align: center;
+  padding: 24px;
+}
+
+.pod-modal-confirm h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 10px;
+}
+
+.pod-modal-confirm p {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0 0 4px;
+}
+
+.pod-modal-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.pod-modal-icon-primary {
+  background-color: #dbeafe;
+  color: #2563eb;
+}
+
+.pod-modal-icon-danger {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.pod-modal-icon .material-symbols-outlined {
+  font-size: 28px;
+}

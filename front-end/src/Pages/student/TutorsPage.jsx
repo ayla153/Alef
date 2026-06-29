@@ -3,7 +3,6 @@ import api from "../../api/api";
 import { getAuthRole } from "../../api/authStorage";
 import { getPublicTutors } from "../../api/publicTutors";
 import { isMarketplaceTutor } from "../../utils/adminTutorStatus";
-import { resolveTutorPhotoUrl } from "../../utils/tutorPhoto";
 
 import Header from "../../components/Header";
 import FiltersBar from "../../components/FiltersBar";
@@ -84,6 +83,7 @@ function TutorsPage() {
             name: `${tutor.first_name} ${tutor.last_name}`,
 
             gender: tutor.gender,
+            tutorPhoto: tutor.tutor_photo,
 
             subtitle: tutor.bio || "",
 
@@ -116,11 +116,6 @@ function TutorsPage() {
               tutor.tution_type === "both"
                 ? ["online", "offline"]
                 : [tutor.tution_type],
-
-            image: resolveTutorPhotoUrl(tutor.tutor_photo, {
-              gender: tutor.gender,
-              tutorId: tutor.tutor_id,
-            }),
 
             // حالة المفضلة الحقيقية القادمة من الباك، لتلوين البوكمارك من أول تحميل
             isFavorite: favMap[tutor.tutor_id] !== undefined,

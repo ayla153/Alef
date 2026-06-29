@@ -62,7 +62,7 @@ const TeacherCard = ({
       {/* HEADER */}
       <div className="tc-card-header">
         <img
-          src={resolveTutorPhotoUrl(teacher.image, {
+          src={resolveTutorPhotoUrl(teacher.tutorPhoto, {
             gender: teacher.gender,
             tutorId: teacher.id,
           })}

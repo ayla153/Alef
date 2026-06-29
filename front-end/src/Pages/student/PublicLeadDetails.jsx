@@ -391,52 +391,128 @@ export default function PublicLeadDetails({ lead }) {
           </div>
         </section>
 
-        {/* أزرار الإجراءات — تختفي بعد الإغلاق */}
+        {/* إجراءات الطلب — تختفي بعد الإغلاق */}
         {!isClosed && (
-          <section className="pld-card pld-contact-section">
-            <div className="pld-footer-actions">
+          <section className="pld-card pld-lead-actions-section">
+            {hasOffersToClose && (
+              <div className="pld-action-block pld-action-primary">
+                <div className="pld-action-block-content">
+                  <div className="pld-action-icon pld-action-icon-primary">
+                    <span className="material-symbols-outlined">call</span>
+                  </div>
+                  <div>
+                    <h3 className="pld-action-title">إنهاء المراجعة وكشف أرقام المعلمين</h3>
+                    <p className="pld-action-desc">
+                      عند إغلاق الطلب ستظهر أرقام جميع المعلمين الذين قدّموا عروضاً ({pendingOfferCount} معلم)
+                      لتتواصل مع من يناسبك. لن يستقبل الطلب عروضاً جديدة بعد الإغلاق.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="pld-btn-primary-action"
+                  disabled={actionLoading}
+                  onClick={() => setShowCloseModal(true)}
+                >
+                  <span className="material-symbols-outlined">lock_open</span>
+                  {actionLoading ? "جاري الإغلاق..." : "إغلاق الطلب وكشف الأرقام"}
+                </button>
+              </div>
+            )}
+
+            {hasOffersToClose && <div className="pld-action-separator" role="separator" />}
+
+            <div className="pld-action-block pld-action-danger">
+              <div className="pld-action-block-content">
+                <div className="pld-action-icon pld-action-icon-danger">
+                  <span className="material-symbols-outlined">delete_outline</span>
+                </div>
+                <div>
+                  <h3 className="pld-action-title">
+                    {hasOffersToClose ? "إلغاء الطلب وحذفه" : "إلغاء الطلب"}
+                  </h3>
+                  <p className="pld-action-desc">
+                    {hasOffersToClose
+                      ? "إذا لم تعد مهتماً بالطلب. سيتوقف استقبال عروض جديدة ولن تُكشف أرقام المعلمين."
+                      : "إذا لم تعد بحاجة لهذا الطلب. سيتوقف نشره ولن يستقبل عروضاً من المعلمين."}
+                  </p>
+                </div>
+              </div>
               <button
-                className="pld-btn-secondary pld-text-danger"
+                type="button"
+                className="pld-btn-danger-outline"
                 disabled={actionLoading}
                 onClick={() => setShowCancelModal(true)}
               >
                 <span className="material-symbols-outlined">cancel</span>
-                {actionLoading ? "جاري الإلغاء..." : "إلغاء الطلب"}
+                {actionLoading ? "جاري الإلغاء..." : "إلغاء الطلب نهائياً"}
               </button>
-
-              {applicationsState.filter(a => a.application_status === "pending").length > 0 && (
-                <button
-                  className="pld-btn-secondary"
-                  disabled={actionLoading}
-                  onClick={handleCloseOrder}
-                >
-                  <span className="material-symbols-outlined">lock</span>
-                  {actionLoading ? "جاري الإغلاق..." : "إغلاق الطلب وكشف الأرقام"}
-                </button>
-              )}
             </div>
           </section>
         )}
       </main>
 
-      {showCancelModal && (
+      {showCloseModal && (
         <div className="pod-modal-overlay">
-          <div className="pod-modal">
-            <h3>تأكيد إلغاء الطلب</h3>
-            <p>هل أنت متأكد؟ لا يمكن التراجع بعد الإلغاء.</p>
+          <div className="pod-modal pod-modal-confirm">
+            <div className="pod-modal-icon pod-modal-icon-primary">
+              <span className="material-symbols-outlined">lock_open</span>
+            </div>
+            <h3>تأكيد إغلاق الطلب</h3>
+            <p>
+              سيتم كشف أرقام {pendingOfferCount} معلم. لن يستقبل الطلب عروضاً جديدة
+              ولا يمكن التراجع عن هذا الإجراء.
+            </p>
             <div className="pod-modal-actions">
               <button
+                type="button"
+                className="pod-btn pod-btn-secondary"
+                onClick={() => setShowCloseModal(false)}
+              >
+                تراجع
+              </button>
+              <button
+                type="button"
+                className="pod-btn pod-btn-primary"
+                disabled={actionLoading}
+                onClick={async () => {
+                  setShowCloseModal(false);
+                  await handleCloseOrder();
+                }}
+              >
+                {actionLoading ? "جاري الإغلاق..." : "نعم، أغلق واكشف الأرقام"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCancelModal && (
+        <div className="pod-modal-overlay">
+          <div className="pod-modal pod-modal-confirm">
+            <div className="pod-modal-icon pod-modal-icon-danger">
+              <span className="material-symbols-outlined">warning</span>
+            </div>
+            <h3>تأكيد إلغاء الطلب</h3>
+            <p>
+              سيتم إلغاء الطلب نهائياً
+              {hasOffersToClose ? " دون كشف أرقام المعلمين" : ""}. لا يمكن التراجع بعد الإلغاء.
+            </p>
+            <div className="pod-modal-actions">
+              <button
+                type="button"
                 className="pod-btn pod-btn-secondary"
                 onClick={() => setShowCancelModal(false)}
               >
                 تراجع
               </button>
               <button
+                type="button"
                 className="pod-btn pod-btn-danger"
                 disabled={actionLoading}
                 onClick={handleCancelOrder}
               >
-                تأكيد الإلغاء
+                {actionLoading ? "جاري الإلغاء..." : "نعم، ألغِ الطلب"}
               </button>
             </div>
           </div>

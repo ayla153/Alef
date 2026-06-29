@@ -4,20 +4,23 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/api.js";
 import { getTeacherProfilePath } from "../utils/authRedirect";
 import { formatHourlyPrice } from "../utils/Translations";
+import { resolveTutorPhotoUrl } from "../utils/tutorPhoto";
 
 const TeacherCard2 = ({
   id,
+  gender,
+  tutorPhoto,
   name,
   rating,
   subject,
   experience,
   modes,
   price,
-  image,
   isFavorite = false,
   favoriteId = null,
   onFavoriteChange,
 }) => {
+  const photoUrl = resolveTutorPhotoUrl(tutorPhoto, { gender, tutorId: id });
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
 
@@ -53,7 +56,7 @@ const TeacherCard2 = ({
       <div className="teacherHeader">
         <div
           className="teacherImg"
-          style={{ backgroundImage: `url(${image})` }}
+          style={{ backgroundImage: `url(${photoUrl})` }}
         ></div>
 
         <div className="teacherDetails">

@@ -6,7 +6,6 @@ import FAQItem from '../FAQItem';
 import '../../styles/HomeTab.css';
 import studentImage from '../../assets/homePageImage.png';
 import { getTopTutors, getPublicTutorById } from '../../api/publicTutors';
-import { resolveTutorPhotoUrl } from '../../utils/tutorPhoto';
 import { isAuthenticated, getAuthRole } from '../../api/authStorage';
 import { getHomePathForRole } from '../../utils/authRedirect';
 
@@ -30,10 +29,7 @@ function mapTutorToTeacher(tutor, rankMeta = {}) {
     id: tutor.tutor_id,
     name: `${tutor.first_name} ${tutor.last_name}`,
     gender: tutor.gender,
-    image: resolveTutorPhotoUrl(tutor.tutor_photo, {
-      gender: tutor.gender,
-      tutorId: tutor.tutor_id,
-    }),
+    tutorPhoto: tutor.tutor_photo,
     subtitle: tutor.bio ?? '',
     stage: tutor.bio ?? '',
     bio: tutor.bio ?? '',
@@ -54,10 +50,7 @@ function mapTopRankToTeacher(item) {
     id: item.tutor_id,
     name: `${item.first_name} ${item.last_name}`,
     gender: item.gender,
-    image: resolveTutorPhotoUrl(item.tutor_photo, {
-      gender: item.gender,
-      tutorId: item.tutor_id,
-    }),
+    tutorPhoto: item.tutor_photo,
     subtitle: '',
     stage: `${item.total_experience_years ?? 0} سنوات خبرة`,
     bio: '',

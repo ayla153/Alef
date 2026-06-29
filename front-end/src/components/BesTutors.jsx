@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import '../styles/BestTutors.css';
 import { formatHourlyPrice } from '../utils/Translations';
-import { getTutorPlaceholderPhoto } from '../utils/tutorPhoto';
+import { resolveTutorPhotoUrl } from '../utils/tutorPhoto';
 
 export default function BesTutors({ teacher = {}, onViewProfile }) {
   const [saved, setSaved] = useState(false);
@@ -10,8 +10,8 @@ export default function BesTutors({ teacher = {}, onViewProfile }) {
   const {
     id,
     gender,
+    tutorPhoto,
     name = "اسم غير معروف",
-    image,
     subtitle = "مدرس محترف",
     rating = 0,
     reviews = 0,
@@ -22,7 +22,7 @@ export default function BesTutors({ teacher = {}, onViewProfile }) {
     offlinePrice = 0,
   } = teacher;
 
-  const displayImage = image || getTutorPlaceholderPhoto({ gender, tutorId: id });
+  const displayImage = resolveTutorPhotoUrl(tutorPhoto, { gender, tutorId: id });
 
   const handleClick = () => {
     if (onViewProfile) {

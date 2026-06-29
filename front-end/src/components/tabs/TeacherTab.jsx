@@ -11,7 +11,6 @@ import {
   FaBookmark
 } from "react-icons/fa";
 import { getPublicTutors, getTopTutors } from "../../api/publicTutors";
-import { resolveTutorPhotoUrl } from "../../utils/tutorPhoto";
 import { isAuthenticated } from "../../api/authStorage";
 import { isMarketplaceTutor } from "../../utils/adminTutorStatus";
 import { getErrorMessage } from "../../utils/apiErrors";
@@ -45,10 +44,7 @@ function mapTutorToCard(tutor) {
     id: tutor.tutor_id,
     name: `${tutor.first_name} ${tutor.last_name}`,
     gender: tutor.gender,
-    image: resolveTutorPhotoUrl(tutor.tutor_photo, {
-      gender: tutor.gender,
-      tutorId: tutor.tutor_id,
-    }),
+    tutorPhoto: tutor.tutor_photo,
     stage: tutor.bio ? tutor.bio.slice(0, 40) : 'مدرّس/ة',
     rating: avgRating,
     reviews: reviews.length,
@@ -90,10 +86,7 @@ export default function TeachersTab({ setSelectedTeacher, setActiveTab, onViewPr
             id: item.tutor_id,
             name: `${item.first_name} ${item.last_name}`,
             gender: item.gender,
-            image: resolveTutorPhotoUrl(item.tutor_photo, {
-              gender: item.gender,
-              tutorId: item.tutor_id,
-            }),
+            tutorPhoto: item.tutor_photo,
             stage: `${item.total_experience_years ?? 0} سنوات خبرة`,
             rating: item.average_rating ?? 0,
             reviews: item.reviews_count ?? 0,

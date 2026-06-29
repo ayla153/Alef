@@ -370,15 +370,27 @@ export default function PrivateLeadDetails({ lead }) {
               </div>
             </section>
 
-            <section className="pld-card pld-contact-section">
-              <div className="pld-footer-actions">
+            <section className="pld-card pld-lead-actions-section">
+              <div className="pld-action-block pld-action-danger">
+                <div className="pld-action-block-content">
+                  <div className="pld-action-icon pld-action-icon-danger">
+                    <span className="material-symbols-outlined">delete_outline</span>
+                  </div>
+                  <div>
+                    <h3 className="pld-action-title">إلغاء الطلب</h3>
+                    <p className="pld-action-desc">
+                      إذا لم تعد بحاجة لهذا الطلب. سيتوقف إرساله للمعلم ولن يتمكن من الرد عليه.
+                    </p>
+                  </div>
+                </div>
                 <button
-                  className="pld-btn-secondary pld-text-danger"
+                  type="button"
+                  className="pld-btn-danger-outline"
                   disabled={actionLoading}
                   onClick={toggleModal}
                 >
                   <span className="material-symbols-outlined">cancel</span>
-                  إلغاء الطلب
+                  {actionLoading ? "جاري الإلغاء..." : "إلغاء الطلب نهائياً"}
                 </button>
               </div>
             </section>
@@ -431,7 +443,9 @@ export default function PrivateLeadDetails({ lead }) {
                 <span className="material-symbols-outlined">warning</span>
               </div>
               <h2>تأكيد إلغاء الطلب</h2>
-              <p>هل أنت متأكد أنك تريد إلغاء هذا الطلب؟</p>
+              <p>
+                سيتم إلغاء الطلب نهائياً ولن يتمكن المعلم من الرد عليه. لا يمكن التراجع بعد الإلغاء.
+              </p>
               <div className="pld-modal-actions-grid">
                 <button className="pld-modal-btn-cancel" onClick={toggleModal}>
                   تراجع

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import Header from "../../components/Header";
 import TeacherCard from "../../components/TeacherCard";
 import api from "../../api/api.js";
-import { resolveTutorPhotoUrl } from "../../utils/tutorPhoto";
 import "../../styles/sstyle/FavPage.css";
 
 // نفس الترجمة المستخدمة بباقي الصفحات (TeacherProfile / TutorsPage)
@@ -34,6 +33,7 @@ const mapTutorToTeacherCard = (tutor) => {
     id: tutor.tutor_id,
     name: `${tutor.first_name} ${tutor.last_name}`,
     gender: tutor.gender,
+    tutorPhoto: tutor.tutor_photo,
     subtitle: tutor.bio || "",
     rating: tutor.reviews?.length
       ? (
@@ -56,10 +56,6 @@ const mapTutorToTeacherCard = (tutor) => {
       tutor.tution_type === "both"
         ? ["online", "offline"]
         : [tutor.tution_type],
-    image: resolveTutorPhotoUrl(tutor.tutor_photo, {
-      gender: tutor.gender,
-      tutorId: tutor.tutor_id,
-    }),
     originalData: tutor,
   };
 };
