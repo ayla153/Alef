@@ -90,7 +90,7 @@ export default function HomeTab({ onViewProfile }) {
   useEffect(() => {
     const fetchTopTutors = async () => {
       try {
-        const { data: report } = await getTopTutors({ limit: 10 });
+        const { data: report } = await getTopTutors({ limit: 3 });
         const rankedItems = report?.items ?? [];
 
         if (rankedItems.length === 0) {

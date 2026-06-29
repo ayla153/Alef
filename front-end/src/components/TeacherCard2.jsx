@@ -3,19 +3,19 @@ import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api.js";
 import { getTeacherProfilePath } from "../utils/authRedirect";
-import { formatHourlyPriceRange } from "../utils/Translations";
 import { resolveTeacherPrices } from "../api/tutorMapper";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
+const FALLBACK_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='35' r='20' fill='%23b0b8c1'/%3E%3Cellipse cx='50' cy='85' rx='35' ry='25' fill='%23b0b8c1'/%3E%3C/svg%3E";
+
 const getFullImageUrl = (url) => {
   if (!url) return null;
+  if (url.includes('pravatar.cc') || url.includes('ui-avatars.com')) return null;
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
   if (url.startsWith('/')) return `${BASE_URL}${url}`;
   return `${BASE_URL}/${url}`;
 };
-
-const FALLBACK_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='35' r='20' fill='%23b0b8c1'/%3E%3Cellipse cx='50' cy='85' rx='35' ry='25' fill='%23b0b8c1'/%3E%3C/svg%3E";
 
 const TeacherCard2 = ({
   id,
@@ -105,11 +105,6 @@ const TeacherCard2 = ({
       </div>
 
       <div className="teacherFooter">
-        {/* <div className="price">
-          {formatHourlyPriceRange(priceMin, priceMax)}{" "}
-          <span>/ساعة</span>
-        </div> */}
-
         <div className="actions">
           <button className="favBtn" onClick={handleFavClick} disabled={busy}>
             {isFavorite ? (

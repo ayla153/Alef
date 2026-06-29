@@ -66,7 +66,8 @@ function TutorsPage() {
         const mappedTutors = tutorsData.map((tutor) => {
           const tutorSubjects = tutor.tutor_subjects || [];
 
-          const { min: minPrice, max: maxPrice } = getSubjectPriceRange(tutorSubjects);
+          const { min: minPrice, max: maxPrice } =
+            getSubjectPriceRange(tutorSubjects);
 
           const stage = tutorSubjects.some((s) => s.high_stage)
             ? "ثانوي"
@@ -86,7 +87,12 @@ function TutorsPage() {
 
             subtitle: tutor.bio || "",
 
-            rating: 0,
+            rating: tutor.reviews?.length
+              ? (
+                  tutor.reviews.reduce((sum, r) => sum + r.number_of_stars, 0) /
+                  tutor.reviews.length
+                ).toFixed(1)
+              : 0,
 
             reviews: tutor.reviews?.length || 0,
 

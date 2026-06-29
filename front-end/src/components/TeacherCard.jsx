@@ -4,25 +4,16 @@ import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api.js";
 
-// رابط الصورة الافتراضية (في حال فشل التحميل)
-const DEFAULT_AVATAR = 'https://ui-avatars.com/api/?name=مستخدم&background=3b82f6&color=fff&size=200';
-
-// رابط الباك إند الأساسي (من متغير البيئة أو افتراضي)
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
-// دالة لتحويل الرابط النسبي إلى رابط مطلق
+const FALLBACK_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='35' r='20' fill='%23b0b8c1'/%3E%3Cellipse cx='50' cy='85' rx='35' ry='25' fill='%23b0b8c1'/%3E%3C/svg%3E";
+
 const getFullImageUrl = (url) => {
   if (!url) return null;
+  if (url.includes('pravatar.cc') || url.includes('ui-avatars.com')) return null;
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
   if (url.startsWith('/')) return `${BASE_URL}${url}`;
   return `${BASE_URL}/${url}`;
-};
-
-// دالة لإضافة timestamp لمنع الكاش (اختياري)
-const addTimestamp = (url) => {
-  if (!url) return url;
-  const separator = url.includes('?') ? '&' : '?';
-  return `${url}${separator}t=${Date.now()}`;
 };
 
 const TeacherCard = ({
@@ -39,8 +30,7 @@ const TeacherCard = ({
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
 
-  // معالجة رابط الصورة: تحويل إلى مطلق + إضافة timestamp
-  const imageUrl = teacher.image ? addTimestamp(getFullImageUrl(teacher.image)) : DEFAULT_AVATAR;
+  const imageUrl = getFullImageUrl(teacher.tutorPhoto || teacher.image) || FALLBACK_AVATAR;
 
   const handleViewProfile = () => {
     navigate(`/tutor/${teacher.id}`);
@@ -70,33 +60,28 @@ const TeacherCard = ({
       setBusy(false);
     }
   };
-
+console.log('teacher:', teacher);
   return (
     <div className="tc-card">
-      {/* HEADER */}
       <div className="tc-card-header">
         <img
           src={imageUrl}
           alt={teacher.name}
           className="tc-profile-img"
-          onError={(e) => { e.target.src = DEFAULT_AVATAR; }}
+          onError={(e) => { e.target.onerror = null; e.target.src = FALLBACK_AVATAR; }}
         />
 
         <div className="tc-info">
           <h3 className="tc-name">{teacher.name}</h3>
-
           <p className="tc-subtitle">{teacher.stage || "غير محدد"}</p>
-
           <div className="tc-rating">
             <span className="tc-star">★</span>
             <span className="tc-score">{teacher.rating}</span>
             <span className="tc-reviews">({teacher.reviews || "0 تقييم"})</span>
           </div>
-
           <div className="tc-experience">{teacher.experience} سنوات خبرة</div>
         </div>
 
-        {/* Bookmark */}
         {showFavorite && (
           <button className="tc-fav-btn" onClick={handleToggleSave} disabled={busy}>
             {saved ? <FaBookmark color="#2563eb" /> : <FaRegBookmark />}
@@ -104,33 +89,18 @@ const TeacherCard = ({
         )}
       </div>
 
-      {/* subjects */}
       <div className="tc-tags">
         {(teacher.subjects || []).map((sub, i) => (
-          <span key={i} className="tc-tag">
-            {sub}
-          </span>
+          <span key={i} className="tc-tag">{sub}</span>
         ))}
       </div>
 
-      {/* services */}
       <div className="tc-services">
-        <div
-          className={`tc-service-item ${
-            teacher.modes?.includes("online") ? "" : "disabled"
-          }`}
-        >
+        <div className={`tc-service-item ${teacher.modes?.includes("online") ? "" : "disabled"}`}>
           <span className="tc-service-name online">أونلاين</span>
-          
         </div>
-
-        <div
-          className={`tc-service-item ${
-            teacher.modes?.includes("offline") ? "" : "disabled"
-          }`}
-        >
+        <div className={`tc-service-item ${teacher.modes?.includes("offline") ? "" : "disabled"}`}>
           <span className="tc-service-name offline">حضوري</span>
-          
         </div>
       </div>
 
