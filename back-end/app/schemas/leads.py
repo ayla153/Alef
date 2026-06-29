@@ -227,3 +227,17 @@ class LeadBrowseCardOut(BaseModel):
     pending_offer_count: int
     max_applications: int
     expired_at: datetime
+
+
+class PeerOfferOut(BaseModel):
+    """Other tutors' pending offers on a public lead — no fee."""
+
+    tutor_first_name: str
+    message: str
+
+
+class PublicLeadTutorDetailOut(LeadBrowseCardOut):
+    """Full public lead detail for tutor browse — includes anonymized peer offers."""
+
+    peer_offers: list[PeerOfferOut] = Field(default_factory=list)
+    has_my_offer: bool = False

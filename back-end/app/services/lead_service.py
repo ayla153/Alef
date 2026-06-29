@@ -26,6 +26,8 @@ from app.schemas.leads import (
     LeadBrowseCardOut,
     LeadOut,
     OfferIn,
+    PeerOfferOut,
+    PublicLeadTutorDetailOut,
     TutorPublicOfferOut,
     TutorPublicOfferOutcome,
 )
@@ -355,6 +357,57 @@ def browse_public_leads(db: Session, tutor: Tutor) -> list[LeadBrowseCardOut]:
         .all()
     )
     return [lead_to_browse_card_out(lead) for lead in leads]
+
+
+def get_public_lead_detail_for_tutor(
+    db: Session,
+    lead_id: int,
+    tutor: Tutor,
+) -> PublicLeadTutorDetailOut:
+    """Full public lead for tutor detail view; peer offers exclude fee and current tutor."""
+    assert_tutor_active(tutor)
+    lead = get_lead_by_id(db, lead_id)
+    if not lead:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead not found.")
+    if not lead.is_public or lead.lead_target is not None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This lead is not available in the public marketplace.",
+        )
+
+    teaches_subject = (
+        db.query(TutorSubject.tutor_subject_id)
+        .filter(
+            TutorSubject.tutor_id == tutor.tutor_id,
+            TutorSubject.subject_id == lead.subject_id,
+        )
+        .first()
+    )
+    if teaches_subject is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not teach the subject for this lead.",
+        )
+
+    assert_lead_references_valid(db, lead)
+    card = lead_to_browse_card_out(lead)
+    peer_offers: list[PeerOfferOut] = []
+    has_my_offer = False
+    for app in sorted(lead.lead_applications, key=lambda a: a.created_at):
+        if app.application_status != LeadApplicationStatusEnum.PENDING:
+            continue
+        if app.tutor_id == tutor.tutor_id:
+            has_my_offer = True
+            continue
+        tutor_row = app.tutor
+        first_name = (tutor_row.first_name.strip() if tutor_row and tutor_row.first_name else "أستاذ")
+        peer_offers.append(PeerOfferOut(tutor_first_name=first_name, message=app.message))
+
+    return PublicLeadTutorDetailOut(
+        **card.model_dump(),
+        peer_offers=peer_offers,
+        has_my_offer=has_my_offer,
+    )
 
 
 def submit_offer(
