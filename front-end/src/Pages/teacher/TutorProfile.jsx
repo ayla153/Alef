@@ -76,7 +76,7 @@ function mapTutorToProfile(tutor) {
   };
 }
 
-export default function TutorProfile() {
+export default function TutorProfile({ profileIntent = null, onIntentConsumed }) {
   const location = useLocation();
 
   const [tutorId, setTutorId]                     = useState(null);
@@ -92,8 +92,28 @@ export default function TutorProfile() {
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [isEditing, setIsEditing]     = useState(false);
   const fileInputRef       = useRef(null);
+  const appliedIntentRef   = useRef(null);
   const [selectedSubject, setSelectedSubject] = useState('');
   const [newSubjectYears, setNewSubjectYears] = useState(0);
+
+  const applyNavigationIntent = (intent, mappedProfile) => {
+    if (!intent) return mappedProfile;
+
+    let nextProfile = mappedProfile;
+
+    if (intent.addSubject) {
+      const { name, years, levelName } = intent.addSubject;
+      const label = levelName ? `${name} — ${levelName}` : name;
+      if (!mappedProfile.subjects.some((s) => s.name === label || s.name === name)) {
+        nextProfile = {
+          ...mappedProfile,
+          subjects: [...mappedProfile.subjects, { name: label, years: years || 0 }],
+        };
+      }
+    }
+
+    return nextProfile;
+  };
 
   // ─── جلب البيانات ────────────────────────────────────────────────────────
   const fetchProfile = async () => {
@@ -102,9 +122,17 @@ export default function TutorProfile() {
     try {
       const res    = await getMyProfile();
       const mapped = mapTutorToProfile(res.data);
+      const withIntent = applyNavigationIntent(location.state || profileIntent, mapped);
       setTutorId(res.data.tutor_id);
-      setProfileData(mapped);
-      setOriginalData(JSON.parse(JSON.stringify(mapped)));
+      setProfileData(withIntent);
+      setOriginalData(JSON.parse(JSON.stringify(withIntent)));
+
+      if (location.state) {
+        window.history.replaceState({}, document.title);
+      }
+      if (profileIntent) {
+        onIntentConsumed?.();
+      }
 
       if (mapped.profileImage) {
         const fullUrl = getFullImageUrl(mapped.profileImage);
@@ -113,33 +141,23 @@ export default function TutorProfile() {
         setProfileImagePreview(DEFAULT_AVATAR);
       }
 
-      // ─── معالجة الـ state الوارد من زر "إضافة مادة" أو "تعديل الملف الشخصي" ───
-      const { state } = location;
-      if (state) {
-        // تفعيل وضع التعديل
-        if (state.startEditing) {
-          setIsEditing(true);
-        }
-        // إضافة مادة جديدة
-        if (state.addSubject) {
-          const { name, years } = state.addSubject;
-          // تأكد من عدم تكرار المادة
-          if (!mapped.subjects.some(s => s.name === name)) {
-            const newSubjects = [...mapped.subjects, { name, years }];
-            setProfileData(prev => ({ ...prev, subjects: newSubjects }));
-            setOriginalData(prev => ({ ...prev, subjects: newSubjects }));
-          }
-        }
-        // ننظف الـ state بعد الاستخدام (لتجنب إعادة التفعيل عند تحديث الصفحة)
-        window.history.replaceState({}, document.title);
-      }
-
     } catch (err) {
       setLoadError(getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!profileIntent || !profileData) return;
+    if (appliedIntentRef.current === profileIntent) return;
+
+    appliedIntentRef.current = profileIntent;
+    const updated = applyNavigationIntent(profileIntent, profileData);
+    setProfileData(updated);
+    setOriginalData(JSON.parse(JSON.stringify(updated)));
+    onIntentConsumed?.();
+  }, [profileIntent, profileData, onIntentConsumed]);
 
   useEffect(() => {
     const id = setTimeout(fetchProfile, 0);
@@ -337,32 +355,43 @@ export default function TutorProfile() {
     <div className="page-container2">
       <div className="profile-full-wrapper">
 
-        <div className="profile-header">
-          <h1>الملف الشخصي</h1>
-          <p>{isEditing ? 'عدّل بياناتك ثم احفظ التغييرات' : 'عرض بياناتك كما تظهر للطلاب'}</p>
+        <div className="profile-header-row">
+          <div className="profile-header">
+            <h1>الملف الشخصي</h1>
+            <p>{isEditing ? 'عدّل بياناتك ثم احفظ التغييرات' : 'عرض بياناتك كما تظهر للطلاب'}</p>
+          </div>
+          {!isEditing && (
+            <button type="button" className="profile-edit-trigger" onClick={handleStartEdit}>
+              <FaEdit /> تعديل البيانات
+            </button>
+          )}
         </div>
 
         {saveError && <p className="error-text">{saveError}</p>}
 
-        <div className="action-buttons top-buttons">
-          {isEditing ? (
-            <>
-              <button className="save-btn" onClick={handleSave} disabled={!hasChanges || isSaving}>
-                <FaSave /> {isSaving ? 'جارِ الحفظ...' : 'حفظ التغييرات'}
+        {isEditing && (
+          <div className="profile-edit-toolbar">
+            <span className="profile-edit-toolbar-label">وضع التعديل</span>
+            <div className="profile-edit-toolbar-actions">
+              <button
+                type="button"
+                className="profile-save-btn"
+                onClick={handleSave}
+                disabled={!hasChanges || isSaving}
+              >
+                <FaSave /> {isSaving ? 'جارِ الحفظ...' : 'حفظ'}
               </button>
-              <button className="cancel-btn" onClick={handleCancel} disabled={isSaving}>
-                <FaUndo /> إلغاء التعديل
+              <button
+                type="button"
+                className="profile-cancel-btn"
+                onClick={handleCancel}
+                disabled={isSaving}
+              >
+                <FaUndo /> إلغاء
               </button>
-            </>
-          ) : (
-            <>
-              <button type="button" className="edit-profile-btn" onClick={handleStartEdit}>
-                <FaEdit /> تعديل الملف الشخصي
-              </button>
-              <LogoutButton variant="compact" />
-            </>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
 
         <div className="profile-grid">
           {/* ─── Sidebar ─── */}
@@ -530,6 +559,12 @@ export default function TutorProfile() {
 
           </div>
         </div>
+
+        {!isEditing && (
+          <div className="profile-logout-footer">
+            <LogoutButton variant="square" />
+          </div>
+        )}
       </div>
     </div>
   );

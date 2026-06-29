@@ -26,6 +26,8 @@ from app.schemas.leads import (
     LeadBrowseCardOut,
     LeadOut,
     OfferIn,
+    PeerOfferOut,
+    PublicLeadTutorDetailOut,
     TutorPublicOfferOut,
     TutorPublicOfferOutcome,
 )
@@ -209,6 +211,14 @@ def _application_to_out(app: LeadApplication, lead: PostRequirement) -> LeadAppl
     )
 
 
+def _private_lead_student_name(student: Student | None) -> str | None:
+    """First name only — exposed to targeted tutor on private leads."""
+    if student is None:
+        return None
+    name = student.first_name.strip()
+    return name or None
+
+
 def lead_to_out(lead: PostRequirement) -> LeadOut:
     pending = sum(
         1 for app in lead.lead_applications if app.application_status == LeadApplicationStatusEnum.PENDING
@@ -216,6 +226,11 @@ def lead_to_out(lead: PostRequirement) -> LeadOut:
     student_phone = (
         lead.student.phone_number
         if _student_phone_visible(lead) and lead.student
+        else None
+    )
+    student_name = (
+        _private_lead_student_name(lead.student)
+        if lead.lead_target is not None
         else None
     )
     return LeadOut(
@@ -242,6 +257,7 @@ def lead_to_out(lead: PostRequirement) -> LeadOut:
         pending_offer_count=pending,
         target_tutor_id=lead.lead_target.tutor_id if lead.lead_target else None,
         student_phone_number=student_phone,
+        student_name=student_name,
         applications=[
             _application_to_out(app, lead)
             for app in sorted(lead.lead_applications, key=lambda a: a.created_at)
@@ -341,6 +357,57 @@ def browse_public_leads(db: Session, tutor: Tutor) -> list[LeadBrowseCardOut]:
         .all()
     )
     return [lead_to_browse_card_out(lead) for lead in leads]
+
+
+def get_public_lead_detail_for_tutor(
+    db: Session,
+    lead_id: int,
+    tutor: Tutor,
+) -> PublicLeadTutorDetailOut:
+    """Full public lead for tutor detail view; peer offers exclude fee and current tutor."""
+    assert_tutor_active(tutor)
+    lead = get_lead_by_id(db, lead_id)
+    if not lead:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead not found.")
+    if not lead.is_public or lead.lead_target is not None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This lead is not available in the public marketplace.",
+        )
+
+    teaches_subject = (
+        db.query(TutorSubject.tutor_subject_id)
+        .filter(
+            TutorSubject.tutor_id == tutor.tutor_id,
+            TutorSubject.subject_id == lead.subject_id,
+        )
+        .first()
+    )
+    if teaches_subject is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not teach the subject for this lead.",
+        )
+
+    assert_lead_references_valid(db, lead)
+    card = lead_to_browse_card_out(lead)
+    peer_offers: list[PeerOfferOut] = []
+    has_my_offer = False
+    for app in sorted(lead.lead_applications, key=lambda a: a.created_at):
+        if app.application_status != LeadApplicationStatusEnum.PENDING:
+            continue
+        if app.tutor_id == tutor.tutor_id:
+            has_my_offer = True
+            continue
+        tutor_row = app.tutor
+        first_name = (tutor_row.first_name.strip() if tutor_row and tutor_row.first_name else "أستاذ")
+        peer_offers.append(PeerOfferOut(tutor_first_name=first_name, message=app.message))
+
+    return PublicLeadTutorDetailOut(
+        **card.model_dump(),
+        peer_offers=peer_offers,
+        has_my_offer=has_my_offer,
+    )
 
 
 def submit_offer(
@@ -451,9 +518,11 @@ def lead_to_browse_card_out(lead: PostRequirement) -> LeadBrowseCardOut:
         preferred_gender=lead.preferred_gender,
         subject_id=lead.subject_id,
         level_id=lead.level_id,
+        lead_status=lead.lead_status,
         accepting_applications=lead.accepting_applications,
         pending_offer_count=pending,
         max_applications=lead.max_applications,
+        expired_at=lead.expired_at,
     )
 
 
@@ -645,8 +714,10 @@ def create_private_lead(db: Session, student: Student, data: CreatePrivateLeadIn
     refreshed = get_lead_by_id(db, lead.post_requirements_id)
     assert refreshed is not None
 
+    student_name = _private_lead_student_name(refreshed.student)
+
     notification_service.notify_private_lead_received(
-        db, data.target_tutor_id, lead.post_requirements_id
+        db, data.target_tutor_id, lead.post_requirements_id, student_name=student_name
     )
 
     return lead_to_out(refreshed)

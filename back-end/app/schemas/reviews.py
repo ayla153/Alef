@@ -15,6 +15,10 @@ class ReviewOut(BaseModel):
     review_id: int
     tutor_id: int
     student_id: int
+    student_first_name: Optional[str] = Field(
+        None,
+        description="Student first name only — shown in UI instead of full name.",
+    )
     number_of_stars: int
     comment: Optional[str]
     created_at: datetime

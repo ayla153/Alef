@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import '../styles/BestTutors.css';
+import { formatHourlyPrice } from '../utils/Translations';
 
 export default function BesTutors({ teacher = {}, onViewProfile }) {
   const [saved, setSaved] = useState(false);
@@ -53,13 +54,13 @@ export default function BesTutors({ teacher = {}, onViewProfile }) {
         <div className={`service-item ${modes.includes("online") ? "" : "disabled"}`}>
           <span className="service-name online">أونلاين</span>
           <span className="price">
-            {modes.includes("online") ? onlinePrice : 0} $ <small>/ساعة</small>
+            {formatHourlyPrice(onlinePrice, modes.includes("online"))} <small>/ساعة</small>
           </span>
         </div>
         <div className={`service-item ${modes.includes("offline") ? "" : "disabled"}`}>
           <span className="service-name offline">حضوري</span>
           <span className="price">
-            {modes.includes("offline") ? offlinePrice : 0} $ <small>/ساعة</small>
+            {formatHourlyPrice(offlinePrice, modes.includes("offline"))} <small>/ساعة</small>
           </span>
         </div>
       </div>

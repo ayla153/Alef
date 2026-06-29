@@ -332,15 +332,27 @@ class NotificationService:
             data={"lead_id": lead_id},
         )
 
-    def notify_private_lead_received(self, db: Session, tutor_id: int, lead_id: int) -> None:
+    def notify_private_lead_received(
+        self,
+        db: Session,
+        tutor_id: int,
+        lead_id: int,
+        student_name: str | None = None,
+    ) -> None:
+        if student_name:
+            title = f"طلب خاص من {student_name}"
+            body = f"{student_name} أرسل لك طلباً خاصاً — راجع صندوق الوارد."
+        else:
+            title = "طلب خاص جديد"
+            body = "وصلك طلب خاص من طالب — راجع صندوق الوارد."
         self.create(
             db,
             tutor_id,
             "tutor",
             NotificationType.PRIVATE_LEAD_RECEIVED,
-            "A student sent you a private tutoring request",
-            "A student sent you a private tutoring request.",
-            data={"lead_id": lead_id},
+            title,
+            body,
+            data={"lead_id": lead_id, "student_name": student_name},
         )
 
     def notify_private_lead_accepted(self, db: Session, student_id: int, lead_id: int) -> None:

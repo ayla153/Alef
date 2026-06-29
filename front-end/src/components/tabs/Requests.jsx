@@ -1,229 +1,326 @@
-// src/pages/tutor/Requests.jsx
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
-import RequestCard from '../../components/RequestCard';
-import OfferModalNew from '../../components/OfferModalNew';
+// src/components/tabs/Requests.jsx — public marketplace only
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import PublicRequestCard from '../PublicRequestCard';
+import PublicRequestDetail from '../PublicRequestDetail';
+import OfferModalNew from '../OfferModalNew';
 import '../../styles/Requests.css';
-import { browsePubicLeads, getTutorInbox, submitOffer, acceptPrivateContact } from '../../api/tutorLeads';
-import { getSubjects, getLevels } from '../../api/tutorRegistration'; // ✅ تم إضافة getLevels
+import '../../styles/MyOffers.css';
+import { browsePubicLeads, browsePublicLeadDetail, submitOffer } from '../../api/tutorLeads';
 import { getErrorMessage } from '../../utils/apiErrors';
+import { filterAndSortLeads } from '../../utils/requestFilters';
+import { fetchTutorCatalog, enrichLeadWithCatalog } from '../../utils/tutorCatalog';
 
-// تخزين مؤقت للمواد والمستويات
-let subjectsCache = null;
-let levelsCache = null;
-
-function mapPublicLead(lead) {
-  return { ...lead, isPrivate: false };
-}
-
-function mapPrivateLead(lead) {
-  return { ...lead, isPrivate: true };
-}
+const DEFAULT_FILTERS = {
+  subjectId: '',
+  levelId: '',
+  budgetMin: '',
+  budgetMax: '',
+  availableOnly: false,
+  sortBy: 'newest',
+};
 
 export default function Requests() {
-  const location = useLocation();
+  const navigate = useNavigate();
+  const { leadId: leadIdParam } = useParams();
+  const focusLeadId = leadIdParam ? Number(leadIdParam) : null;
 
-  const [publicLeads, setPublicLeads] = useState([]);
-  const [privateLeads, setPrivateLeads] = useState([]);
+  const [leads, setLeads] = useState([]);
+  const [detailLead, setDetailLead] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [filterType, setFilterType] = useState('all');
-  const [selectedLead, setSelectedLead] = useState(null);
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
+  const [selectedOfferLead, setSelectedOfferLead] = useState(null);
   const [subjectsMap, setSubjectsMap] = useState({});
   const [levelsMap, setLevelsMap] = useState({});
+  const [subjectsList, setSubjectsList] = useState([]);
+  const [levelsList, setLevelsList] = useState([]);
 
   const isMounted = useRef(true);
-  const hasAppliedFilter = useRef(false);
 
-  // ─── قراءة الفلتر من الـ state ──────────────────────────────────────────
-  useEffect(() => {
-    if (location.state?.filter && !hasAppliedFilter.current) {
-      setFilterType(location.state.filter);
-      hasAppliedFilter.current = true;
-    }
-  }, [location.state]);
-
-  // ─── جلب المواد والمستويات ──────────────────────────────────────────────
-  const fetchCatalog = useCallback(async () => {
-    try {
-      // جلب المواد
-      if (!subjectsCache) {
-        const subjectsRes = await getSubjects();
-        const map = {};
-        subjectsRes.data.forEach((sub) => {
-          map[sub.subject_id] = sub.subject_title;
-        });
-        subjectsCache = map;
-      }
-      setSubjectsMap(subjectsCache);
-
-      // جلب المستويات
-      if (!levelsCache) {
-        const levelsRes = await getLevels(); // ✅ الآن getLevels معرف
-        const map = {};
-        levelsRes.data.forEach((level) => {
-          map[level.level_id] = level.level_title;
-        });
-        levelsCache = map;
-      }
-      setLevelsMap(levelsCache);
-    } catch (err) {
-      console.warn('فشل جلب المواد/المستويات:', err);
-    }
-  }, []);
-
-  // ─── جلب الطلبات ──────────────────────────────────────────────────────────
   const fetchLeads = useCallback(async () => {
-    if (!isMounted.current) return;
     try {
-      const [browseRes, inboxRes] = await Promise.all([
-        browsePubicLeads(),
-        getTutorInbox(),
-      ]);
+      const res = await browsePubicLeads();
       return {
-        public: (browseRes.data || []).map(mapPublicLead),
-        private: (inboxRes.data || []).map(mapPrivateLead),
+        items: (res.data || []).map((lead) => ({ ...lead, isPrivate: false })),
         error: null,
       };
     } catch (err) {
-      return { public: [], private: [], error: getErrorMessage(err) };
+      return { items: [], error: getErrorMessage(err) };
     }
   }, []);
 
-  // ─── تحميل البيانات ──────────────────────────────────────────────────────
   useEffect(() => {
     let ignore = false;
     isMounted.current = true;
 
-    const loadData = async () => {
+    const load = async () => {
       setIsLoading(true);
       setError('');
+      try {
+        const catalog = await fetchTutorCatalog();
+        if (ignore) return;
+        setSubjectsMap(catalog.subjectsMap);
+        setLevelsMap(catalog.levelsMap);
+        setSubjectsList(catalog.subjectsList);
+        setLevelsList(catalog.levelsList);
 
-      // جلب المواد والمستويات أولاً
-      await fetchCatalog();
-
-      // ثم جلب الطلبات
-      const result = await fetchLeads();
-
-      if (!ignore && isMounted.current) {
-        if (result.error) {
-          setError(result.error);
-        } else {
-          setPublicLeads(result.public);
-          setPrivateLeads(result.private);
+        const result = await fetchLeads();
+        if (!ignore && isMounted.current) {
+          if (result.error) setError(result.error);
+          else setLeads(result.items);
+          setIsLoading(false);
         }
-        setIsLoading(false);
+      } catch (err) {
+        if (!ignore) {
+          setError(getErrorMessage(err));
+          setIsLoading(false);
+        }
       }
     };
 
-    loadData();
-
+    load();
     return () => {
       ignore = true;
       isMounted.current = false;
     };
-  }, [fetchLeads, fetchCatalog]);
+  }, [fetchLeads]);
 
-  // ─── إثراء البيانات بأسماء المواد والمستويات ──────────────────────────
-  const enrichLead = (lead) => {
-    // جلب اسم المادة من الخريطة باستخدام subject_id
-    const subjectName = subjectsMap[lead.subject_id] || null;
-    // جلب اسم المستوى من الخريطة باستخدام level_id
-    const levelName = levelsMap[lead.level_id] || null;
+  useEffect(() => {
+    if (!focusLeadId) {
+      setDetailLead(null);
+      setDetailError('');
+      return undefined;
+    }
 
-    return {
-      ...lead,
-      subjectTitle: subjectName,
-      levelTitle: levelName,
+    let ignore = false;
+    setDetailLoading(true);
+    setDetailError('');
+
+    browsePublicLeadDetail(focusLeadId)
+      .then((res) => {
+        if (!ignore) setDetailLead(res.data);
+      })
+      .catch((err) => {
+        if (!ignore) setDetailError(getErrorMessage(err));
+      })
+      .finally(() => {
+        if (!ignore) setDetailLoading(false);
+      });
+
+    return () => {
+      ignore = true;
     };
-  };
+  }, [focusLeadId]);
 
-  const enrichedPublic = publicLeads.map(enrichLead);
-  const enrichedPrivate = privateLeads.map(enrichLead);
+  const enrichedLeads = useMemo(
+    () => leads.map((lead) => enrichLeadWithCatalog(lead, subjectsMap, levelsMap)),
+    [leads, subjectsMap, levelsMap]
+  );
 
-  const handleOpenOfferModal = (leadId) => {
-    const allLeads = [...enrichedPublic, ...enrichedPrivate];
-    const lead = allLeads.find((l) => l.post_requirements_id === leadId);
-    if (lead) setSelectedLead(lead);
-  };
+  const enrichedDetailLead = useMemo(() => {
+    if (!detailLead) return null;
+    return enrichLeadWithCatalog(detailLead, subjectsMap, levelsMap);
+  }, [detailLead, subjectsMap, levelsMap]);
 
-  const handleSubmitOffer = async (leadId, data) => {
-    await submitOffer(leadId, data);
-    setSelectedLead(null);
+  const visibleLeads = useMemo(
+    () => filterAndSortLeads(enrichedLeads, filters),
+    [enrichedLeads, filters]
+  );
+
+  const refreshLeads = async () => {
     const result = await fetchLeads();
     if (isMounted.current) {
-      if (result.error) {
-        setError(result.error);
-      } else {
-        setPublicLeads(result.public);
-        setPrivateLeads(result.private);
-      }
+      if (result.error) setError(result.error);
+      else setLeads(result.items);
       setIsLoading(false);
     }
   };
 
-  const handleAcceptContact = async (leadId) => {
+  const refreshDetail = async (leadId) => {
     try {
-      await acceptPrivateContact(leadId, null);
-      const result = await fetchLeads();
-      if (isMounted.current) {
-        if (result.error) {
-          setError(result.error);
-        } else {
-          setPublicLeads(result.public);
-          setPrivateLeads(result.private);
-        }
-        setIsLoading(false);
-      }
+      const res = await browsePublicLeadDetail(leadId);
+      if (isMounted.current) setDetailLead(res.data);
     } catch (err) {
-      alert(getErrorMessage(err));
+      if (isMounted.current) setDetailError(getErrorMessage(err));
     }
   };
 
-  const visibleLeads = [
-    ...(filterType !== 'private' ? enrichedPublic : []),
-    ...(filterType !== 'public' ? enrichedPrivate : []),
-  ];
+  const handleViewDetails = (leadId) => {
+    navigate(`/dashboard/requests/${leadId}`);
+  };
+
+  const handleOpenOfferModal = (leadId) => {
+    const lead = enrichedDetailLead?.post_requirements_id === leadId
+      ? enrichedDetailLead
+      : enrichedLeads.find((l) => l.post_requirements_id === leadId);
+    if (lead) setSelectedOfferLead(lead);
+  };
+
+  const handleSubmitOffer = async (leadId, data) => {
+    try {
+      await submitOffer(leadId, data);
+      setSelectedOfferLead(null);
+      await refreshLeads();
+      if (focusLeadId) await refreshDetail(focusLeadId);
+    } catch (err) {
+      throw new Error(getErrorMessage(err));
+    }
+  };
+
+  const updateFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }));
+  const resetFilters = () => setFilters(DEFAULT_FILTERS);
+
+  const activeFilterCount = [
+    filters.subjectId,
+    filters.levelId,
+    filters.budgetMin,
+    filters.budgetMax,
+    filters.availableOnly,
+    filters.sortBy !== 'newest',
+  ].filter(Boolean).length;
+
+  if (focusLeadId) {
+    return (
+      <div className="page-container2">
+        <div className="requests-tab-container">
+          {detailError && <p className="error-text">{detailError}</p>}
+          <PublicRequestDetail
+            lead={enrichedDetailLead}
+            isLoading={detailLoading}
+            onBack={() => navigate('/dashboard/requests')}
+            onSubmitOffer={handleOpenOfferModal}
+          />
+        </div>
+
+        {selectedOfferLead && (
+          <OfferModalNew
+            lead={selectedOfferLead}
+            onClose={() => setSelectedOfferLead(null)}
+            onSubmit={handleSubmitOffer}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="page-container2">
       <div className="requests-tab-container">
-        <div className="filters-bar">
-          <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
-            <option value="all">جميع الطلبات</option>
-            <option value="public">طلبات عامة</option>
-            <option value="private">طلبات خاصة بي</option>
-          </select>
-          <button className="reset-btn" onClick={() => setFilterType('all')}>
-            إعادة ضبط
-          </button>
+        <div className="tab-page-header">
+          <h2>الطلبات العامة</h2>
+          <p>تصفّح الطلبات المفتوحة — اضغط على أي طلب لعرض التفاصيل الكاملة وتقديم عرض</p>
         </div>
+
+        <div className="filters-panel">
+          <div className="filters-row filters-row-primary">
+            <select
+              value={filters.subjectId}
+              onChange={(e) => updateFilter('subjectId', e.target.value)}
+              aria-label="المادة"
+            >
+              <option value="">كل المواد</option>
+              {subjectsList.map((sub) => (
+                <option key={sub.subject_id} value={sub.subject_id}>
+                  {sub.subject_title}
+                </option>
+              ))}
+            </select>
+            <select
+              value={filters.levelId}
+              onChange={(e) => updateFilter('levelId', e.target.value)}
+              aria-label="المستوى"
+            >
+              <option value="">كل المستويات</option>
+              {levelsList.map((level) => (
+                <option key={level.level_id} value={level.level_id}>
+                  {level.level_title}
+                </option>
+              ))}
+            </select>
+            <select
+              value={filters.sortBy}
+              onChange={(e) => updateFilter('sortBy', e.target.value)}
+              aria-label="الترتيب"
+            >
+              <option value="newest">الأحدث أولاً</option>
+              <option value="slots_filling">الأقرب للامتلاء</option>
+            </select>
+          </div>
+          <div className="filters-row filters-row-secondary">
+            <div className="budget-filter">
+              <label className="budget-label">الميزانية (ل.س)</label>
+              <input
+                type="number"
+                min="0"
+                placeholder="من"
+                value={filters.budgetMin}
+                onChange={(e) => updateFilter('budgetMin', e.target.value)}
+              />
+              <span className="budget-sep">–</span>
+              <input
+                type="number"
+                min="0"
+                placeholder="إلى"
+                value={filters.budgetMax}
+                onChange={(e) => updateFilter('budgetMax', e.target.value)}
+              />
+            </div>
+            <label className="available-only-toggle">
+              <input
+                type="checkbox"
+                checked={filters.availableOnly}
+                onChange={(e) => updateFilter('availableOnly', e.target.checked)}
+              />
+              <span>متاح فقط</span>
+            </label>
+            <button
+              type="button"
+              className="reset-btn"
+              onClick={resetFilters}
+              disabled={activeFilterCount === 0}
+            >
+              إعادة ضبط{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+            </button>
+          </div>
+        </div>
+
+        {!isLoading && visibleLeads.length > 0 && (
+          <p className="results-count">
+            {visibleLeads.length} طلب{activeFilterCount > 0 ? ' (بعد التصفية)' : ''}
+          </p>
+        )}
 
         {isLoading && <p className="loading-text">جارِ تحميل الطلبات...</p>}
         {error && <p className="error-text">{error}</p>}
 
         {!isLoading && (
-          <div className="requests-grid">
+          <div className="requests-grid requests-grid-compact">
             {visibleLeads.length > 0 ? (
               visibleLeads.map((lead) => (
-                <RequestCard
-                  key={`${lead.isPrivate ? 'priv' : 'pub'}-${lead.post_requirements_id}`}
+                <PublicRequestCard
+                  key={lead.post_requirements_id}
                   request={lead}
-                  onSubmitOffer={!lead.isPrivate ? handleOpenOfferModal : undefined}
-                  onAcceptContact={lead.isPrivate ? handleAcceptContact : undefined}
+                  onViewDetails={handleViewDetails}
                 />
               ))
             ) : (
-              <p className="no-results">لا توجد طلبات حالياً.</p>
+              <p className="no-results">
+                {activeFilterCount > 0
+                  ? 'لا توجد طلبات تطابق الفلاتر.'
+                  : 'لا توجد طلبات عامة متاحة حالياً.'}
+              </p>
             )}
           </div>
         )}
       </div>
 
-      {selectedLead && (
+      {selectedOfferLead && (
         <OfferModalNew
-          lead={selectedLead}
-          onClose={() => setSelectedLead(null)}
+          lead={selectedOfferLead}
+          onClose={() => setSelectedOfferLead(null)}
           onSubmit={handleSubmitOffer}
         />
       )}

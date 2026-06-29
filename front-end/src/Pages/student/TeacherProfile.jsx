@@ -478,12 +478,14 @@ export default function TeacherProfile() {
                   }`}
                 >
                   <div className="user-placeholder-avatar">
-                    {rev.student_id}
+                    {(rev.student_first_name || "ط").charAt(0)}
                   </div>
 
                   <div className="review-main">
                     <div className="review-meta-top">
-                      <h4 className="reviewer-name">طالب #{rev.student_id}</h4>
+                      <h4 className="reviewer-name">
+                        {rev.student_first_name || `طالب #${rev.student_id}`}
+                      </h4>
                       <span className="review-date">
                         {rev.created_at
                           ? new Date(rev.created_at).toLocaleDateString("ar-SA")

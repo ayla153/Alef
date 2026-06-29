@@ -12,6 +12,7 @@ import {
 } from "../../api/tutorRegistration";
 import { getErrorMessage } from "../../utils/apiErrors";
 import { saveAuthTokens } from "../../api/authStorage";
+import { markTutorFreshLogin } from "../../utils/dashboardHistory";
 
 const OTP = () => {
   const navigate = useNavigate();
@@ -139,7 +140,10 @@ const OTP = () => {
       setMessage("تم التحقق بنجاح");
 
       setTimeout(() => {
-        navigate(registrationType === "tutor" ? "/dashboard" : "/home");
+        if (registrationType === "tutor") {
+          markTutorFreshLogin();
+        }
+        navigate(registrationType === "tutor" ? "/dashboard/home" : "/home", { replace: true });
       }, 1000);
     } catch (error) {
       setStatus("error");

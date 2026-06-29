@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/TeacherProfile.css";
+import { formatCurrency } from "../utils/Translations";
 
 const subjectColors = {
   الرياضيات: "blue",
@@ -159,8 +160,8 @@ export default function TeacherProfile({ teacherData }) {
                     <tr key={i}>
                       <td className="font-bold">{p.subject}</td>
                       <td>{p.stage}</td>
-                      <td className="text-center text-primary-color">{p.online} ر.س</td>
-                      <td className="text-center font-bold">{p.offline} ر.س</td>
+                      <td className="text-center text-primary-color">{formatCurrency(p.online)}</td>
+                      <td className="text-center font-bold">{formatCurrency(p.offline)}</td>
                     </tr>
                   ))}
                 </tbody>

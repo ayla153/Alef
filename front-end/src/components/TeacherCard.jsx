@@ -4,6 +4,7 @@ import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api.js";
 import { getTeacherProfilePath } from "../utils/authRedirect";
+import { formatHourlyPrice } from "../utils/Translations";
 
 const TeacherCard = ({
   teacher,

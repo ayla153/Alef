@@ -6,6 +6,8 @@ import FAQItem from '../FAQItem';
 import '../../styles/HomeTab.css';
 import studentImage from '../../assets/homePageImage.png';
 import { getTopTutors, getPublicTutorById } from '../../api/publicTutors';
+import { isAuthenticated, getAuthRole } from '../../api/authStorage';
+import { getHomePathForRole } from '../../utils/authRedirect';
 
 function mapTutorToTeacher(tutor, rankMeta = {}) {
   const subjects = tutor.tutor_subjects?.map((s) => s.subject?.subject_title).filter(Boolean) ?? [];
@@ -14,12 +16,10 @@ function mapTutorToTeacher(tutor, rankMeta = {}) {
   if (tutor.tution_type === 'online' || tutor.tution_type === 'both') modes.push('online');
   if (tutor.tution_type === 'offline' || tutor.tution_type === 'both') modes.push('offline');
 
-  const onlineSubject = tutor.tutor_subjects?.find(
-    () => tutor.tution_type === 'online' || tutor.tution_type === 'both',
-  );
-  const offlineSubject = tutor.tutor_subjects?.find(
-    () => tutor.tution_type === 'offline' || tutor.tution_type === 'both',
-  );
+  const prices = (tutor.tutor_subjects || [])
+    .map((ts) => ts.price_per_hour)
+    .filter((p) => typeof p === 'number');
+  const minPrice = prices.length > 0 ? Math.min(...prices) : null;
 
   const avgRating = tutor.reviews?.length
     ? (tutor.reviews.reduce((sum, r) => sum + r.number_of_stars, 0) / tutor.reviews.length).toFixed(1)
@@ -37,8 +37,8 @@ function mapTutorToTeacher(tutor, rankMeta = {}) {
     experience: tutor.total_experience_years ?? rankMeta.total_experience_years ?? 0,
     subjects,
     modes,
-    onlinePrice: onlineSubject?.price_per_hour ?? 0,
-    offlinePrice: offlineSubject?.price_per_hour ?? 0,
+    onlinePrice: tutor.tution_type === 'offline' ? null : minPrice,
+    offlinePrice: tutor.tution_type === 'online' ? null : minPrice,
     rank: rankMeta.rank,
     rankScore: rankMeta.rank_score,
   };
@@ -66,6 +66,8 @@ function mapTopRankToTeacher(item) {
 
 export default function HomeTab({ onViewProfile }) {
   const navigate = useNavigate();
+  const loggedIn = isAuthenticated();
+  const accountHome = loggedIn ? getHomePathForRole(getAuthRole()) : null;
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -126,8 +128,16 @@ export default function HomeTab({ onViewProfile }) {
               خصوصية مع معلمين من اختيارك
             </div>
             <div className="homepagebuttons">
-              <button className="btn-glow" onClick={() => navigate('/register')}>انضم كطالب</button>
-              <button className="btn-glow" onClick={() => navigate('/teacher/register')}>انضم كمعلم</button>
+              {loggedIn ? (
+                <button className="btn-glow" onClick={() => navigate(accountHome)}>
+                  الذهاب إلى حسابي
+                </button>
+              ) : (
+                <>
+                  <button className="btn-glow" onClick={() => navigate('/register', { replace: true })}>انضم كطالب</button>
+                  <button className="btn-glow" onClick={() => navigate('/teacher/register', { replace: true })}>انضم كمعلم</button>
+                </>
+              )}
             </div>
           </div>
         </div>

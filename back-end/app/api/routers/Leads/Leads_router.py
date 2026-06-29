@@ -14,6 +14,7 @@ from app.schemas.leads import (
     LeadBrowseCardOut,
     LeadOut,
     OfferIn,
+    PublicLeadTutorDetailOut,
     TutorPublicOfferOut,
 )
 from app.services import lead_service
@@ -161,6 +162,26 @@ def browse_leads(
     current_tutor: Tutor = Depends(get_verified_tutor),
 ) -> list[LeadBrowseCardOut]:
     return lead_service.browse_public_leads(db, current_tutor)
+
+
+@router.get(
+    "/browse/{lead_id}",
+    response_model=PublicLeadTutorDetailOut,
+    summary="Tutor: public lead detail with peer offers",
+    description=(
+        "**Auth:** verified tutor Bearer token.\n\n"
+        "**When:** Tutor opens a public lead from browse to read full details before applying.\n\n"
+        "**Response:** Full anonymous lead fields plus `peer_offers` — other tutors' pending offers "
+        "(first name + message only, no fee). `has_my_offer` indicates whether this tutor already applied.\n\n"
+        "**Errors:** `404` lead not found; `403` tutor does not teach the subject or lead is not public."
+    ),
+)
+def browse_lead_detail(
+    lead_id: int,
+    db: DbSession,
+    current_tutor: Tutor = Depends(get_verified_tutor),
+) -> PublicLeadTutorDetailOut:
+    return lead_service.get_public_lead_detail_for_tutor(db, lead_id, current_tutor)
 
 
 @router.post(

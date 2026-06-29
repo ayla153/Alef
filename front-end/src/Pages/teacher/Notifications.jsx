@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   FaBell, FaCheckCircle, FaEnvelope, FaTrashAlt,
-  FaUserPlus, FaClock, FaEyeSlash, FaInbox,
+  FaUserPlus, FaClock, FaInbox, FaCheck,
 } from 'react-icons/fa';
 import '../../styles/Notifications.css';
 import {
@@ -10,6 +10,11 @@ import {
   markAllNotificationsRead,
 } from '../../api/notifications';
 import { getErrorMessage } from '../../utils/apiErrors';
+import {
+  NOTIFICATION_RECEIVED_EVENT,
+  NOTIFICATION_READ_EVENT,
+  NOTIFICATION_READ_ALL_EVENT,
+} from '../../hooks/useNotificationSocket';
 
 // ─── NotificationType → أيقونة ───────────────────────────────────────────
 const iconFor = (type) => {
@@ -46,7 +51,7 @@ const FILTER_MAP = {
 
 const ITEMS_PER_PAGE = 5;
 
-export default function TutorNotifications() {
+export default function TutorNotifications({ onRead }) {
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading]         = useState(true);
   const [error, setError]                 = useState('');
@@ -72,31 +77,59 @@ export default function TutorNotifications() {
     return () => clearTimeout(id);
   }, [fetchNotifications]);
 
+  useEffect(() => {
+    const onLive = (e) => {
+      const n = e.detail;
+      if (!n?.id) return;
+      setNotifications((prev) => {
+        if (prev.some((x) => x.id === n.id)) return prev;
+        return [{ ...n, is_read: false }, ...prev];
+      });
+    };
+    window.addEventListener(NOTIFICATION_RECEIVED_EVENT, onLive);
+    return () => window.removeEventListener(NOTIFICATION_RECEIVED_EVENT, onLive);
+  }, []);
+
+  useEffect(() => {
+    onRead?.();
+  }, [onRead]);
+
   // ─── تحديد الكل كمقروء ─────────────────────────────────────────────────
   const handleMarkAllAsRead = async () => {
     try {
       await markAllNotificationsRead();
       setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+      window.dispatchEvent(new CustomEvent(NOTIFICATION_READ_ALL_EVENT));
+      onRead?.();
     } catch (err) {
       alert(getErrorMessage(err));
     }
   };
 
-  // ─── تحديد فردي كمقروء ("تجاهل") ──────────────────────────────────────
-  const handleIgnore = async (notifId) => {
+  // ─── تحديد فردي كمقروء ────────────────────────────────────────────────
+  const handleMarkRead = async (notifId) => {
     try {
       await markNotificationRead(notifId);
       setNotifications((prev) =>
         prev.map((n) => (n.id === notifId ? { ...n, is_read: true } : n))
       );
+      window.dispatchEvent(new CustomEvent(NOTIFICATION_READ_EVENT));
     } catch (err) {
       alert(getErrorMessage(err));
     }
   };
 
-  // ─── حذف محلي فقط (لا يوجد DELETE endpoint) ───────────────────────────
-  const handleDelete = (notifId) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== notifId));
+  // ─── حذف محلي (يُعلَّم كمقروء أولاً إن لم يكن) ───────────────────────
+  const handleDelete = async (notif) => {
+    if (!notif.is_read) {
+      try {
+        await markNotificationRead(notif.id);
+        window.dispatchEvent(new CustomEvent(NOTIFICATION_READ_EVENT));
+      } catch {
+        /* still remove locally */
+      }
+    }
+    setNotifications((prev) => prev.filter((n) => n.id !== notif.id));
   };
 
   // ─── تصفية ─────────────────────────────────────────────────────────────
@@ -111,6 +144,8 @@ export default function TutorNotifications() {
     currentPage * ITEMS_PER_PAGE
   );
 
+  const unreadTotal = notifications.filter((n) => !n.is_read).length;
+
   const changeFilter = (f) => {
     setFilter(f);
     setCurrentPage(1);
@@ -124,11 +159,18 @@ export default function TutorNotifications() {
         <div className="notif-header">
           <div className="header-left">
             <FaBell className="header-icon" />
-            <h1>مركز التنبيهات</h1>
+            <div>
+              <h1>مركز التنبيهات</h1>
+              {unreadTotal > 0 && (
+                <span className="unread-summary-pill">{unreadTotal} غير مقروء</span>
+              )}
+            </div>
           </div>
-          <button className="mark-read-btn" onClick={handleMarkAllAsRead}>
-            <FaCheckCircle /> تحديد الكل كمقروء
-          </button>
+          {unreadTotal > 0 && (
+            <button type="button" className="mark-read-btn" onClick={handleMarkAllAsRead}>
+              <FaCheckCircle /> تحديد الكل كمقروء
+            </button>
+          )}
         </div>
 
         {/* ─── تبويبات الفلتر ─── */}
@@ -166,7 +208,7 @@ export default function TutorNotifications() {
             {currentItems.map((notif) => (
               <div
                 key={notif.id}
-                className={`notif-card ${notif.is_read ? 'ignored' : ''}`}
+                className={`notif-card ${notif.is_read ? 'is-read' : 'is-unread'}`}
               >
                 <div className={`notif-icon ${cssClass(notif.type)}`}>
                   {iconFor(notif.type)}
@@ -185,17 +227,23 @@ export default function TutorNotifications() {
                         : '—'}
                     </span>
                     <div className="notif-actions">
-                      {!notif.is_read && (
+                      {!notif.is_read ? (
                         <button
-                          className="action-ignore"
-                          onClick={() => handleIgnore(notif.id)}
+                          type="button"
+                          className="action-mark-read"
+                          onClick={() => handleMarkRead(notif.id)}
                         >
-                          <FaEyeSlash /> تجاهل
+                          <FaCheck /> تم القراءة
                         </button>
+                      ) : (
+                        <span className="read-status-label">
+                          <FaCheckCircle /> مقروء
+                        </span>
                       )}
                       <button
+                        type="button"
                         className="action-delete"
-                        onClick={() => handleDelete(notif.id)}
+                        onClick={() => handleDelete(notif)}
                       >
                         <FaTrashAlt /> حذف
                       </button>

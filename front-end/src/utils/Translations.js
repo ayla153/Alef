@@ -64,7 +64,16 @@ export const translateLevel = (title) => {
 
 export const formatCurrency = (amount) => {
   if (amount == null) return 'غير محدد';
-  return amount.toLocaleString('ar-SA') + ' ل.س';
+  return amount.toLocaleString('ar-SY') + ' ل.س';
+};
+
+/** سعر الساعة للكروت — يُرجع «—» إذا الطريقة غير متاحة أو السعر غير موجود */
+export const formatHourlyPrice = (amount, enabled = true) => {
+  if (!enabled) return '—';
+  if (amount == null || amount === '') return '—';
+  const n = Number(amount);
+  if (Number.isNaN(n)) return '—';
+  return `${n.toLocaleString('ar-SY')} ل.س`;
 };
 
 export const formatDate = (dateString) => {

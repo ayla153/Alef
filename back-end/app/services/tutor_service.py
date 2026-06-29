@@ -30,6 +30,7 @@ from app.schemas.tutors import (
 )
 
 from app.schemas.enums import LeadApplicationStatusEnum, LeadStatusEnum, NotificationType
+from app.services.review_service import review_to_out
 
 
 def hash_password(plain_password: str) -> str:
@@ -44,7 +45,7 @@ def get_tutor_by_id(db: Session, tutor_id: int) -> Tutor | None:
     return (
         db.query(Tutor)
         .options(
-            joinedload(Tutor.reviews),
+            joinedload(Tutor.reviews).joinedload(Review.student),
             joinedload(Tutor.address),
             joinedload(Tutor.tutor_subjects).joinedload(TutorSubject.subject),
         )
@@ -54,7 +55,10 @@ def get_tutor_by_id(db: Session, tutor_id: int) -> Tutor | None:
 
 
 def _tutor_to_out(tutor: Tutor) -> TutorOut:
-    return TutorOut.model_validate(tutor, from_attributes=True)
+    out = TutorOut.model_validate(tutor, from_attributes=True)
+    if tutor.reviews is not None:
+        out = out.model_copy(update={"reviews": [review_to_out(r) for r in tutor.reviews]})
+    return out
 
 
 def get_tutor_by_id_out(db: Session, tutor_id: int, *, allow_banned: bool = False) -> TutorOut | None:
@@ -133,7 +137,7 @@ def get_all_tutors(
     query = (
         db.query(Tutor)
         .options(
-            selectinload(Tutor.reviews),
+            selectinload(Tutor.reviews).selectinload(Review.student),
             selectinload(Tutor.address),
             selectinload(Tutor.tutor_subjects).selectinload(TutorSubject.subject),
         )
@@ -472,7 +476,7 @@ def _get_weekly_activity(db: Session, tutor_id: int, since: datetime) -> list[We
  
 def _resolve_student_name(lead: PostRequirement) -> str | None:
     if lead.lead_target is not None and lead.student is not None:
-        return f"{lead.student.first_name} {lead.student.last_name}"
+        return lead.student.first_name.strip() or None
     return None
 
 
@@ -514,6 +518,7 @@ def get_recent_requests(db: Session, tutor_id: int, limit: int = 3) -> TutorRece
     items = [
         TutorRecentRequestOut(
             lead_id=lead.post_requirements_id,
+            post_requirements_id=lead.post_requirements_id,
             title=lead.title,
             subject=lead.subject.subject_title if lead.subject else "",
             level=lead.level.level_title if lead.level else "",
