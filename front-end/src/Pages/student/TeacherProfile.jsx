@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "../../styles/sstyle/TeacherProfile.css";
 import Header from "../../components/Header";
 import { useNavigate, useParams } from "react-router-dom";
+import api from "../../api/api.js";
 
 // مفاتيح الألوان والأيقونات بالإنجليزي لأن subject_title بالباك إنجليزي
 // (محكوم بـ pattern: ^[A-Za-z]+$ في الـ schema)
@@ -66,6 +67,8 @@ export default function TeacherProfile() {
   const { tutor_id } = useParams();
   const navigate = useNavigate();
   const [isSaved, setIsSaved] = useState(false);
+  const [favoriteId, setFavoriteId] = useState(null);
+  const [favBusy, setFavBusy] = useState(false);
   const [teacher, setTeacher] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -94,7 +97,56 @@ export default function TeacherProfile() {
 
     if (tutor_id) fetchTutor();
   }, [tutor_id]);
-  const toggleSave = () => setIsSaved((prev) => !prev);
+
+  // نتحقق هل هذا المعلم محفوظ مسبقًا بالمفضلة، عشان الزر يبيّن الحالة الصحيحة من البداية
+  useEffect(() => {
+    const checkIfSaved = async () => {
+      try {
+        const { data } = await api.get("/favorites/my-favorites");
+        const match = data.find(
+          (f) => String(f.tutor_id) === String(tutor_id)
+        );
+        if (match) {
+          setIsSaved(true);
+          setFavoriteId(match.favorite_id);
+        } else {
+          setIsSaved(false);
+          setFavoriteId(null);
+        }
+      } catch (err) {
+        console.error("فشل تحميل المفضلة", err);
+      }
+    };
+
+    if (tutor_id) checkIfSaved();
+  }, [tutor_id]);
+
+  const toggleSave = async () => {
+    if (favBusy) return; // تجنّب الضغط المزدوج أثناء انتظار الرد
+    setFavBusy(true);
+
+    try {
+      if (!isSaved) {
+        // إضافة للمفضلة
+        const { data } = await api.post("/favorites/", {
+          tutor_id: Number(tutor_id),
+        });
+        setIsSaved(true);
+        setFavoriteId(data.favorite_id);
+      } else {
+        // حذف من المفضلة (يحتاج favorite_id لا tutor_id)
+        if (favoriteId != null) {
+          await api.delete(`/favorites/${favoriteId}`);
+        }
+        setIsSaved(false);
+        setFavoriteId(null);
+      }
+    } catch (err) {
+      console.error("فشل تحديث المفضلة:", err);
+    } finally {
+      setFavBusy(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -216,6 +268,7 @@ export default function TeacherProfile() {
                 <button
                   className={`btn-secondary ${isSaved ? "saved" : ""}`}
                   onClick={toggleSave}
+                  disabled={favBusy}
                 >
                   <span
                     className={`material-symbols-outlined bookmark-icon ${
@@ -425,12 +478,14 @@ export default function TeacherProfile() {
                   }`}
                 >
                   <div className="user-placeholder-avatar">
-                    {rev.student_id}
+                    {(rev.student_first_name || "ط").charAt(0)}
                   </div>
 
                   <div className="review-main">
                     <div className="review-meta-top">
-                      <h4 className="reviewer-name">طالب #{rev.student_id}</h4>
+                      <h4 className="reviewer-name">
+                        {rev.student_first_name || `طالب #${rev.student_id}`}
+                      </h4>
                       <span className="review-date">
                         {rev.created_at
                           ? new Date(rev.created_at).toLocaleDateString("ar-SA")

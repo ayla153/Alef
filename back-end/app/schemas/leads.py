@@ -165,6 +165,10 @@ class LeadOut(BaseModel):
         None,
         description="Populated only after contact reveal rules apply.",
     )
+    student_name: Optional[str] = Field(
+        None,
+        description="Private leads only (lead_targets row) — student first name for targeted tutor.",
+    )
     applications: list[LeadApplicationOut] = Field(default_factory=list)
 
 
@@ -218,6 +222,22 @@ class LeadBrowseCardOut(BaseModel):
     preferred_gender: Optional[gender_enum] = None
     subject_id: int
     level_id: int
+    lead_status: LeadStatusEnum
     accepting_applications: bool
     pending_offer_count: int
     max_applications: int
+    expired_at: datetime
+
+
+class PeerOfferOut(BaseModel):
+    """Other tutors' pending offers on a public lead — no fee."""
+
+    tutor_first_name: str
+    message: str
+
+
+class PublicLeadTutorDetailOut(LeadBrowseCardOut):
+    """Full public lead detail for tutor browse — includes anonymized peer offers."""
+
+    peer_offers: list[PeerOfferOut] = Field(default_factory=list)
+    has_my_offer: bool = False

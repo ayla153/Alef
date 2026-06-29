@@ -6,6 +6,7 @@ import {
   scheduleSessionWarning,
 } from '../api/sessionManager';
 import { getAccessToken } from '../api/authStorage';
+import { getLoginPathForCurrentUser } from '../utils/authRedirect';
 import '../styles/sstyle/SessionExpiryPrompt.css';
 
 export default function SessionExpiryPrompt() {
@@ -35,7 +36,7 @@ export default function SessionExpiryPrompt() {
   const handleLogout = () => {
     logoutSession();
     hidePrompt();
-    navigate('/login');
+    navigate('/');
   };
 
   useEffect(() => {

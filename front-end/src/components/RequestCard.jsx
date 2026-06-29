@@ -35,7 +35,8 @@ const statusInfo = (lead) => {
   if (!lead.accepting_applications) {
     return { label: 'الأماكن ممتلئة', cls: 'slots-full', icon: FaExclamationCircle };
   }
-  if (lead.lead_status === 'open') {
+  const status = lead.lead_status || 'open';
+  if (status === 'open') {
     return { label: leadStatusAr.open, cls: 'open', icon: FaCheckCircle };
   }
   if (lead.lead_status === 'closed_matched') {
@@ -76,7 +77,8 @@ export default function RequestCard({ request, onSubmitOffer, onAcceptContact })
   const translatedLevel = levelTitle ? translateLevel(levelTitle) : '';
 
   const { label: statusLabel, cls: statusClass, icon: StatusIcon } = statusInfo(request);
-  const isOpen = lead_status === 'open' && accepting_applications;
+  const isOpen =
+    (lead_status === 'open' || (!isPrivate && lead_status == null)) && accepting_applications;
   const isMatched = lead_status === 'closed_matched';
   const isShortlist = lead_status === 'closed_shortlist';
 
@@ -222,7 +224,7 @@ export default function RequestCard({ request, onSubmitOffer, onAcceptContact })
 
       {/* ─── أزرار الإجراء ─── */}
       <div className="card-actions-premium">
-        {!isPrivate && accepting_applications && onSubmitOffer && (
+        {!isPrivate && isOpen && onSubmitOffer && (
           <button className="action-btn-premium offer-btn" onClick={() => onSubmitOffer(post_requirements_id)}>
             <FaMoneyBillWave className="btn-icon" /> تقديم عرض
           </button>

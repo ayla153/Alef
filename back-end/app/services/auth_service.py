@@ -264,6 +264,7 @@ def apply_tutor_registration_step2(db: Session, tutor: Tutor, data: TutorRegiste
                 middle_stage=sel.elementary_stage,
                 high_stage=sel.high_school_stage,
                 experience_years=sel.experience_years or 0,
+                price_per_hour=sel.price_per_hour,
             )
         )
     db.commit()

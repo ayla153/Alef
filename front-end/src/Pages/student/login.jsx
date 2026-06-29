@@ -5,6 +5,7 @@ import loginImage from "../../assets/logo_noBG.png";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../api/api";
 import { saveAuthTokens } from "../../api/authStorage";
+import { markStudentFreshLogin } from "../../utils/dashboardHistory";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -22,9 +23,9 @@ export default function Login() {
       const access_token = response.data.access_token ?? response.data.token ?? null;
       const refresh_token = response.data.refresh_token ?? null;
       saveAuthTokens({ access_token, refresh_token });
+      markStudentFreshLogin();
 
-      // ✅ التعديل هون
-      navigate("/home");
+      navigate("/home", { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || "فشل تسجيل الدخول، تحقق من البيانات");
     } finally {

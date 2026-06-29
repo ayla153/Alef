@@ -25,9 +25,12 @@ from app.schemas.tutors import (
     TutorRecentRequestOut,
     TutorRecentRequestsOut,
     TutorStatsOut,
+    TopTutorItemOut,
+    TopTutorsOut,
 )
 
 from app.schemas.enums import LeadApplicationStatusEnum, LeadStatusEnum, NotificationType
+from app.services.review_service import review_to_out
 
 
 def hash_password(plain_password: str) -> str:
@@ -42,7 +45,7 @@ def get_tutor_by_id(db: Session, tutor_id: int) -> Tutor | None:
     return (
         db.query(Tutor)
         .options(
-            joinedload(Tutor.reviews),
+            joinedload(Tutor.reviews).joinedload(Review.student),
             joinedload(Tutor.address),
             joinedload(Tutor.tutor_subjects).joinedload(TutorSubject.subject),
         )
@@ -52,7 +55,10 @@ def get_tutor_by_id(db: Session, tutor_id: int) -> Tutor | None:
 
 
 def _tutor_to_out(tutor: Tutor) -> TutorOut:
-    return TutorOut.model_validate(tutor, from_attributes=True)
+    out = TutorOut.model_validate(tutor, from_attributes=True)
+    if tutor.reviews is not None:
+        out = out.model_copy(update={"reviews": [review_to_out(r) for r in tutor.reviews]})
+    return out
 
 
 def get_tutor_by_id_out(db: Session, tutor_id: int, *, allow_banned: bool = False) -> TutorOut | None:
@@ -131,7 +137,7 @@ def get_all_tutors(
     query = (
         db.query(Tutor)
         .options(
-            selectinload(Tutor.reviews),
+            selectinload(Tutor.reviews).selectinload(Review.student),
             selectinload(Tutor.address),
             selectinload(Tutor.tutor_subjects).selectinload(TutorSubject.subject),
         )
@@ -165,6 +171,53 @@ def get_all_tutors(
     return [_tutor_to_out(tutor) for tutor in tutors]
 
 
+def get_top_tutors(db: Session, limit: int = 10) -> TopTutorsOut:
+    """Public leaderboard: verified, non-banned tutors ranked by rating then reviews."""
+    average_rating = func.coalesce(func.avg(Review.number_of_stars), 0.0)
+    reviews_count = func.count(Review.review_id)
+
+    rows = (
+        db.query(
+            Tutor,
+            average_rating.label("average_rating"),
+            reviews_count.label("reviews_count"),
+        )
+        .outerjoin(Review, Review.tutor_id == Tutor.tutor_id)
+        .filter(Tutor.verified.is_(True), Tutor.is_banned.is_(False))
+        .group_by(Tutor.tutor_id)
+        .order_by(
+            average_rating.desc(),
+            reviews_count.desc(),
+            Tutor.total_experience_years.desc().nulls_last(),
+            Tutor.tutor_id.asc(),
+        )
+        .limit(limit)
+        .all()
+    )
+
+    items: list[TopTutorItemOut] = []
+    for rank, (tutor, avg, count) in enumerate(rows, start=1):
+        reviews_n = int(count or 0)
+        avg_f = round(float(avg), 1) if reviews_n > 0 else None
+        experience = tutor.total_experience_years or 0
+        rank_score = round((avg_f or 0) * 10 + reviews_n + experience * 0.5, 2)
+        items.append(
+            TopTutorItemOut(
+                tutor_id=tutor.tutor_id,
+                first_name=tutor.first_name,
+                last_name=tutor.last_name,
+                tutor_photo=tutor.tutor_photo,
+                average_rating=avg_f,
+                reviews_count=reviews_n,
+                total_experience_years=tutor.total_experience_years,
+                rank=rank,
+                rank_score=rank_score,
+            )
+        )
+
+    return TopTutorsOut(items=items)
+
+
 def _sanitize_filename_base(value: str) -> str:
     sanitized = re.sub(r"[^A-Za-z0-9_-]", "_", value.strip().lower())
     sanitized = re.sub(r"_+", "_", sanitized)
@@ -172,9 +225,9 @@ def _sanitize_filename_base(value: str) -> str:
 
 
 def _delete_existing_file(file_path: str | None) -> None:
-    if not file_path:
+    if not file_path or file_path.startswith("data:") or file_path.startswith("http"):
         return
-    existing = Path(file_path)
+    existing = Path(file_path.lstrip("/"))
     if existing.exists() and existing.is_file():
         try:
             existing.unlink()
@@ -228,7 +281,12 @@ def update_tutor_photo(db: Session, tutor_id: int, file: UploadFile | str | None
         upload_file = _ensure_upload_file(file)
         _delete_existing_file(tutor.tutor_photo)
         base_name = _sanitize_filename_base(f"{tutor.first_name}_{tutor.last_name}")
-        tutor.tutor_photo = _save_upload_file(upload_file, "uploads/tutors/photos", base_name, {".jpg", ".jpeg", ".png", ".gif"})
+        tutor.tutor_photo = _save_upload_file(
+            upload_file,
+            "uploads/tutors/photos",
+            base_name,
+            {".jpg", ".jpeg", ".png", ".gif"},
+        )
     db.commit()
     db.refresh(tutor)
     return _tutor_to_out(tutor)
@@ -418,7 +476,7 @@ def _get_weekly_activity(db: Session, tutor_id: int, since: datetime) -> list[We
  
 def _resolve_student_name(lead: PostRequirement) -> str | None:
     if lead.lead_target is not None and lead.student is not None:
-        return f"{lead.student.first_name} {lead.student.last_name}"
+        return lead.student.first_name.strip() or None
     return None
 
 
@@ -460,6 +518,7 @@ def get_recent_requests(db: Session, tutor_id: int, limit: int = 3) -> TutorRece
     items = [
         TutorRecentRequestOut(
             lead_id=lead.post_requirements_id,
+            post_requirements_id=lead.post_requirements_id,
             title=lead.title,
             subject=lead.subject.subject_title if lead.subject else "",
             level=lead.level.level_title if lead.level else "",

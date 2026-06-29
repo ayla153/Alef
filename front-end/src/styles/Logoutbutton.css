@@ -60,6 +60,39 @@
   text-decoration: underline;
 }
 
+/* Square tile — profile footer and similar */
+.logout-trigger--square {
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  width: 72px;
+  height: 72px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 2px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+.logout-trigger--square .logout-trigger__icon {
+  width: 22px;
+  height: 22px;
+}
+
+.logout-trigger--square .logout-trigger__label {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.logout-trigger--square:hover {
+  border-color: #dc2626;
+  background: #fef2f2;
+  color: #dc2626;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.12);
+}
+
 /* ===== Confirmation modal ===== */
 .logout-overlay {
   position: fixed;

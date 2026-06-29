@@ -9,6 +9,7 @@ export default function PrivateLeadDetails({ lead }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [leadStatus, setLeadStatus] = useState(lead?.lead_status);
   const [actionLoading, setActionLoading] = useState(false);
+  const [targetTutor, setTargetTutor] = useState(null);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -18,6 +19,19 @@ export default function PrivateLeadDetails({ lead }) {
   useEffect(() => {
     setLeadStatus(lead?.lead_status);
   }, [lead]);
+
+  useEffect(() => {
+    if (!lead?.target_tutor_id) return;
+    const fetchTutor = async () => {
+      try {
+        const { data } = await api.get(`/tutors/${lead.target_tutor_id}`);
+        setTargetTutor(data);
+      } catch (err) {
+        console.error("فشل جلب بيانات المعلم", err);
+      }
+    };
+    fetchTutor();
+  }, [lead?.target_tutor_id]);
 
   if (!lead) return null;
 
@@ -31,7 +45,6 @@ export default function PrivateLeadDetails({ lead }) {
 
   const toggleModal = () => setIsModalOpen((prev) => !prev);
 
-  // POST /leads/{id}/close { matched: true | false }
   const handleCloseLead = async (matched) => {
     try {
       setActionLoading(true);
@@ -59,10 +72,7 @@ export default function PrivateLeadDetails({ lead }) {
       <Header />
 
       <main className="pld-main-content">
-
-        {/* ========================= */}
-        {/* CASE 1: closed_matched — المعلم وافق */}
-        {/* ========================= */}
+        {/* CASE 1: closed_matched */}
         {isAccepted && (
           <>
             <section className="pld-card pld-header-card">
@@ -78,13 +88,14 @@ export default function PrivateLeadDetails({ lead }) {
                     تم قبول الطلب
                   </span>
                 </div>
-
                 <h2 className="pld-main-title">{lead.title}</h2>
-
                 <div className="pld-meta-row">
                   <div className="pld-meta-item">
                     <span className="material-symbols-outlined">payments</span>
-                    <span>{lead.min_expected_fee} - {lead.max_expected_fee} ل.س / ساعة</span>
+                    <span>
+                      {lead.min_expected_fee} - {lead.max_expected_fee} ل.س /
+                      ساعة
+                    </span>
                   </div>
                   <div className="pld-meta-item pld-highlight-meta">
                     <span className="material-symbols-outlined">
@@ -94,13 +105,12 @@ export default function PrivateLeadDetails({ lead }) {
                       {lead.tution_type === "online"
                         ? "أونلاين"
                         : lead.tution_type === "offline"
-                        ? "حضوري"
-                        : "أونلاين وحضوري"}
+                          ? "حضوري"
+                          : "أونلاين وحضوري"}
                     </span>
                   </div>
                 </div>
               </div>
-
               <div className="pld-budget-box">
                 <div className="pld-budget-label">الميزانية المتوقعة</div>
                 <div className="pld-budget-amount">
@@ -110,20 +120,17 @@ export default function PrivateLeadDetails({ lead }) {
               </div>
             </section>
 
-            {/* معلومات المعلم */}
             {tutorApp && (
               <section className="pld-card pld-teacher-card">
                 <div className="pld-teacher-details">
                   <h3 className="pld-teacher-name">
                     {tutorApp.tutor_first_name || `معلم #${tutorApp.tutor_id}`}
                   </h3>
-
                   {tutorApp.proposed_fee && (
                     <p className="pld-teacher-headline">
                       السعر المقترح: {tutorApp.proposed_fee} ل.س/ساعة
                     </p>
                   )}
-
                   {tutorApp.message && (
                     <p className="pld-teacher-bio">{tutorApp.message}</p>
                   )}
@@ -142,14 +149,12 @@ export default function PrivateLeadDetails({ lead }) {
                     {lead.tution_type === "online"
                       ? "أونلاين"
                       : lead.tution_type === "offline"
-                      ? "حضوري"
-                      : "أونلاين وحضوري"}
+                        ? "حضوري"
+                        : "أونلاين وحضوري"}
                   </div>
                 </div>
               </div>
-
               <div className="pld-vertical-divider"></div>
-
               <div className="pld-info-block">
                 <div className="pld-block-icon">
                   <span className="material-symbols-outlined">history</span>
@@ -165,14 +170,11 @@ export default function PrivateLeadDetails({ lead }) {
               </div>
             </section>
 
-            {/* معلومات التواصل */}
             <section className="pld-card pld-contact-section">
               <div className="pld-contact-header">
                 <h3>معلومات التواصل</h3>
                 <p>يمكنك التواصل مع المعلم مباشرة بعد قبول الطلب.</p>
               </div>
-
-              {/* الرقم يجي من الباك فقط بعد closed_matched */}
               {tutorPhone ? (
                 <>
                   <div className="pld-phone-box">
@@ -181,7 +183,6 @@ export default function PrivateLeadDetails({ lead }) {
                       {tutorPhone}
                     </div>
                   </div>
-
                   <div className="pld-action-buttons-group">
                     <a
                       href={`tel:${tutorPhone}`}
@@ -210,9 +211,7 @@ export default function PrivateLeadDetails({ lead }) {
                   </div>
                 </div>
               )}
-
               <hr className="pld-section-divider" />
-
               <div className="pld-footer-actions">
                 <button
                   className="pld-btn-secondary"
@@ -222,9 +221,7 @@ export default function PrivateLeadDetails({ lead }) {
                   <span className="material-symbols-outlined">lock</span>
                   <span>تم الاختيار</span>
                 </button>
-
                 <span className="pld-inline-divider">|</span>
-
                 <button
                   className="pld-btn-secondary pld-text-danger"
                   disabled={actionLoading}
@@ -238,9 +235,7 @@ export default function PrivateLeadDetails({ lead }) {
           </>
         )}
 
-        {/* ========================= */}
         {/* CASE 2: open — بانتظار رد المعلم */}
-        {/* ========================= */}
         {isPending && (
           <>
             <section className="pld-card pld-header-card">
@@ -254,13 +249,14 @@ export default function PrivateLeadDetails({ lead }) {
                     قيد الانتظار
                   </span>
                 </div>
-
                 <h2 className="pld-main-title">{lead.title}</h2>
-
                 <div className="pld-meta-row">
                   <div className="pld-meta-item">
                     <span className="material-symbols-outlined">payments</span>
-                    <span>{lead.min_expected_fee} - {lead.max_expected_fee} ل.س / ساعة</span>
+                    <span>
+                      {lead.min_expected_fee} - {lead.max_expected_fee} ل.س /
+                      ساعة
+                    </span>
                   </div>
                   <div className="pld-meta-item pld-highlight-meta">
                     <span className="material-symbols-outlined">
@@ -270,13 +266,12 @@ export default function PrivateLeadDetails({ lead }) {
                       {lead.tution_type === "online"
                         ? "أونلاين"
                         : lead.tution_type === "offline"
-                        ? "حضوري"
-                        : "أونلاين وحضوري"}
+                          ? "حضوري"
+                          : "أونلاين وحضوري"}
                     </span>
                   </div>
                 </div>
               </div>
-
               <div className="pld-budget-box">
                 <div className="pld-budget-label">الميزانية المتوقعة</div>
                 <div className="pld-budget-amount">
@@ -285,6 +280,52 @@ export default function PrivateLeadDetails({ lead }) {
                 </div>
               </div>
             </section>
+
+            {/* كارت المعلم المستهدف */}
+            {targetTutor && (
+              <section className="pld-card pld-teacher-card">
+                <div className="pld-teacher-avatar-wrapper">
+                  {targetTutor.tutor_photo ? (
+                    <div className="pld-teacher-avatar">
+                      <img
+                        src={targetTutor.tutor_photo}
+                        alt={targetTutor.first_name}
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className="pld-teacher-avatar"
+                      style={{
+                        background: "linear-gradient(135deg, #e0e7ff, #c7d2fe)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <span
+                        className="material-symbols-outlined"
+                        style={{ fontSize: "64px", color: "#6366f1" }}
+                      >
+                        person
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="pld-teacher-details">
+                  <h3 className="pld-teacher-name">
+                    {targetTutor.first_name} {targetTutor.last_name}
+                  </h3>
+                  {targetTutor.bio && (
+                    <p className="pld-teacher-bio">{targetTutor.bio}</p>
+                  )}
+                  {targetTutor.total_experience_years != null && (
+                    <p className="pld-teacher-headline">
+                      خبرة {targetTutor.total_experience_years} سنة
+                    </p>
+                  )}
+                </div>
+              </section>
+            )}
 
             <section className="pld-card pld-search-status-card">
               <div className="pld-search-icon-wrapper">
@@ -303,11 +344,10 @@ export default function PrivateLeadDetails({ lead }) {
                   {lead.tution_type === "online"
                     ? "أونلاين"
                     : lead.tution_type === "offline"
-                    ? "حضوري"
-                    : "أونلاين وحضوري"}
+                      ? "حضوري"
+                      : "أونلاين وحضوري"}
                 </span>
               </div>
-
               <div className="pld-info-block">
                 <span className="material-symbols-outlined">history</span>
                 <span>
@@ -334,9 +374,7 @@ export default function PrivateLeadDetails({ lead }) {
           </>
         )}
 
-        {/* ========================= */}
         {/* CASE 3: closed_empty / closed_expired */}
-        {/* ========================= */}
         {isExpired && (
           <section
             className="pld-card"
@@ -367,32 +405,26 @@ export default function PrivateLeadDetails({ lead }) {
             </button>
           </section>
         )}
-
       </main>
 
       {/* Modal الإلغاء */}
       {isModalOpen && (
         <div className="pld-modal-overlay">
           <div className="pld-modal-backdrop" onClick={toggleModal} />
-
-          <div className="pld-modal-card">
+          <div
+            className="pld-modal-card"
+            style={{ position: "relative", zIndex: 101 }}
+          >
             <div className="pld-modal-body">
               <div className="pld-modal-icon-danger">
                 <span className="material-symbols-outlined">warning</span>
               </div>
-
               <h2>تأكيد إلغاء الطلب</h2>
-
               <p>هل أنت متأكد أنك تريد إلغاء هذا الطلب؟</p>
-
               <div className="pld-modal-actions-grid">
-                <button
-                  className="pld-modal-btn-cancel"
-                  onClick={toggleModal}
-                >
+                <button className="pld-modal-btn-cancel" onClick={toggleModal}>
                   تراجع
                 </button>
-
                 <button
                   className="pld-modal-btn-confirm"
                   disabled={actionLoading}

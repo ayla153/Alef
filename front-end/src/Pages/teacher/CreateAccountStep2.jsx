@@ -1,11 +1,53 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import '../../styles/CreateAccountStep2.css';
-import { FaArrowLeft, FaArrowRight, FaPlus, FaTrashAlt } from 'react-icons/fa';
-import logo from '../../assets/Alef-logo.jpg';
+import { FaPlus, FaTrashAlt, FaBook, FaGraduationCap } from 'react-icons/fa';
 import { getSubjects, getLevels, registerTutorStep2 } from '../../api/tutorRegistration';
 import { getErrorMessage } from '../../utils/apiErrors';
 import Header from '../../components/common/Header';
+import TutorRegistrationActions from '../../components/TutorRegistrationActions';
+
+const LEVEL_TRANSLATIONS = {
+  Grade1: 'الصف الأول',
+  Grade2: 'الصف الثاني',
+  Grade3: 'الصف الثالث',
+  Grade4: 'الصف الرابع',
+  Grade5: 'الصف الخامس',
+  Grade6: 'الصف السادس',
+  Grade7: 'الصف السابع',
+  Grade8: 'الصف الثامن',
+  Grade9: 'الصف التاسع',
+  Grade10: 'الصف العاشر',
+  Grade11: 'الصف الحادي عشر',
+  Grade12: 'الصف الثاني عشر',
+};
+
+const translateLevel = (title) => LEVEL_TRANSLATIONS[title] || title;
+
+function deriveStageFlagsFromLevel(levelTitle) {
+  const gradeMatch = (levelTitle || '').match(/^Grade(\d{1,2})$/i);
+  if (gradeMatch) {
+    const grade = Number(gradeMatch[1]);
+    return {
+      primary_stage: grade >= 1 && grade <= 6,
+      elementary_stage: grade >= 7 && grade <= 9,
+      high_school_stage: grade >= 10 && grade <= 12,
+    };
+  }
+
+  const title = levelTitle || '';
+  if (/ابتد|primary/i.test(title)) {
+    return { primary_stage: true, elementary_stage: false, high_school_stage: false };
+  }
+  if (/متوس|mid|prep|إعد/i.test(title)) {
+    return { primary_stage: false, elementary_stage: true, high_school_stage: false };
+  }
+  if (/ثان|high|secondary/i.test(title)) {
+    return { primary_stage: false, elementary_stage: false, high_school_stage: true };
+  }
+
+  return { primary_stage: false, elementary_stage: false, high_school_stage: false };
+}
 
 export default function CreateAccountStep2() {
   const navigate = useNavigate();
@@ -17,11 +59,9 @@ export default function CreateAccountStep2() {
 
   const [selectedSubjectId, setSelectedSubjectId] = useState('');
   const [selectedLevelId, setSelectedLevelId] = useState('');
-  const [selectedYears, setSelectedYears] = useState(0);
+  const [selectedYears, setSelectedYears] = useState('');
+  const [selectedPrice, setSelectedPrice] = useState('');
   const [selectedFoundation, setSelectedFoundation] = useState(false);
-  const [selectedPrimary, setSelectedPrimary] = useState(false);
-  const [selectedElementary, setSelectedElementary] = useState(false);
-  const [selectedHighSchool, setSelectedHighSchool] = useState(false);
 
   const [addedSubjects, setAddedSubjects] = useState([]);
   const [error, setError] = useState('');
@@ -54,20 +94,18 @@ export default function CreateAccountStep2() {
   const resetAddSubjectFields = () => {
     setSelectedSubjectId('');
     setSelectedLevelId('');
-    setSelectedYears(0);
+    setSelectedYears('');
+    setSelectedPrice('');
     setSelectedFoundation(false);
-    setSelectedPrimary(false);
-    setSelectedElementary(false);
-    setSelectedHighSchool(false);
   };
 
   const addSubject = () => {
     if (!selectedSubjectId) {
-      setError('يرجى اختيار مادة');
+      setError('يرجى اختيار المادة');
       return;
     }
     if (!selectedLevelId) {
-      setError('يرجى اختيار مستوى');
+      setError('يرجى اختيار الصف أو المرحلة');
       return;
     }
     if (
@@ -75,12 +113,22 @@ export default function CreateAccountStep2() {
         (s) => s.subject_id === Number(selectedSubjectId) && s.level_id === Number(selectedLevelId)
       )
     ) {
-      setError('هذه المادة بهذا المستوى مضافة بالفعل');
+      setError('هذه المادة بهذا الصف مضافة بالفعل');
+      return;
+    }
+    if (selectedYears === '' || Number(selectedYears) < 0) {
+      setError('يرجى إدخال سنوات خبرة صحيحة');
+      return;
+    }
+    if (selectedPrice === '' || Number(selectedPrice) < 0) {
+      setError('يرجى إدخال سعر صحيح لهذه المادة');
       return;
     }
 
     const subjectInfo = subjectsList.find((s) => s.subject_id === Number(selectedSubjectId));
     const levelInfo = levelsList.find((l) => l.level_id === Number(selectedLevelId));
+    const levelTitle = levelInfo?.level_title || '';
+    const stageFlags = deriveStageFlagsFromLevel(levelTitle);
 
     setAddedSubjects([
       ...addedSubjects,
@@ -88,13 +136,12 @@ export default function CreateAccountStep2() {
         subject_id: Number(selectedSubjectId),
         level_id: Number(selectedLevelId),
         subject_title: subjectInfo?.subject_title || '',
-        level_title: levelInfo?.level_title || '',
-        years: Number(selectedYears) || 0,
+        level_title: levelTitle,
+        years: Number(selectedYears),
+        price: Number(selectedPrice),
         foundation: selectedFoundation,
-        primary_stage: selectedPrimary,
-        elementary_stage: selectedElementary,
-        high_school_stage: selectedHighSchool
-      }
+        ...stageFlags,
+      },
     ]);
 
     resetAddSubjectFields();
@@ -102,16 +149,16 @@ export default function CreateAccountStep2() {
   };
 
   const removeSubject = (index) => {
-    const newList = [...addedSubjects];
-    newList.splice(index, 1);
-    setAddedSubjects(newList);
+    setAddedSubjects((prev) => prev.filter((_, i) => i !== index));
     setError('');
   };
 
-  const updateYears = (index, newYears) => {
-    const newList = [...addedSubjects];
-    newList[index].years = Number(newYears);
-    setAddedSubjects(newList);
+  const updateSubjectField = (index, field, value) => {
+    setAddedSubjects((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: value };
+      return next;
+    });
   };
 
   const handleNext = async () => {
@@ -131,18 +178,17 @@ export default function CreateAccountStep2() {
           experience_years: s.years,
           primary_stage: s.primary_stage,
           elementary_stage: s.elementary_stage,
-          high_school_stage: s.high_school_stage
-        }))
+          high_school_stage: s.high_school_stage,
+          price_per_hour: s.price,
+        })),
       };
 
       const response = await registerTutorStep2(payload);
 
-      // 🔥 التعديل الجوهري: التوكن موجود داخل response.data
       if (response?.data?.registration_token) {
         localStorage.setItem('tutor_registration_token', response.data.registration_token);
-        console.log('✅ تم تحديث توكن التسجيل (الخطوة 3)');
-      } else {
-        console.warn('⚠️ لم يتم العثور على registration_token في الرد:', response);
+      } else if (response?.registration_token) {
+        localStorage.setItem('tutor_registration_token', response.registration_token);
       }
 
       navigate('/create-account/step3');
@@ -156,156 +202,193 @@ export default function CreateAccountStep2() {
   return (
     <div className="page-container2 fade-in">
       <header className="steponeheader">
-        <Header/>
+        <Header />
       </header>
+
       <div className="content">
         <div className="titleforstep1">
-          <h2>المواد والصفوف الدراسية</h2>
-          <p className="welcom">اختر المواد التي تُدرِّسها وحدد سنوات خبرتك لكل مادة.</p>
+          <h2>موادك وأسعارك</h2>
+          <p className="welcom">
+            أضف كل مادة تُدرّسها مع الصف وسعر الساعة وسنوات خبرتك — المرحلة تُحدَّد تلقائياً من الصف.
+          </p>
           <div className="progress-bar-wrapper">
             <p className="personalinfo">الخطوةُ 2 من 4 : بيانات التّدريس</p>
             <div className="progress-bar">
-              <div className="progress-fill" style={{ width: '50%' }}></div>
+              <div className="progress-fill" style={{ width: '50%' }} />
             </div>
           </div>
         </div>
 
-        <div className="subjects-white-container">
-          {isLoadingCatalog && <div className="error-message-subjects">جارِ تحميل قائمة المواد والمستويات...</div>}
-          {catalogError && <div className="error-message-subjects">{catalogError}</div>}
+        <div className="step2-panel">
+          {isLoadingCatalog && (
+            <div className="step2-message step2-message--loading">جارِ تحميل المواد والصفوف...</div>
+          )}
+          {catalogError && <div className="step2-message step2-message--error">{catalogError}</div>}
 
           {!isLoadingCatalog && !catalogError && (
-            <div className="add-subject-section">
-              <div className="add-subject-controls">
-                <select
-                  className="subject-select"
-                  value={selectedSubjectId}
-                  onChange={(e) => setSelectedSubjectId(e.target.value)}
-                >
-                  <option value="">-- اختر المادة --</option>
-                  {subjectsList.map((sub) => (
-                    <option key={sub.subject_id} value={sub.subject_id}>
-                      {sub.subject_title}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  className="subject-select"
-                  value={selectedLevelId}
-                  onChange={(e) => setSelectedLevelId(e.target.value)}
-                >
-                  <option value="">-- اختر المستوى --</option>
-                  {levelsList.map((lvl) => (
-                    <option key={lvl.level_id} value={lvl.level_id}>
-                      {lvl.level_title}
-                    </option>
-                  ))}
-                </select>
-
-                <div className="years-input-group">
-                  <input
-                    type="number"
-                    className="years-input-add"
-                    placeholder="سنوات الخبرة"
-                    value={selectedYears}
-                    onChange={(e) => setSelectedYears(e.target.value)}
-                    min="0"
-                  />
-                  <button className="add-btn" onClick={addSubject} type="button">
-                    <FaPlus /> إضافة مادة
-                  </button>
+            <>
+              <section className="step2-form-card">
+                <div className="step2-section-head">
+                  <FaBook className="step2-section-icon" />
+                  <div>
+                    <h3>إضافة مادة</h3>
+                    <p>املأ التفاصيل ثم اضغط «إضافة للقائمة»</p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="add-subject-controls">
-                <label>
+                <div className="step2-form-grid">
+                  <div className="step2-field">
+                    <label htmlFor="step2-subject">المادة</label>
+                    <select
+                      id="step2-subject"
+                      className="step2-input"
+                      value={selectedSubjectId}
+                      onChange={(e) => setSelectedSubjectId(e.target.value)}
+                    >
+                      <option value="">اختر المادة</option>
+                      {subjectsList.map((sub) => (
+                        <option key={sub.subject_id} value={sub.subject_id}>
+                          {sub.subject_title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="step2-field">
+                    <label htmlFor="step2-level">الصف / المرحلة</label>
+                    <select
+                      id="step2-level"
+                      className="step2-input"
+                      value={selectedLevelId}
+                      onChange={(e) => setSelectedLevelId(e.target.value)}
+                    >
+                      <option value="">اختر الصف</option>
+                      {levelsList.map((lvl) => (
+                        <option key={lvl.level_id} value={lvl.level_id}>
+                          {translateLevel(lvl.level_title)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="step2-field">
+                    <label htmlFor="step2-years">سنوات الخبرة</label>
+                    <input
+                      id="step2-years"
+                      type="number"
+                      className="step2-input"
+                      placeholder="مثال: 3"
+                      value={selectedYears}
+                      onChange={(e) => setSelectedYears(e.target.value)}
+                      min="0"
+                    />
+                  </div>
+
+                  <div className="step2-field">
+                    <label htmlFor="step2-price">السعر بالساعة (ل.س)</label>
+                    <input
+                      id="step2-price"
+                      type="number"
+                      className="step2-input"
+                      placeholder="مثال: 150000"
+                      value={selectedPrice}
+                      onChange={(e) => setSelectedPrice(e.target.value)}
+                      min="0"
+                    />
+                  </div>
+                </div>
+
+                <label className="step2-foundation-toggle">
                   <input
                     type="checkbox"
                     checked={selectedFoundation}
                     onChange={(e) => setSelectedFoundation(e.target.checked)}
-                  />{' '}
-                  تأسيس
+                  />
+                  <span>أُقدّم دروس تأسيس لهذه المادة</span>
                 </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={selectedPrimary}
-                    onChange={(e) => setSelectedPrimary(e.target.checked)}
-                  />{' '}
-                  المرحلة الابتدائية
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={selectedElementary}
-                    onChange={(e) => setSelectedElementary(e.target.checked)}
-                  />{' '}
-                  المرحلة المتوسطة
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={selectedHighSchool}
-                    onChange={(e) => setSelectedHighSchool(e.target.checked)}
-                  />{' '}
-                  المرحلة الثانوية
-                </label>
-              </div>
 
-              {error && <div className="error-message-subjects">{error}</div>}
-            </div>
-          )}
+                <button className="step2-add-btn" onClick={addSubject} type="button">
+                  <FaPlus /> إضافة للقائمة
+                </button>
 
-          {addedSubjects.length > 0 && (
-            <div className="added-subjects-list">
-              <div className="subjects-header">
-                <span className="subjects-header-title">المواد المضافة</span>
-              </div>
-              {addedSubjects.map((subject, index) => (
-                <div key={index} className="subject-item-added">
-                  <div className="subject-info-added">
-                    <span className="subject-name-added">
-                      {subject.subject_title} - {subject.level_title}
-                    </span>
-                    <div className="subject-years-edit">
-                      <label className="years-label-small">سنوات الخبرة:</label>
-                      <input
-                        type="number"
-                        className="years-edit-input"
-                        value={subject.years}
-                        onChange={(e) => updateYears(index, e.target.value)}
-                        min="0"
-                      />
-                    </div>
+                {error && <div className="step2-message step2-message--error">{error}</div>}
+              </section>
+
+              <section className="step2-list-card">
+                <div className="step2-section-head">
+                  <FaGraduationCap className="step2-section-icon" />
+                  <div>
+                    <h3>موادك ({addedSubjects.length})</h3>
+                    <p>يمكنك تعديل السعر أو سنوات الخبرة قبل المتابعة</p>
                   </div>
-                  <button className="delete-subject-btn" onClick={() => removeSubject(index)} type="button">
-                    <FaTrashAlt />
-                  </button>
                 </div>
-              ))}
-            </div>
+
+                {addedSubjects.length === 0 ? (
+                  <div className="step2-empty">
+                    <FaBook />
+                    <p>لم تُضف أي مادة بعد</p>
+                    <span>استخدم النموذج أعلاه لإضافة أول مادة</span>
+                  </div>
+                ) : (
+                  <ul className="step2-subjects-list">
+                    {addedSubjects.map((subject, index) => (
+                      <li key={`${subject.subject_id}-${subject.level_id}-${index}`} className="step2-subject-row">
+                        <div className="step2-subject-main">
+                          <strong>{subject.subject_title}</strong>
+                          <span className="step2-subject-level">{translateLevel(subject.level_title)}</span>
+                          {subject.foundation && <span className="step2-badge step2-badge--foundation">تأسيس</span>}
+                        </div>
+
+                        <div className="step2-subject-meta">
+                          <label className="step2-inline-field">
+                            <span>سنوات</span>
+                            <input
+                              type="number"
+                              value={subject.years}
+                              onChange={(e) => updateSubjectField(index, 'years', Number(e.target.value))}
+                              min="0"
+                            />
+                          </label>
+                          <label className="step2-inline-field">
+                            <span>ل.س/ساعة</span>
+                            <input
+                              type="number"
+                              value={subject.price}
+                              onChange={(e) => updateSubjectField(index, 'price', Number(e.target.value))}
+                              min="0"
+                            />
+                          </label>
+                        </div>
+
+                        <button
+                          className="step2-remove-btn"
+                          onClick={() => removeSubject(index)}
+                          type="button"
+                          aria-label="حذف المادة"
+                        >
+                          <FaTrashAlt />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            </>
           )}
-          <div className="tutorbuttons">
-            <button className="movetostep2" onClick={handleNext} disabled={isSubmitting} type="button">
-              <FaArrowRight className="btn-icon" /> {isSubmitting ? 'جارِ الإرسال...' : 'متابعة للخطوة التالية'}
-            </button>
-            <button
-              className="cancele"
-              onClick={() => navigate('/create-account/step1')}
-              disabled={isSubmitting}
-              type="button"
-            >
-              <FaArrowLeft className="btn-icon" /> رجوع
-            </button>
-          </div>
+
+          <TutorRegistrationActions
+            onPrimary={handleNext}
+            isSubmitting={isSubmitting}
+            backTo="/create-account/step1"
+          />
+
           <p className="haveaccount">
             لديك حساب بالفعل ؟{' '}
             <a
               href="#"
               onClick={(e) => {
                 e.preventDefault();
-                navigate('/login');
+                navigate('/tutor/login');
               }}
             >
               تسجيل الدخول

@@ -1,12 +1,13 @@
 import '../../styles/CreateAccountStep4.css';
 import logo from '../../assets/Alef-logo.jpg';
 import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaArrowRight, FaLightbulb, FaFileAlt } from "react-icons/fa";
+import { FaLightbulb, FaFileAlt } from "react-icons/fa";
 import { useState, useRef } from 'react';
 import CertificatesUpload from '../../components/common/CertificatesUpload';
 import { registerTutorStep4 } from '../../api/tutorRegistration';
 import { getErrorMessage } from '../../utils/apiErrors';
 import Header from '../../components/common/Header';
+import TutorRegistrationActions from '../../components/TutorRegistrationActions';
 
 export default function CreateAccountStep4() {
   const navigate = useNavigate();
@@ -112,19 +113,12 @@ export default function CreateAccountStep4() {
             {generalError && <div className="validation-error">{generalError}</div>}
             {validationError && <div className="validation-error">{validationError}</div>}
 
-            <div className="tutorbuttons">
-              <button className="movetostep2" onClick={handleNext} disabled={isSubmitting} type="button">
-                <FaArrowRight className="btn-icon" /> {isSubmitting ? 'جارِ الإرسال...' : 'متابعة للتحقق'}
-              </button>
-              <button
-                className="cancele"
-                onClick={() => navigate('/create-account/step3')}
-                disabled={isSubmitting}
-                type="button"
-              >
-                <FaArrowLeft className="btn-icon" />
-              </button>
-            </div>
+            <TutorRegistrationActions
+              onPrimary={handleNext}
+              primaryLabel="متابعة للتحقق"
+              isSubmitting={isSubmitting}
+              backTo="/create-account/step3"
+            />
 
             <p className="haveaccount">
               لديك حساب بالفعل ؟{' '}

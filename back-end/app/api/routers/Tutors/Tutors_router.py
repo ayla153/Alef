@@ -11,6 +11,7 @@ from app.schemas.auth import TokenPayload
 from app.schemas.tutors import (
     CreateTutor,
     TutorOut,
+    TopTutorsOut,
     UpdateTutorRequest,
     TutorStatsOut,
     RecentActivityOut,
@@ -66,6 +67,19 @@ def get_my_recent_activity(
     current_tutor: Tutor = Depends(get_current_tutor),
 ):
     return tutor_service.get_recent_activity(db, current_tutor.tutor_id, limit=3)
+
+
+@router.get(
+    "/top",
+    response_model=TopTutorsOut,
+    summary="Top tutors (public)",
+    description="Verified tutors ranked by rating and experience. No login required.",
+)
+def get_top_tutors(
+    limit: int = Query(10, ge=1, le=50),
+    db: Session = Depends(get_db),
+):
+    return tutor_service.get_top_tutors(db, limit=limit)
 
 
 @router.get(

@@ -19,6 +19,7 @@ export default function LogoutButton({ variant = 'default' }) {
         type="button"
         className={`logout-trigger logout-trigger--${variant}`}
         onClick={() => setIsConfirming(true)}
+        aria-label="تسجيل الخروج"
       >
         <svg
           className="logout-trigger__icon"
@@ -34,7 +35,9 @@ export default function LogoutButton({ variant = 'default' }) {
           <polyline points="16 17 21 12 16 7" />
           <line x1="21" y1="12" x2="9" y2="12" />
         </svg>
-        <span>تسجيل خروج</span>
+        <span className="logout-trigger__label">
+          {variant === 'square' ? 'خروج' : 'تسجيل خروج'}
+        </span>
       </button>
 
       {isConfirming && (

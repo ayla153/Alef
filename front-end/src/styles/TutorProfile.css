@@ -133,76 +133,130 @@
 }
 
 /* الهيدر */
-.profile-header {
-  text-align: center;
+.profile-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
 }
+
+.profile-header {
+  text-align: right;
+  flex: 1;
+  min-width: 200px;
+}
+
 .profile-header h1 {
   font-size: 2rem;
   font-weight: 800;
   color: #0f172a;
+  margin: 0 0 0.35rem;
 }
+
 .profile-header p {
   color: #475569;
   font-size: 0.9rem;
+  margin: 0;
 }
 
-/* أزرار الحفظ والإلغاء في الأعلى */
-.action-buttons.top-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
+/* زر التعديل — رابط بسيط بجانب العنوان */
+.profile-edit-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-family: 'Cairo', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: color 0.2s, background 0.2s;
+  white-space: nowrap;
 }
-.save-btn, .cancel-btn {
-  padding: 0.6rem 1.5rem;
-  border-radius: 40px;
+
+.profile-edit-trigger:hover {
+  color: #2563eb;
+  background: #f1f5f9;
+}
+
+/* شريط الحفظ/الإلغاء أثناء التعديل */
+.profile-edit-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  padding: 0.85rem 1.1rem;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 16px;
+}
+
+.profile-edit-toolbar-label {
+  font-size: 0.85rem;
   font-weight: 700;
-  font-size: 0.9rem;
+  color: #92400e;
+}
+
+.profile-edit-toolbar-actions {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.profile-save-btn,
+.profile-cancel-btn {
+  padding: 0.45rem 1rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.85rem;
   cursor: pointer;
   border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: 'Cairo', sans-serif;
   transition: all 0.2s;
 }
-.save-btn {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+
+.profile-save-btn {
+  background: #2563eb;
   color: white;
-  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2);
 }
-.save-btn:disabled {
+
+.profile-save-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.profile-save-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-.cancel-btn {
-  background: #f1f5f9;
-  color: #1e293b;
-}
-.save-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
-}
-.cancel-btn:hover {
-  background: #e2e8f0;
-  transform: translateY(-1px);
-}
 
-.edit-profile-btn {
-  padding: 0.6rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 0.9rem;
-  cursor: pointer;
-  border: 2px solid #3b82f6;
+.profile-cancel-btn {
   background: white;
-  color: #2563eb;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all 0.2s;
+  color: #475569;
+  border: 1px solid #cbd5e1;
 }
 
-.edit-profile-btn:hover {
-  background: #eff6ff;
-  transform: translateY(-2px);
+.profile-cancel-btn:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+/* تسجيل الخروج — أسفل يسار منطقة المحتوى (flex-end في RTL) */
+.profile-logout-footer {
+  display: flex;
+  width: 100%;
+  justify-content: flex-end;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  padding-bottom: 0.5rem;
 }
 
 .profile-view-value {
@@ -585,11 +639,23 @@
   .price-input {
     width: 100%;
   }
-  .action-buttons.top-buttons {
+  .profile-header-row {
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
   }
-  .save-btn, .cancel-btn {
-    width: 80%;
+  .profile-edit-trigger {
+    align-self: flex-end;
+  }
+  .profile-edit-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .profile-edit-toolbar-actions {
+    width: 100%;
+  }
+  .profile-save-btn,
+  .profile-cancel-btn {
+    flex: 1;
+    justify-content: center;
   }
 }

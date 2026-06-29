@@ -1,0 +1,140 @@
+.public-request-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid #e8eef5;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.public-request-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(46, 134, 222, 0.1);
+  border-color: #bfdbfe;
+}
+
+.prc-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.prc-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.prc-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.prc-status.open {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.prc-status.slots-full,
+.prc-status.closed {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.prc-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.35;
+}
+
+.prc-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: #475569;
+}
+
+.prc-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.prc-foundation {
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #b45309;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.prc-desc {
+  margin: 0;
+  font-size: 0.84rem;
+  color: #64748b;
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.prc-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  font-size: 0.78rem;
+  color: #334155;
+  font-weight: 600;
+}
+
+.prc-stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.prc-full {
+  font-style: normal;
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.prc-details-btn {
+  align-self: flex-start;
+  margin-top: 0.15rem;
+  border: none;
+  background: #eff6ff;
+  color: #2563eb;
+  padding: 0.45rem 0.9rem;
+  border-radius: 10px;
+  font-family: 'Cairo', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: background 0.15s;
+}
+
+.prc-details-btn:hover {
+  background: #dbeafe;
+}

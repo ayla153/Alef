@@ -70,6 +70,12 @@ export default function OfferModalNew({ lead, onClose, onSubmit }) {
             <FaClipboardList className="info-icon" />
             <span className="lead-title">{lead.title}</span>
           </div>
+          {lead.description && (
+            <div className="offer-lead-description">
+              <span className="description-label">تفاصيل الطلب:</span>
+              <p className="description-body">{lead.description}</p>
+            </div>
+          )}
           <div className="lead-details-grid">
             <div className="detail-item">
               <FaBook className="detail-icon" />
@@ -106,6 +112,12 @@ export default function OfferModalNew({ lead, onClose, onSubmit }) {
               <span className="detail-value">{lead.help_type}</span>
             </div>
           </div>
+          {lead.description && (
+            <div className="offer-lead-description">
+              <span className="offer-lead-description-label">تفاصيل الطلب</span>
+              <p className="offer-lead-description-text">{lead.description}</p>
+            </div>
+          )}
         </div>
 
         <hr className="modal-divider" />

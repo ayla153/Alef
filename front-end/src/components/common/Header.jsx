@@ -1,16 +1,27 @@
 import { useNavigate } from "react-router-dom";
 import "../../styles/Header.css";
 import logo from "../../assets/logo_noBG.png";
+import { isAuthenticated, getAuthRole } from "../../api/authStorage";
+import { logoutSession } from "../../api/sessionManager";
+import { getHomePathForRole } from "../../utils/authRedirect";
 import {
   FaHome,
   FaChalkboardTeacher,
   FaQuestionCircle,
   FaUserPlus,
   FaSignInAlt,
+  FaUserCircle,
 } from "react-icons/fa";
 
 export default function Header({ activeTab, setActiveTab }) {
   const navigate = useNavigate();
+  const loggedIn = isAuthenticated();
+  const homePath = loggedIn ? getHomePathForRole(getAuthRole()) : null;
+
+  const handleSwitchAccount = () => {
+    logoutSession();
+    navigate("/selection", { state: { mode: "login" }, replace: true });
+  };
 
   // دالة موحدة للتعامل مع النقر على أزرار التبويبات
   const handleTabClick = (tabName, path) => {
@@ -41,22 +52,46 @@ export default function Header({ activeTab, setActiveTab }) {
         >
           <FaQuestionCircle className="tab-icon" /> كيف نعمل
         </button>
+        <button
+          className={activeTab === "teachers" ? "active-tab" : ""}
+          onClick={() => handleTabClick("teachers", "/teachers")}
+        >
+          <FaChalkboardTeacher className="tab-icon" /> الأساتذة
+        </button>
       </div>
       
         <div className="account-buttons">
-          <button
-            onClick={() =>
-              navigate("/selection", { state: { mode: "register" } })
-            }
-          >
-            <FaUserPlus className="btn-icon" /> إنشاء حساب
-          </button>
-          <button
-            onClick={() => navigate("/selection", { state: { mode: "login" } })}
-            className="signupbtn"
-          >
-            <FaSignInAlt className="btn-icon" /> تسجيل الدخول
-          </button>
+          {loggedIn ? (
+            <>
+              <button onClick={() => navigate(homePath)}>
+                <FaUserCircle className="btn-icon" /> حسابي
+              </button>
+              <button
+                onClick={handleSwitchAccount}
+                className="signupbtn"
+              >
+                <FaSignInAlt className="btn-icon" /> تسجيل دخول بحساب آخر
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() =>
+                  navigate("/selection", { state: { mode: "register" }, replace: true })
+                }
+              >
+                <FaUserPlus className="btn-icon" /> إنشاء حساب
+              </button>
+              <button
+                onClick={() =>
+                  navigate("/selection", { state: { mode: "login" }, replace: true })
+                }
+                className="signupbtn"
+              >
+                <FaSignInAlt className="btn-icon" /> تسجيل الدخول
+              </button>
+            </>
+          )}
         </div>
     </header>
   );

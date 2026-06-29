@@ -29,6 +29,8 @@ const TeacherCard = ({
   teacher,
   mode = "view",
   onSelect,
+  onViewProfile,
+  showFavorite = true,
   isFavorite = false,
   favoriteId = null,
   onFavoriteChange,
@@ -96,9 +98,11 @@ const TeacherCard = ({
         </div>
 
         {/* Bookmark */}
-        <button className="tc-fav-btn" onClick={handleToggleSave} disabled={busy}>
-          {saved ? <FaBookmark color="#2563eb" /> : <FaRegBookmark />}
-        </button>
+        {showFavorite && (
+          <button className="tc-fav-btn" onClick={handleToggleSave} disabled={busy}>
+            {saved ? <FaBookmark color="#2563eb" /> : <FaRegBookmark />}
+          </button>
+        )}
       </div>
 
       {/* subjects */}
@@ -119,7 +123,7 @@ const TeacherCard = ({
         >
           <span className="tc-service-name online">أونلاين</span>
           <span className="tc-price">
-            {teacher.modes?.includes("online") ? teacher.onlinePrice : "0"} $
+            {formatHourlyPrice(teacher.onlinePrice, teacher.modes?.includes("online"))}
             <small>/ساعة</small>
           </span>
         </div>
@@ -131,7 +135,7 @@ const TeacherCard = ({
         >
           <span className="tc-service-name offline">حضوري</span>
           <span className="tc-price">
-            {teacher.modes?.includes("offline") ? teacher.offlinePrice : "0"} $
+            {formatHourlyPrice(teacher.offlinePrice, teacher.modes?.includes("offline"))}
             <small>/ساعة</small>
           </span>
         </div>

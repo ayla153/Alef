@@ -1,6 +1,6 @@
 // src/Pages/teacher/TeacherTab.jsx
 import { useState, useEffect } from "react";
-import TeacherCard3 from '../../components/TeacherCard3';
+import TeacherCard from '../../components/TeacherCard3';
 import "../../styles/TeacherTab.css";
 import {  
   FaStar, 
@@ -190,7 +190,7 @@ export default function TeachersTab() {
       ) : (
         <div className="bestTutorsContainer">
           {filteredTeachers.map((teacher) => (
-            <TeacherCard3
+            <TeacherCard
               key={teacher.id}
               teacher={teacher}
             />

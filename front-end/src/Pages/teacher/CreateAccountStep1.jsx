@@ -1,10 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { FaUser, FaUserTag, FaPhone, FaEnvelope, FaLock, FaCheckCircle, FaArrowLeft, FaTimesCircle, FaCalendarAlt } from 'react-icons/fa';
+import { FaUser, FaUserTag, FaPhone, FaEnvelope, FaLock, FaCheckCircle, FaCalendarAlt } from 'react-icons/fa';
 import '../../styles/CreateAccountStep1.css';
 import { registerTutorStep1 } from '../../api/tutorRegistration';
 import { parseValidationErrors, getErrorMessage } from '../../utils/apiErrors';
 import Header from '../../components/common/Header';
+import TutorRegistrationActions from '../../components/TutorRegistrationActions';
 
 export default function CreateAccountStep1() {
   const [firstname, setFirstname] = useState('');
@@ -310,15 +311,13 @@ export default function CreateAccountStep1() {
               {errors.coniformtutorpassword && <span className="error-message">{errors.coniformtutorpassword}</span>}
             </div>
           </div>
-          <div className="tutorbuttons">
-            <button type="button" className="movetostep2" onClick={handleNext} disabled={isSubmitting}>
-              <FaArrowLeft className="btn-icon" /> {isSubmitting ? 'جارِ الإرسال...' : 'متابعة للخطوة التالية'}
-            </button>
-            <button type="button" className="cancele" onClick={() => navigate('/')} disabled={isSubmitting}>
-              <FaTimesCircle className="btn-icon" /> إلغاء
-            </button>
-          </div>
-          <p className="haveaccount">لديك حساب بالفعل ؟ <a href="#" onClick={(e) => {e.preventDefault(); navigate('/login');}}>تسجيل الدخول</a></p>
+          <TutorRegistrationActions
+            onPrimary={handleNext}
+            isSubmitting={isSubmitting}
+            showCancel
+            cancelRedirectTo="/"
+          />
+          <p className="haveaccount">لديك حساب بالفعل ؟ <a href="#" onClick={(e) => {e.preventDefault(); navigate('/tutor/login');}}>تسجيل الدخول</a></p>
         </form>
       </div>
     </div>

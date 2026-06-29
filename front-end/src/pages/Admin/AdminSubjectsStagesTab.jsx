@@ -2,24 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { FaPlus, FaTrashAlt, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
 import '../../styles/Admin/AdminSubjectsStagesTab.css';
 import { getSubjects, createSubject, updateSubject, deleteSubject } from '../../api/adminSubjects';
+import { getLevels, createLevel, updateLevel, deleteLevel } from '../../api/adminLevels';
 import { getErrorMessage } from '../../utils/apiErrors';
 
-// قائمة المراحل تبقى محلية مؤقتاً: لا يوجد Endpoint بالباك إند لإدارة "مراحل" كـ CRUD ديناميكي.
-// المراحل بالباك إند مجرد 3 أعلام ثابتة (elementory_stage / middle_stage / high_stage) مدمجة
-// داخل بيانات tutor_subjects، وليست كياناً مستقلاً يمكن إضافة/حذف/تعديل عناصر منه.
-// لازم يضاف Endpoint مخصص بالباك إند حتى يصير هاد القسم فعلياً متصل.
-const initialStages = [
-  { id: 1, name: 'المرحلة الابتدائية', details: 'السنة 5 - الأكمل 11-15' },
-  { id: 2, name: 'المرحلة المتوسطة', details: 'العام 6 - الأكمل 14-18' },
-  { id: 3, name: 'المرحلة الثانوية', details: 'السنة 9 - الأكمل 12-14' }
-];
-
 // عربي + إنجليزي + أرقام + مسافات (مطابق للباك إند)
-const SUBJECT_TITLE_PATTERN = /^[\u0600-\u06FFa-zA-Z0-9\s\-']+$/;
+const TITLE_PATTERN = /^[\u0600-\u06FFa-zA-Z0-9\s\-']+$/;
 
-function isValidSubjectTitle(value) {
+function isValidTitle(value) {
   const trimmed = value.trim();
-  return trimmed.length > 0 && SUBJECT_TITLE_PATTERN.test(trimmed);
+  return trimmed.length > 0 && TITLE_PATTERN.test(trimmed);
 }
 
 export default function AdminSubjectsStagesTab() {
@@ -27,15 +18,16 @@ export default function AdminSubjectsStagesTab() {
   const [isLoadingSubjects, setIsLoadingSubjects] = useState(true);
   const [subjectsError, setSubjectsError] = useState('');
 
-  const [stages, setStages] = useState(initialStages);
+  const [levels, setLevels] = useState([]);
+  const [isLoadingLevels, setIsLoadingLevels] = useState(true);
+  const [levelsError, setLevelsError] = useState('');
+
   const [newSubject, setNewSubject] = useState('');
-  const [newStageName, setNewStageName] = useState('');
-  const [newStageDetails, setNewStageDetails] = useState('');
+  const [newLevelTitle, setNewLevelTitle] = useState('');
   const [editingSubjectId, setEditingSubjectId] = useState(null);
   const [editingSubjectValue, setEditingSubjectValue] = useState('');
-  const [editingStageIndex, setEditingStageIndex] = useState(null);
-  const [editingStageName, setEditingStageName] = useState('');
-  const [editingStageDetails, setEditingStageDetails] = useState('');
+  const [editingLevelId, setEditingLevelId] = useState(null);
+  const [editingLevelValue, setEditingLevelValue] = useState('');
 
   useEffect(() => {
     const fetchSubjects = async () => {
@@ -43,7 +35,7 @@ export default function AdminSubjectsStagesTab() {
       setSubjectsError('');
       try {
         const response = await getSubjects();
-        setSubjects(response.data); // كل عنصر: { subject_id, subject_title, subject_description }
+        setSubjects(response.data);
       } catch (err) {
         setSubjectsError(getErrorMessage(err));
       } finally {
@@ -51,15 +43,28 @@ export default function AdminSubjectsStagesTab() {
       }
     };
 
+    const fetchLevels = async () => {
+      setIsLoadingLevels(true);
+      setLevelsError('');
+      try {
+        const response = await getLevels();
+        setLevels(response.data);
+      } catch (err) {
+        setLevelsError(getErrorMessage(err));
+      } finally {
+        setIsLoadingLevels(false);
+      }
+    };
+
     fetchSubjects();
+    fetchLevels();
   }, []);
 
-  // ===== دوال المواد (مربوطة فعلياً بالباك إند) =====
   const addSubject = async () => {
     const value = newSubject.trim();
     if (!value) return;
 
-    if (!isValidSubjectTitle(value)) {
+    if (!isValidTitle(value)) {
       setSubjectsError('اسم المادة غير صالح. استخدم حروفاً عربية أو إنجليزية مع أرقام أو مسافات (مثال: الرياضيات).');
       return;
     }
@@ -98,7 +103,7 @@ export default function AdminSubjectsStagesTab() {
     const value = editingSubjectValue.trim();
     if (!value) return;
 
-    if (!isValidSubjectTitle(value)) {
+    if (!isValidTitle(value)) {
       setSubjectsError('اسم المادة غير صالح. استخدم حروفاً عربية أو إنجليزية (مثال: الفيزياء).');
       return;
     }
@@ -120,47 +125,73 @@ export default function AdminSubjectsStagesTab() {
     setEditingSubjectValue('');
   };
 
-  // ===== دوال المراحل (محلية فقط حالياً - راجع الملاحظة أعلى الملف) =====
-  const addStage = () => {
-    if (newStageName.trim()) {
-      const newId = stages.length > 0 ? Math.max(...stages.map((s) => s.id)) + 1 : 4;
-      setStages([...stages, { id: newId, name: newStageName.trim(), details: newStageDetails.trim() }]);
-      setNewStageName('');
-      setNewStageDetails('');
+  const addLevel = async () => {
+    const value = newLevelTitle.trim();
+    if (!value) return;
+
+    if (!isValidTitle(value)) {
+      setLevelsError('اسم المرحلة غير صالح. استخدم حروفاً عربية أو إنجليزية (مثال: المرحلة الابتدائية).');
+      return;
+    }
+
+    if (levels.find((l) => l.level_title === value)) {
+      setLevelsError('هذه المرحلة مضافة بالفعل');
+      return;
+    }
+
+    setLevelsError('');
+    try {
+      const response = await createLevel({ level_title: value });
+      setLevels((prev) => [...prev, response.data]);
+      setNewLevelTitle('');
+    } catch (err) {
+      setLevelsError(getErrorMessage(err));
     }
   };
 
-  const deleteStage = (id) => {
-    setStages(stages.filter((s) => s.id !== id));
-  };
-
-  const startEditStage = (stage) => {
-    setEditingStageIndex(stage.id);
-    setEditingStageName(stage.name);
-    setEditingStageDetails(stage.details);
-  };
-
-  const saveEditStage = () => {
-    if (editingStageName.trim()) {
-      const updated = stages.map((s) =>
-        s.id === editingStageIndex ? { ...s, name: editingStageName.trim(), details: editingStageDetails.trim() } : s
-      );
-      setStages(updated);
+  const deleteLevelHandler = async (levelId) => {
+    setLevelsError('');
+    try {
+      await deleteLevel(levelId);
+      setLevels((prev) => prev.filter((l) => l.level_id !== levelId));
+    } catch (err) {
+      setLevelsError(getErrorMessage(err));
     }
-    setEditingStageIndex(null);
-    setEditingStageName('');
-    setEditingStageDetails('');
   };
 
-  const cancelEditStage = () => {
-    setEditingStageIndex(null);
-    setEditingStageName('');
-    setEditingStageDetails('');
+  const startEditLevel = (levelId, value) => {
+    setEditingLevelId(levelId);
+    setEditingLevelValue(value);
+  };
+
+  const saveEditLevel = async () => {
+    const value = editingLevelValue.trim();
+    if (!value) return;
+
+    if (!isValidTitle(value)) {
+      setLevelsError('اسم المرحلة غير صالح. استخدم حروفاً عربية أو إنجليزية (مثال: المرحلة الثانوية).');
+      return;
+    }
+
+    setLevelsError('');
+    try {
+      const response = await updateLevel(editingLevelId, { level_title: value });
+      setLevels((prev) => prev.map((l) => (l.level_id === editingLevelId ? response.data : l)));
+    } catch (err) {
+      setLevelsError(getErrorMessage(err));
+    } finally {
+      setEditingLevelId(null);
+      setEditingLevelValue('');
+    }
+  };
+
+  const cancelEditLevel = () => {
+    setEditingLevelId(null);
+    setEditingLevelValue('');
   };
 
   return (
     <div className="admin-subjects-stages-tab">
-      {/* قسم المواد */}
       <div className="subjects-section">
         <h2>المواد الدراسية</h2>
         {subjectsError && (
@@ -175,7 +206,7 @@ export default function AdminSubjectsStagesTab() {
             value={newSubject}
             onChange={(e) => setNewSubject(e.target.value)}
           />
-          <button onClick={addSubject}><FaPlus /> إضافة مادة</button>
+          <button type="button" onClick={addSubject}><FaPlus /> إضافة مادة</button>
         </div>
 
         {isLoadingSubjects ? (
@@ -191,15 +222,15 @@ export default function AdminSubjectsStagesTab() {
                       value={editingSubjectValue}
                       onChange={(e) => setEditingSubjectValue(e.target.value)}
                     />
-                    <button onClick={saveEditSubject}><FaSave /></button>
-                    <button onClick={cancelEditSubject}><FaTimes /></button>
+                    <button type="button" onClick={saveEditSubject}><FaSave /></button>
+                    <button type="button" onClick={cancelEditSubject}><FaTimes /></button>
                   </div>
                 ) : (
                   <>
                     <span className="item-name">{subject.subject_title}</span>
                     <div className="item-actions">
-                      <button onClick={() => startEditSubject(subject.subject_id, subject.subject_title)}><FaEdit /></button>
-                      <button onClick={() => deleteSubjectHandler(subject.subject_id)}><FaTrashAlt /></button>
+                      <button type="button" onClick={() => startEditSubject(subject.subject_id, subject.subject_title)}><FaEdit /></button>
+                      <button type="button" onClick={() => deleteSubjectHandler(subject.subject_id)}><FaTrashAlt /></button>
                     </div>
                   </>
                 )}
@@ -209,63 +240,58 @@ export default function AdminSubjectsStagesTab() {
         )}
       </div>
 
-      {/* قسم المراحل */}
       <div className="stages-section">
         <h2>المراحل الدراسية</h2>
-        <p className="backend-limitation-note">
-          * هذا القسم محلي مؤقتاً (غير محفوظ على السيرفر) — لا يوجد بالباك إند الحالي كيان مستقل لإدارة المراحل،
-          فقط أعلام ثابتة (ابتدائي/متوسط/ثانوي) ضمن بيانات مواد كل معلّم. لازم إضافة Endpoint مخصص حتى يُحفظ فعلياً.
+        <p className="admin-inline-alert admin-inline-alert--info">
+          المراحل محفوظة على السيرفر وتُستخدم في طلبات الطلاب وتسجيل المعلّمين. يمكنك إدخال الاسم بالعربية أو الإنجليزية.
         </p>
+        {levelsError && (
+          <div className="admin-inline-alert admin-inline-alert--error" role="alert">
+            {levelsError}
+          </div>
+        )}
         <div className="add-item-row">
           <input
             type="text"
-            placeholder="اسم المرحلة الجديدة"
-            value={newStageName}
-            onChange={(e) => setNewStageName(e.target.value)}
+            placeholder="مثال: المرحلة الابتدائية أو Grade9"
+            value={newLevelTitle}
+            onChange={(e) => setNewLevelTitle(e.target.value)}
           />
-          <input
-            type="text"
-            placeholder="تفاصيل المرحلة (اختياري)"
-            value={newStageDetails}
-            onChange={(e) => setNewStageDetails(e.target.value)}
-          />
-          <button onClick={addStage}><FaPlus /> إضافة مرحلة</button>
+          <button type="button" onClick={addLevel}><FaPlus /> إضافة مرحلة</button>
         </div>
-        <div className="items-grid">
-          {stages.map((stage) => (
-            <div key={stage.id} className="stage-card">
-              {editingStageIndex === stage.id ? (
-                <div className="edit-mode">
-                  <input
-                    type="text"
-                    value={editingStageName}
-                    onChange={(e) => setEditingStageName(e.target.value)}
-                    placeholder="اسم المرحلة"
-                  />
-                  <input
-                    type="text"
-                    value={editingStageDetails}
-                    onChange={(e) => setEditingStageDetails(e.target.value)}
-                    placeholder="تفاصيل"
-                  />
-                  <button onClick={saveEditStage}><FaSave /></button>
-                  <button onClick={cancelEditStage}><FaTimes /></button>
-                </div>
-              ) : (
-                <>
-                  <div className="stage-info">
-                    <span className="stage-name">{stage.name}</span>
-                    {stage.details && <span className="stage-details">{stage.details}</span>}
+
+        {isLoadingLevels ? (
+          <p>جارِ تحميل المراحل...</p>
+        ) : (
+          <div className="items-grid">
+            {levels.length === 0 && (
+              <p className="empty-hint">لا توجد مراحل بعد. أضف مرحلة جديدة أعلاه.</p>
+            )}
+            {levels.map((level) => (
+              <div key={level.level_id} className="item-card">
+                {editingLevelId === level.level_id ? (
+                  <div className="edit-mode">
+                    <input
+                      type="text"
+                      value={editingLevelValue}
+                      onChange={(e) => setEditingLevelValue(e.target.value)}
+                    />
+                    <button type="button" onClick={saveEditLevel}><FaSave /></button>
+                    <button type="button" onClick={cancelEditLevel}><FaTimes /></button>
                   </div>
-                  <div className="item-actions">
-                    <button onClick={() => startEditStage(stage)}><FaEdit /></button>
-                    <button onClick={() => deleteStage(stage.id)}><FaTrashAlt /></button>
-                  </div>
-                </>
-              )}
-            </div>
-          ))}
-        </div>
+                ) : (
+                  <>
+                    <span className="item-name">{level.level_title}</span>
+                    <div className="item-actions">
+                      <button type="button" onClick={() => startEditLevel(level.level_id, level.level_title)}><FaEdit /></button>
+                      <button type="button" onClick={() => deleteLevelHandler(level.level_id)}><FaTrashAlt /></button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
