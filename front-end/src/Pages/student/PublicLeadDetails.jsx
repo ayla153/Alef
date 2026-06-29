@@ -3,7 +3,16 @@ import "../../styles/sstyle/PublicLeadDetails.css";
 import Header from "../../components/Header";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/api.js";
-import { resolveTutorPhotoUrl } from "../../utils/tutorPhoto";
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+const FALLBACK_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='35' r='20' fill='%23b0b8c1'/%3E%3Cellipse cx='50' cy='85' rx='35' ry='25' fill='%23b0b8c1'/%3E%3C/svg%3E";
+
+const getPhotoUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `${BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+};
 
 export default function PublicLeadDetails({ lead }) {
   const navigate = useNavigate();
@@ -31,7 +40,6 @@ export default function PublicLeadDetails({ lead }) {
   ).length;
   const hasOffersToClose = pendingOfferCount > 0;
 
-  // رفض عرض واحد — PATCH /leads/{id}/offers/{offer_id}/reject
   const handleRejectOffer = async (offerId) => {
     try {
       setActionLoading(true);
@@ -47,8 +55,6 @@ export default function PublicLeadDetails({ lead }) {
     }
   };
 
-  // إغلاق الطلب — POST /leads/{id}/close (بدون body للعام)
-  // بيرجع LeadOut محدّث
   const handleCloseOrder = async () => {
     try {
       setActionLoading(true);
@@ -56,13 +62,11 @@ export default function PublicLeadDetails({ lead }) {
       const { data: updated } = await api.post(
         `/leads/${lead.post_requirements_id}/close`
       );
-      // نحدّث الـ state بالبيانات الجديدة من الباك
       setLeadStatus(updated.lead_status);
       setApplicationsState(updated.applications || []);
       return updated;
     } catch (err) {
       const msg = err.response?.data?.detail || "فشل إغلاق الطلب";
-      // 409 = الطلب مغلق مسبقاً — نعامله كنجاح ونروح لطلباتي
       if (err.response?.status === 409) {
         navigate("/MyLeads");
         return;
@@ -74,19 +78,16 @@ export default function PublicLeadDetails({ lead }) {
     }
   };
 
-  // إلغاء الطلب = إغلاق بدون عروض (غير مهتم) ثم navigate
   const handleCancelOrder = async () => {
     setShowCancelModal(false);
     try {
       await handleCloseOrder();
-      // بعد الإغلاق الناجح نروح لطلباتي
       navigate("/MyLeads");
     } catch {
       // الخطأ بيظهر بـ actionError
     }
   };
 
-  // حساب وقت الانتهاء
   const daysLeft = lead.expired_at
     ? Math.max(
         0,
@@ -102,7 +103,6 @@ export default function PublicLeadDetails({ lead }) {
 
       <main className="pld-main-content">
 
-        {/* رسالة الخطأ */}
         {actionError && (
           <div
             style={{
@@ -120,7 +120,6 @@ export default function PublicLeadDetails({ lead }) {
           </div>
         )}
 
-        {/* HEADER CARD */}
         <section className="pld-card pld-header-card">
           <div className="pld-header-info">
             <div className="pld-badges-row">
@@ -219,7 +218,6 @@ export default function PublicLeadDetails({ lead }) {
           </div>
         </section>
 
-        {/* حالة الانتظار */}
         {isPending ? (
           <section className="pld-card pld-search-status-card pod-waiting-section">
             <div className="pod-top-gradient-line"></div>
@@ -241,7 +239,6 @@ export default function PublicLeadDetails({ lead }) {
             </div>
           </section>
         ) : (
-          /* العروض */
           <section className="pld-card">
             <div className="pod-offers-header">
               <h2 className="pod-offers-title">عروض المعلمين</h2>
@@ -276,8 +273,9 @@ export default function PublicLeadDetails({ lead }) {
                   <div className="pod-teacher-flex">
                     <div className="pod-teacher-avatar">
                       <img
-                        src={resolveTutorPhotoUrl(null, { tutorId: app.tutor_id })}
+                        src={getPhotoUrl(app.tutor_photo) || FALLBACK_AVATAR}
                         alt={app.tutor_first_name || "معلم"}
+                        onError={(e) => { e.target.onerror = null; e.target.src = FALLBACK_AVATAR; }}
                       />
                     </div>
 
@@ -356,7 +354,6 @@ export default function PublicLeadDetails({ lead }) {
           </section>
         )}
 
-        {/* معلومات إضافية */}
         <section className="pld-session-info-bar">
           <div className="pld-info-block">
             <div className="pld-block-icon">
@@ -391,7 +388,6 @@ export default function PublicLeadDetails({ lead }) {
           </div>
         </section>
 
-        {/* إجراءات الطلب — تختفي بعد الإغلاق */}
         {!isClosed && (
           <section className="pld-card pld-lead-actions-section">
             {hasOffersToClose && (

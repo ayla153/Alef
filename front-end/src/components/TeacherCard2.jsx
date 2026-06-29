@@ -5,7 +5,17 @@ import api from "../api/api.js";
 import { getTeacherProfilePath } from "../utils/authRedirect";
 import { formatHourlyPriceRange } from "../utils/Translations";
 import { resolveTeacherPrices } from "../api/tutorMapper";
-import { resolveTutorPhotoUrl } from "../utils/tutorPhoto";
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+const getFullImageUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  if (url.startsWith('/')) return `${BASE_URL}${url}`;
+  return `${BASE_URL}/${url}`;
+};
+
+const FALLBACK_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='35' r='20' fill='%23b0b8c1'/%3E%3Cellipse cx='50' cy='85' rx='35' ry='25' fill='%23b0b8c1'/%3E%3C/svg%3E";
 
 const TeacherCard2 = ({
   id,
@@ -23,7 +33,7 @@ const TeacherCard2 = ({
   favoriteId = null,
   onFavoriteChange,
 }) => {
-  const photoUrl = resolveTutorPhotoUrl(tutorPhoto, { gender, tutorId: id });
+  const photoUrl = getFullImageUrl(tutorPhoto);
   const { minPrice: priceMin, maxPrice: priceMax } = resolveTeacherPrices({
     minPrice,
     maxPrice,
@@ -33,16 +43,14 @@ const TeacherCard2 = ({
   const navigate = useNavigate();
 
   const handleFavClick = async () => {
-    if (busy) return; // تجنّب الضغط المزدوج أثناء انتظار الرد
+    if (busy) return;
     setBusy(true);
 
     try {
       if (!isFavorite) {
-        // إضافة للمفضلة
         const { data } = await api.post("/favorites/", { tutor_id: id });
         if (onFavoriteChange) onFavoriteChange(true, data.favorite_id);
       } else {
-        // حذف من المفضلة (يحتاج favorite_id لا tutor_id)
         if (favoriteId != null) {
           await api.delete(`/favorites/${favoriteId}`);
         }
@@ -62,10 +70,15 @@ const TeacherCard2 = ({
   return (
     <div className="teacherCard">
       <div className="teacherHeader">
-        <div
+        <img
+          src={photoUrl || FALLBACK_AVATAR}
+          alt={name}
           className="teacherImg"
-          style={{ backgroundImage: `url(${photoUrl})` }}
-        ></div>
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = FALLBACK_AVATAR;
+          }}
+        />
 
         <div className="teacherDetails">
           <div className="nameRow">
@@ -91,15 +104,13 @@ const TeacherCard2 = ({
         </div>
       </div>
 
-      {/* Footer */}
       <div className="teacherFooter">
-        <div className="price">
+        {/* <div className="price">
           {formatHourlyPriceRange(priceMin, priceMax)}{" "}
           <span>/ساعة</span>
-        </div>
+        </div> */}
 
         <div className="actions">
-          {/* Bookmark Button */}
           <button className="favBtn" onClick={handleFavClick} disabled={busy}>
             {isFavorite ? (
               <FaBookmark color="#2563eb" />
@@ -108,7 +119,6 @@ const TeacherCard2 = ({
             )}
           </button>
 
-          {/* Profile Button */}
           <button className="profileBtn" onClick={handleViewProfile}>
             عرض الملف
           </button>

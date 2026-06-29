@@ -116,7 +116,15 @@
   border-radius: 20px;
   font-size: 0.7rem;
 }
+.tc-card {
+  width: 380px;
+  min-width: 380px;
+  max-width: 380px;
+}
 
+.top-tutor-card-wrap {
+  width: 380px;
+}
 /* ===== Services ===== */
 .tc-services {
   margin-top: 5px;

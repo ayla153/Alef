@@ -3,6 +3,13 @@
   opacity: 0;
 }
 
+.bestTutorsContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 380px));
+  gap: 24px;
+  justify-content: center;
+}
+
 @keyframes fadeInUp {
   from {
     opacity: 0;

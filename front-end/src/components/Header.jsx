@@ -53,10 +53,10 @@ function Header({ avatar }) {
             </NavLink>
           </nav>
 
-          <div className="app-header__search">
+          {/* <div className="app-header__search">
             <input type="search" placeholder="ابحث عن مادة، أو مدرس..." />
             <span className="material-symbols-outlined">search</span>
-          </div>
+          </div> */}
 
         </div>
 

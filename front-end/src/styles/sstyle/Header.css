@@ -69,7 +69,7 @@
 }
 
 /* search */
-.app-header__search {
+/* .app-header__search {
   position: relative;
   height: 36px;
   flex-shrink: 0;
@@ -85,13 +85,13 @@
   outline: none;
   font-size: 0.9rem;
   color: var(--text-main);
-}
+} */
 
-.app-header__search input:focus {
+/* .app-header__search input:focus {
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
-}
+} */
 
-.app-header__search span {
+/* .app-header__search span {
   position: absolute;
   right: 0.4rem;
   top: 50%;
@@ -99,7 +99,7 @@
   cursor: pointer;
   color: var(--text-secondary);
   font-size: 1.1rem;
-}
+} */
 
 /* right section */
 .app-header__right {
