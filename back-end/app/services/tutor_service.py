@@ -281,7 +281,7 @@ def update_tutor_photo(db: Session, tutor_id: int, file: UploadFile | str | None
     else:
         upload_file = _ensure_upload_file(file)
         _delete_existing_file(tutor.tutor_photo)
-        base_name = _sanitize_filename_base(f"{tutor.first_name}_{tutor.last_name}")
+        base_name = f"tutor_{tutor.tutor_id}"
         tutor.tutor_photo = _save_upload_file(
             upload_file,
             "uploads/tutors/photos",
@@ -303,7 +303,7 @@ def update_tutor_video(db: Session, tutor_id: int, file: UploadFile | str | None
     else:
         upload_file = _ensure_upload_file(file)
         _delete_existing_file(tutor.tutor_video)
-        base_name = _sanitize_filename_base(f"{tutor.first_name}_{tutor.last_name}")
+        base_name = f"tutor_{tutor.tutor_id}"
         tutor.tutor_video = _save_upload_file(upload_file, "uploads/tutors/videos", base_name, {".mp4", ".mov", ".webm"})
     db.commit()
     db.refresh(tutor)
