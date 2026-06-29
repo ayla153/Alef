@@ -9,8 +9,8 @@ const ICONS = {
 export default function OfferHubSourceTabs({ stats, activeSource, onChange }) {
   const tabs = [
     { value: '', label: 'الكل', count: stats.total, cls: 'all', icon: 'all' },
-    { value: 'private', label: 'طلبات خاصة', count: stats.private, cls: 'private', icon: 'private' },
-    { value: 'public', label: 'عروض عامة', count: stats.public, cls: 'public', icon: 'public' },
+    { value: 'private', label: 'تواصل خاص', count: stats.private, cls: 'private', icon: 'private' },
+    { value: 'public', label: 'تواصل عام', count: stats.public, cls: 'public', icon: 'public' },
   ];
 
   return (

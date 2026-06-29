@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { isAuthenticated } from "../../api/authStorage";
+import { seedLandingBeforeSelection } from "../../utils/guestAuthNavigation";
 import "../../styles/sstyle/SelectionPage.css";
 
 const SelectionPage = () => {
@@ -7,6 +9,11 @@ const SelectionPage = () => {
   const location = useLocation();
 
   const mode = location.state?.mode || "register";
+
+  useEffect(() => {
+    if (isAuthenticated()) return;
+    seedLandingBeforeSelection();
+  }, []);
 
   const handleStudentClick = () => {
     if (mode === "login") {
@@ -22,6 +29,10 @@ const SelectionPage = () => {
     } else {
       navigate("/teacher/register", { replace: true });
     }
+  };
+
+  const handleBackToLanding = () => {
+    navigate("/", { replace: true });
   };
 
   return (
@@ -76,6 +87,13 @@ const SelectionPage = () => {
               {mode === "login" ? "دخول كأستاذ" : "اختر أستاذ"}
             </button>
           </section>
+        </div>
+
+        <div className="sp-back-navigation">
+          <button type="button" className="sp-back-link" onClick={handleBackToLanding}>
+            <span className="material-symbols-outlined">arrow_forward</span>
+            <span>العودة للصفحة الرئيسية</span>
+          </button>
         </div>
       </main>
     </div>

@@ -242,9 +242,6 @@ export default function AdminSubjectsStagesTab() {
 
       <div className="stages-section">
         <h2>المراحل الدراسية</h2>
-        <p className="admin-inline-alert admin-inline-alert--info">
-          المراحل محفوظة على السيرفر وتُستخدم في طلبات الطلاب وتسجيل المعلّمين. يمكنك إدخال الاسم بالعربية أو الإنجليزية.
-        </p>
         {levelsError && (
           <div className="admin-inline-alert admin-inline-alert--error" role="alert">
             {levelsError}

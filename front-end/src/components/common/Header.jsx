@@ -20,7 +20,7 @@ export default function Header({ activeTab, setActiveTab }) {
 
   const handleSwitchAccount = () => {
     logoutSession();
-    navigate("/selection", { state: { mode: "login" }, replace: true });
+    navigate("/selection", { state: { mode: "login" } });
   };
 
   // دالة موحدة للتعامل مع النقر على أزرار التبويبات
@@ -77,14 +77,14 @@ export default function Header({ activeTab, setActiveTab }) {
             <>
               <button
                 onClick={() =>
-                  navigate("/selection", { state: { mode: "register" }, replace: true })
+                  navigate("/selection", { state: { mode: "register" } })
                 }
               >
                 <FaUserPlus className="btn-icon" /> إنشاء حساب
               </button>
               <button
                 onClick={() =>
-                  navigate("/selection", { state: { mode: "login" }, replace: true })
+                  navigate("/selection", { state: { mode: "login" } })
                 }
                 className="signupbtn"
               >

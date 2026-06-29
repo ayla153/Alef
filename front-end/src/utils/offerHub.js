@@ -54,6 +54,26 @@ export function getTutorResponse(item) {
   };
 }
 
+export function hasContactExchange(item) {
+  return item?.outcome === 'contact_shared' && Boolean(item?.studentPhone);
+}
+
+function derivePrivateOutcome(lead) {
+  const phone = lead.student_phone_number?.trim() || null;
+  if (lead.lead_status === 'closed_matched' && phone) {
+    return 'contact_shared';
+  }
+  const apps = lead.applications || [];
+  if (apps.some((a) => a.contact_revealed_at) && phone) {
+    return 'contact_shared';
+  }
+  if (lead.lead_status === 'closed_expired') return 'lead_closed_expired';
+  if (lead.lead_status === 'closed_empty') return 'lead_closed_empty';
+  const myApp = apps[apps.length - 1];
+  if (myApp?.application_status === 'rejected') return 'rejected';
+  return 'pending';
+}
+
 export function buildOfferHubItems(offers = [], inboxLeads = [], subjectsMap = {}, levelsMap = {}) {
   const items = [];
 
@@ -80,9 +100,82 @@ export function buildOfferHubItems(offers = [], inboxLeads = [], subjectsMap = {
   }
 
   for (const lead of inboxLeads) {
-    if (lead.lead_status !== 'closed_matched' || !lead.student_phone_number) continue;
+    const phone = lead.student_phone_number?.trim() || null;
+    const isMatchedContact = lead.lead_status === 'closed_matched' && Boolean(phone);
+    const response = getTutorResponse({ privateLead: lead });
+    const hasResponded = Boolean(response?.message || response?.proposedFee != null);
+
+    if (!isMatchedContact && !hasResponded) continue;
+
+    const outcome = derivePrivateOutcome(lead);
+    const tutorResponse = response || {
+      message: null,
+      firstSessionNote: null,
+      proposedFee: null,
+      sentAt: lead.closed_at || lead.created_at,
+    };
+
+    items.push({
+      key: `private-${lead.post_requirements_id}`,
+      source: 'private',
+      outcome,
+      leadId: lead.post_requirements_id,
+      title: lead.title,
+      studentName: lead.student_name?.trim() || 'طالب',
+      studentPhone: outcome === 'contact_shared' ? phone : null,
+      subjectLabel: subjectLabel(lead.subject_id, lead.level_id, subjectsMap, levelsMap),
+      sortAt: tutorResponse.sentAt || lead.closed_at || lead.created_at,
+      offer: null,
+      privateLead: lead,
+      tutorResponse,
+    });
+  }
+
+  return items.sort(
+    (a, b) => new Date(b.sortAt || 0) - new Date(a.sortAt || 0)
+  );
+}
+
+/** Contacts hub: matched private leads + public offers where numbers were shared. */
+export function buildContactHubItems(offers = [], inboxLeads = [], subjectsMap = {}, levelsMap = {}) {
+  const items = [];
+
+  for (const offer of offers) {
+    if (offer.outcome !== 'contact_shared' || !offer.student_phone_number) continue;
+
+    items.push({
+      key: `offer-${offer.lead_application_id}`,
+      source: 'public',
+      outcome: 'contact_shared',
+      leadId: offer.post_requirements_id,
+      title: offer.lead_title,
+      studentName: 'طالب',
+      description: offer.lead_description || null,
+      studentPhone: offer.student_phone_number,
+      subjectLabel: subjectLabel(offer.subject_id, offer.level_id, subjectsMap, levelsMap),
+      sortAt: offer.contact_revealed_at || offer.offer_created_at,
+      offer,
+      privateLead: null,
+      tutorResponse: {
+        message: offer.message,
+        firstSessionNote: offer.first_session_note,
+        proposedFee: offer.proposed_fee,
+        sentAt: offer.offer_created_at,
+      },
+    });
+  }
+
+  for (const lead of inboxLeads) {
+    const phone = lead.student_phone_number?.trim() || null;
+    if (lead.lead_status !== 'closed_matched' || !phone) continue;
 
     const response = getTutorResponse({ privateLead: lead });
+    const tutorResponse = response || {
+      message: null,
+      firstSessionNote: null,
+      proposedFee: null,
+      sentAt: lead.closed_at || lead.created_at,
+    };
 
     items.push({
       key: `private-${lead.post_requirements_id}`,
@@ -91,12 +184,13 @@ export function buildOfferHubItems(offers = [], inboxLeads = [], subjectsMap = {
       leadId: lead.post_requirements_id,
       title: lead.title,
       studentName: lead.student_name?.trim() || 'طالب',
-      studentPhone: lead.student_phone_number.trim(),
+      description: lead.description || null,
+      studentPhone: phone,
       subjectLabel: subjectLabel(lead.subject_id, lead.level_id, subjectsMap, levelsMap),
-      sortAt: lead.closed_at || lead.created_at,
+      sortAt: tutorResponse.sentAt || lead.closed_at || lead.created_at,
       offer: null,
       privateLead: lead,
-      tutorResponse: response,
+      tutorResponse,
     });
   }
 

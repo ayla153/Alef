@@ -7,7 +7,7 @@ import {
   FaArrowLeft,
   FaPhone,
 } from 'react-icons/fa';
-import { OUTCOME_META } from '../../utils/offerHub';
+import { OUTCOME_META, hasContactExchange } from '../../utils/offerHub';
 import { formatCurrency, formatDate } from '../../utils/translations';
 
 function messagePreview(text, max = 90) {
@@ -22,10 +22,12 @@ export default function OfferHubPreviewCard({ item, selected, onOpenDetails }) {
   const response = item.tutorResponse;
   const preview = messagePreview(response?.message);
   const isPrivate = item.source === 'private';
+  const exchanged = hasContactExchange(item);
+  const contactTone = exchanged ? 'exchanged' : 'waiting';
 
   return (
     <article
-      className={`ohub-preview ${item.source} ${outcome.cls} ${selected ? 'selected' : ''}`}
+      className={`ohub-preview ${item.source} ${outcome.cls} ${contactTone} ${selected ? 'selected' : ''}`}
       onClick={() => onOpenDetails(item)}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {

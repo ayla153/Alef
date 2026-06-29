@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { FaPaperPlane, FaInbox } from 'react-icons/fa';
 import OfferHubSourceTabs from '../offerHub/OfferHubSourceTabs';
-import OfferHubPreviewSection from '../offerHub/OfferHubPreviewSection';
-import OfferHubDetailPanel from '../offerHub/OfferHubDetailPanel';
+import ContactInboxList from '../offerHub/ContactInboxList';
 import '../../styles/Requests.css';
 import '../../styles/MyOffers.css';
 import { getTutorInbox, getTutorOffers } from '../../api/tutorLeads';
@@ -10,27 +10,23 @@ import { getMyProfile } from '../../api/tutorProfile';
 import { getErrorMessage } from '../../utils/apiErrors';
 import { fetchTutorCatalog, enrichLeadWithCatalog } from '../../utils/tutorCatalog';
 import {
-  HUB_FILTERS,
-  buildOfferHubItems,
-  filterHubItems,
+  buildContactHubItems,
   computeHubStats,
-  resolveFocusKey,
 } from '../../utils/offerHub';
 
 export default function MyOffers() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const leadIdParam = searchParams.get('leadId');
-  const filterParam = searchParams.get('filter') || '';
   const sourceParam = searchParams.get('source') || '';
+  const focusLeadId = leadIdParam ? Number(leadIdParam) : null;
 
   const [offers, setOffers] = useState([]);
   const [inbox, setInbox] = useState([]);
   const [tutorPhone, setTutorPhone] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [outcomeFilter, setOutcomeFilter] = useState(filterParam);
   const [sourceFilter, setSourceFilter] = useState(sourceParam);
-  const [selectedKey, setSelectedKey] = useState(null);
   const [subjectsMap, setSubjectsMap] = useState({});
   const [levelsMap, setLevelsMap] = useState({});
 
@@ -67,9 +63,8 @@ export default function MyOffers() {
   }, []);
 
   useEffect(() => {
-    if (filterParam) setOutcomeFilter(filterParam);
-    if (sourceParam) setSourceFilter(sourceParam);
-  }, [filterParam, sourceParam]);
+    setSourceFilter(sourceParam);
+  }, [sourceParam]);
 
   const enrichedInbox = useMemo(
     () => inbox.map((lead) => enrichLeadWithCatalog(lead, subjectsMap, levelsMap)),
@@ -77,16 +72,16 @@ export default function MyOffers() {
   );
 
   const allItems = useMemo(
-    () => buildOfferHubItems(offers, enrichedInbox, subjectsMap, levelsMap),
+    () => buildContactHubItems(offers, enrichedInbox, subjectsMap, levelsMap),
     [offers, enrichedInbox, subjectsMap, levelsMap]
   );
 
   const stats = useMemo(() => computeHubStats(allItems), [allItems]);
 
-  const visibleItems = useMemo(
-    () => filterHubItems(allItems, outcomeFilter, sourceFilter),
-    [allItems, outcomeFilter, sourceFilter]
-  );
+  const visibleItems = useMemo(() => {
+    if (!sourceFilter) return allItems;
+    return allItems.filter((item) => item.source === sourceFilter);
+  }, [allItems, sourceFilter]);
 
   const privateItems = useMemo(
     () => visibleItems.filter((item) => item.source === 'private'),
@@ -98,56 +93,44 @@ export default function MyOffers() {
     [visibleItems]
   );
 
-  const focusKey = useMemo(
-    () => resolveFocusKey(allItems, { leadId: leadIdParam }),
-    [allItems, leadIdParam]
-  );
-
-  const activeKey = selectedKey || focusKey;
-  const selectedItem = visibleItems.find((i) => i.key === activeKey)
-    || allItems.find((i) => i.key === activeKey)
-    || null;
-
   useEffect(() => {
-    if (focusKey && !selectedKey) setSelectedKey(focusKey);
-  }, [focusKey, selectedKey]);
-
-  const syncParams = (nextSource, nextOutcome) => {
-    const next = new URLSearchParams(searchParams);
-    if (nextSource) next.set('source', nextSource);
-    else next.delete('source');
-    if (nextOutcome) next.set('filter', nextOutcome);
-    else next.delete('filter');
-    next.delete('leadId');
-    setSearchParams(next, { replace: true });
-  };
+    if (!focusLeadId || isLoading) return;
+    const el = document.getElementById(`contact-${focusLeadId}`);
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [focusLeadId, isLoading, visibleItems.length]);
 
   const handleSourceChange = (value) => {
     setSourceFilter(value);
-    setSelectedKey(null);
-    syncParams(value, outcomeFilter);
-  };
-
-  const handleOutcomeChange = (value) => {
-    setOutcomeFilter(value);
-    setSelectedKey(null);
-    syncParams(sourceFilter, value);
+    const next = new URLSearchParams(searchParams);
+    if (value) next.set('source', value);
+    else next.delete('source');
+    next.delete('leadId');
+    next.delete('filter');
+    setSearchParams(next, { replace: true });
   };
 
   const emptyMessage = () => {
-    if (sourceFilter === 'private') return 'لا توجد طلبات خاصة في هذا القسم بعد.';
-    if (sourceFilter === 'public') return 'لم تقدّم عروضاً على الطلبات العامة بعد.';
-    if (outcomeFilter) return 'لا توجد عناصر بهذه الحالة.';
-    return 'صندوقك فارغ — قدّم عروضاً أو وافق على طلبات خاصة.';
+    if (sourceFilter === 'private') return 'لا يوجد تواصل خاص بعد — عندما يقبل طالب رقمك يظهر هنا.';
+    if (sourceFilter === 'public') return 'لا يوجد تواصل على عروض عامة بعد.';
+    return 'لا يوجد تواصل بعد — عندما يتبادل الطلاب الأرقام معك يظهر هنا.';
   };
 
   return (
-    <div className="page-container2 ohub-page-root">
-      <div className="requests-tab-container ohub-page">
-        <div className="ohub-hero">
-          <div className="tab-page-header">
-            <h2>صندوق العروض والتواصل</h2>
-            <p>طلبات خاصة وعروض عامة — معاينة سريعة ثم التفاصيل الكاملة</p>
+    <div className="page-container2 ohub-page-root inbox-page-root">
+      <div className="requests-tab-container ohub-page inbox-page">
+        <div className="ohub-hero inbox-hero">
+          <div className="ohub-hero-top">
+            <div className="tab-page-header">
+              <h2><FaInbox className="inbox-hero-icon" /> صندوق التواصل</h2>
+              <p>قائمة أفقية — كل تواصل مع رقم الطالب وتفاصيله مباشرة</p>
+            </div>
+            <button
+              type="button"
+              className="ohub-sent-link-btn"
+              onClick={() => navigate('/dashboard/offers/sent')}
+            >
+              <FaPaperPlane /> عروضي المرسلة
+            </button>
           </div>
           {!isLoading && allItems.length > 0 && (
             <OfferHubSourceTabs
@@ -158,28 +141,20 @@ export default function MyOffers() {
           )}
         </div>
 
-        {!isLoading && allItems.length > 0 && (
-          <div className="ohub-outcome-pills">
-            {HUB_FILTERS.map((f) => (
-              <button
-                key={f.value || 'all'}
-                type="button"
-                className={`contacts-pill ${outcomeFilter === f.value ? 'active' : ''}`}
-                onClick={() => handleOutcomeChange(f.value)}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {isLoading && <p className="loading-text">جارِ تحميل الصندوق...</p>}
+        {isLoading && <p className="loading-text">جارِ تحميل صندوق التواصل...</p>}
         {error && <p className="error-text">{error}</p>}
 
         {!isLoading && !error && allItems.length === 0 && (
           <div className="contacts-empty ohub-empty">
-            <strong>صندوقك فارغ</strong>
-            <p>تصفّح الطلبات العامة أو رد على طلبات خاصة من صندوق رسائلك.</p>
+            <strong>صندوق التواصل فارغ</strong>
+            <p>عندما يقبل طالب عرضك أو يشارك رقمه، يظهر هنا كبطاقة عرضية.</p>
+            <button
+              type="button"
+              className="ohub-sent-link-btn"
+              onClick={() => navigate('/dashboard/offers/sent')}
+            >
+              <FaPaperPlane /> شوف عروضك المرسلة
+            </button>
           </div>
         )}
 
@@ -190,54 +165,26 @@ export default function MyOffers() {
         )}
 
         {!isLoading && visibleItems.length > 0 && (
-          <div className="ohub-workspace">
-            <section className="ohub-preview-grid-wrap">
-              {!sourceFilter && (
-                <p className="ohub-grid-label">
-                  {visibleItems.length} عنصر · قسمين منفصلين للخاص والعام
-                </p>
-              )}
-              {sourceFilter === 'private' && (
-                <OfferHubPreviewSection
-                  source="private"
-                  items={privateItems}
-                  activeKey={activeKey}
-                  onOpenDetails={(i) => setSelectedKey(i.key)}
-                />
-              )}
-              {sourceFilter === 'public' && (
-                <OfferHubPreviewSection
-                  source="public"
-                  items={publicItems}
-                  activeKey={activeKey}
-                  onOpenDetails={(i) => setSelectedKey(i.key)}
-                />
-              )}
-              {!sourceFilter && (
-                <>
-                  <OfferHubPreviewSection
-                    source="private"
-                    items={privateItems}
-                    activeKey={activeKey}
-                    onOpenDetails={(i) => setSelectedKey(i.key)}
-                  />
-                  <OfferHubPreviewSection
-                    source="public"
-                    items={publicItems}
-                    activeKey={activeKey}
-                    onOpenDetails={(i) => setSelectedKey(i.key)}
-                  />
-                </>
-              )}
-            </section>
-
-            <aside className="ohub-detail-aside">
-              <OfferHubDetailPanel
-                item={selectedItem}
+          <div className="inbox-feed">
+            {!sourceFilter && (
+              <p className="inbox-feed-label">{visibleItems.length} تواصل</p>
+            )}
+            {(sourceFilter === 'private' || !sourceFilter) && (
+              <ContactInboxList
+                source="private"
+                items={privateItems}
                 tutorPhone={tutorPhone}
-                onClose={() => setSelectedKey(null)}
+                focusLeadId={focusLeadId}
               />
-            </aside>
+            )}
+            {(sourceFilter === 'public' || !sourceFilter) && (
+              <ContactInboxList
+                source="public"
+                items={publicItems}
+                tutorPhone={tutorPhone}
+                focusLeadId={focusLeadId}
+              />
+            )}
           </div>
         )}
       </div>

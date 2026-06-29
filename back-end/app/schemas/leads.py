@@ -187,6 +187,7 @@ class TutorPublicOfferOut(BaseModel):
     contact_revealed_at: Optional[datetime] = None
 
     lead_title: str
+    lead_description: str
     lead_status: LeadStatusEnum
     lead_closed_at: Optional[datetime] = None
     subject_id: int
@@ -227,6 +228,10 @@ class LeadBrowseCardOut(BaseModel):
     pending_offer_count: int
     max_applications: int
     expired_at: datetime
+    has_my_offer: bool = Field(
+        False,
+        description="True when the browsing tutor already submitted an offer on this lead.",
+    )
 
 
 class PeerOfferOut(BaseModel):
