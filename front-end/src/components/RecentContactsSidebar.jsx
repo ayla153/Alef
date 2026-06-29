@@ -52,7 +52,7 @@ export default function RecentContactsSidebar({
       )}
       {contacts.length <= RECENT_LIMIT && contacts.length > 0 && (
         <button type="button" className="pcs-view-all" onClick={onViewAll}>
-          تواصلي الكامل <FaArrowLeft />
+          عروضي وتواصلي <FaArrowLeft />
         </button>
       )}
     </aside>

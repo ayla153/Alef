@@ -197,6 +197,11 @@
   gap: 1.5rem;
 }
 
+.requests-grid-compact {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
 .no-results {
   text-align: center;
   padding: 2rem;

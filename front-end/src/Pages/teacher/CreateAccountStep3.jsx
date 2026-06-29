@@ -1,10 +1,11 @@
 import '../../styles/CreateAccountStep3.css'
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft , FaArrowRight , FaLaptop, FaUniversity, FaChalkboardTeacher ,FaUserGraduate} from "react-icons/fa";
+import { FaLaptop, FaUniversity, FaChalkboardTeacher ,FaUserGraduate} from "react-icons/fa";
 import { registerTutorStep3 } from '../../api/tutorRegistration';
 import { getErrorMessage } from '../../utils/apiErrors';
 import Header from '../../components/common/Header';
+import TutorRegistrationActions from '../../components/TutorRegistrationActions';
 
 export default function CreateAccountStep3(){
     const [selected, setSelected] = useState({
@@ -157,14 +158,11 @@ export default function CreateAccountStep3(){
                         </div>
                     </div>
                     
-                    <div className="tutorbuttons">
-                        <button className="movetostep2" onClick={handleNext} disabled={isSubmitting} type="button">
-                            <FaArrowRight className="btn-icon" /> {isSubmitting ? 'جارِ الإرسال...' : 'متابعة للخطوة التالية'}
-                        </button>
-                        <button className="cancele" onClick={()=>{navigate('/create-account/step2')}} disabled={isSubmitting} type="button"> 
-                            <FaArrowLeft className="btn-icon"/> 
-                        </button>
-                    </div>
+                    <TutorRegistrationActions
+                        onPrimary={handleNext}
+                        isSubmitting={isSubmitting}
+                        backTo="/create-account/step2"
+                    />
                     <p className="haveaccount">لديك حساب بالفعل ؟ <a href="#" onClick={(e) => {e.preventDefault(); navigate('/tutor/login');}}>تسجيل الدخول</a></p>
                 </div>
             </div>

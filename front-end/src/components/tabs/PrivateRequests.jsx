@@ -31,8 +31,9 @@ function countActiveFilters(filters) {
 }
 
 const STATUS_TABS = [
-  { value: 'open', label: 'بانتظار ردك' },
   { value: 'all', label: 'الكل' },
+  { value: 'open', label: 'بانتظار ردك' },
+  { value: 'matched', label: 'تم المطابقة' },
 ];
 
 export default function PrivateRequests() {
@@ -111,6 +112,9 @@ export default function PrivateRequests() {
     if (statusTab === 'open') {
       return filtered.filter((l) => l.lead_status === 'open');
     }
+    if (statusTab === 'matched') {
+      return filtered.filter((l) => l.lead_status === 'closed_matched');
+    }
     return filtered;
   }, [enrichedLeads, filters, statusTab]);
 
@@ -128,6 +132,17 @@ export default function PrivateRequests() {
     () => enrichedLeads.filter((l) => l.lead_status === 'open').length,
     [enrichedLeads]
   );
+
+  const matchedCount = useMemo(
+    () => enrichedLeads.filter((l) => l.lead_status === 'closed_matched').length,
+    [enrichedLeads]
+  );
+
+  const statusTabCount = (tabValue) => {
+    if (tabValue === 'open') return openCount;
+    if (tabValue === 'matched') return matchedCount;
+    return 0;
+  };
 
   const focusedLead = focusLeadId
     ? enrichedLeads.find((l) => l.post_requirements_id === focusLeadId)
@@ -163,16 +178,18 @@ export default function PrivateRequests() {
       await acceptPrivateContact(leadId, data);
       setSelectedContactLead(null);
       await refreshLeads();
-      navigate(`/dashboard/private-requests/contacts/${leadId}`);
+      navigate(`/dashboard/offers/private-${leadId}`);
     } catch (err) {
       throw new Error(getErrorMessage(err));
     }
   };
 
   const goToFullContacts = (leadId) => {
-    navigate(leadId
-      ? `/dashboard/private-requests/contacts/${leadId}`
-      : '/dashboard/private-requests/contacts');
+    if (leadId) {
+      navigate(`/dashboard/offers/private-${leadId}`);
+      return;
+    }
+    navigate('/dashboard/offers?filter=contact_shared');
   };
 
   const updateFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }));
@@ -200,7 +217,7 @@ export default function PrivateRequests() {
                       onClick={() => setStatusTab(tab.value)}
                     >
                       {tab.label}
-                      {tab.value === 'open' && openCount > 0 && ` (${openCount})`}
+                      {statusTabCount(tab.value) > 0 && ` (${statusTabCount(tab.value)})`}
                     </button>
                   ))}
                 </div>
@@ -344,9 +361,9 @@ export default function PrivateRequests() {
                   ))
                 ) : (
                   <p className="no-results">
-                    {statusTab === 'open'
-                      ? 'لا توجد رسائل جديدة بانتظار ردك.'
-                      : 'لا توجد رسائل خاصة موجهة إليك حالياً.'}
+                    {statusTab === 'open' && 'لا توجد رسائل جديدة بانتظار ردك.'}
+                    {statusTab === 'matched' && 'لا توجد رسائل تمت مطابقتها بعد.'}
+                    {statusTab === 'all' && 'لا توجد رسائل خاصة موجهة إليك حالياً.'}
                   </p>
                 )}
               </div>

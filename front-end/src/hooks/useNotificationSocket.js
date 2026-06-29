@@ -9,6 +9,8 @@ function wsUrl(token) {
 }
 
 export const NOTIFICATION_RECEIVED_EVENT = 'notification:received';
+export const NOTIFICATION_READ_EVENT = 'notification:read';
+export const NOTIFICATION_READ_ALL_EVENT = 'notification:read-all';
 
 /** Opens /ws/notifications while the user is logged in; dispatches NOTIFICATION_RECEIVED_EVENT. */
 export default function useNotificationSocket(enabled = true) {

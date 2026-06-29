@@ -40,7 +40,7 @@ export default function DashboardHeader({ activeTab, setActiveTab, unreadCount =
           className={activeTab === 'myOffers' ? 'active-tab' : ''}
           onClick={() => setActiveTab('myOffers')}
         >
-          <FaPaperPlane className="tab-icon" /> عروضي
+          <FaPaperPlane className="tab-icon" /> عروضي وتواصلي
         </button>
         <button
           className={activeTab === 'teachers' ? 'active-tab' : ''}
@@ -59,7 +59,9 @@ export default function DashboardHeader({ activeTab, setActiveTab, unreadCount =
             <FaBell />
           </button>
           {unreadCount > 0 && (
-            <span className="header-notif-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
+            <span className="header-notif-badge" title={`${unreadCount} غير مقروء`}>
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
           )}
         </div>
         <button className="icon-btn" onClick={() => setActiveTab('profile')} aria-label="الملف الشخصي">

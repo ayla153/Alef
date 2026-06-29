@@ -150,3 +150,350 @@
   background: #dbeafe;
   border-color: #93c5fd;
 }
+
+/* ─── Unified offers + contacts hub ─── */
+.ohub-filters-panel {
+  margin-bottom: 1rem;
+}
+
+.ohub-filters-top {
+  border-bottom: none;
+}
+
+.ohub-empty {
+  margin-top: 0.5rem;
+}
+
+.ohub-split-layout {
+  margin-top: 0.25rem;
+}
+
+.ohub-list-item {
+  width: 100%;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid #f1f5f9;
+  border-radius: 10px;
+  background: #fafafa;
+  text-align: right;
+  cursor: pointer;
+  font-family: 'Cairo', sans-serif;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.ohub-list-item:hover {
+  border-color: #bfdbfe;
+  background: #fff;
+}
+
+.ohub-list-item.selected {
+  border-color: #93c5fd;
+  background: #eff6ff;
+  box-shadow: 0 0 0 1px #bfdbfe;
+}
+
+.ohub-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  margin-bottom: 0.35rem;
+}
+
+.ohub-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+}
+
+.ohub-source.public {
+  background: #f0fdf4;
+  color: #047857;
+}
+
+.ohub-source.private {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.ohub-outcome {
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.ohub-outcome.pending { background: #e0e7ff; color: #4338ca; }
+.ohub-outcome.shared { background: #d1fae5; color: #047857; }
+.ohub-outcome.rejected { background: #fee2e2; color: #b91c1c; }
+.ohub-outcome.closed { background: #f1f5f9; color: #64748b; }
+
+.ohub-list-title {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.4;
+}
+
+.ohub-list-subject {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.ohub-list-phone {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #047857;
+}
+
+.ohub-detail-empty {
+  background: #fff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 16px;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  color: #64748b;
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ohub-detail-wrap {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.1rem 1.2rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.ohub-detail-header {
+  margin-bottom: 1rem;
+}
+
+.ohub-detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.65rem;
+}
+
+.ohub-detail-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1.45;
+}
+
+.ohub-detail-subject {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.ohub-exchange-banner {
+  background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+  border: 1px solid #a7f3d0;
+  border-radius: 14px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.ohub-exchange-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin-bottom: 0.85rem;
+}
+
+.ohub-exchange-head svg {
+  color: #059669;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.ohub-exchange-head strong {
+  display: block;
+  font-size: 0.95rem;
+  color: #065f46;
+  margin-bottom: 0.2rem;
+}
+
+.ohub-exchange-head p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #047857;
+  line-height: 1.5;
+}
+
+.ohub-exchange-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0.65rem;
+  align-items: stretch;
+}
+
+.ohub-exchange-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #10b981;
+  font-size: 1rem;
+}
+
+.ohub-phone-block {
+  background: #fff;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ohub-phone-block-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.ohub-phone-block-number {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.ohub-phone-block-hint {
+  font-size: 0.68rem;
+  color: #94a3b8;
+}
+
+.ohub-phone-block-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+.ohub-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+
+.ohub-action-call {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.ohub-action-wa {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #047857;
+}
+
+.ohub-exchange-date {
+  margin: 0.75rem 0 0;
+  font-size: 0.75rem;
+  color: #047857;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.ohub-pending-banner {
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.ohub-pending-banner strong {
+  display: block;
+  color: #4338ca;
+  margin-bottom: 0.25rem;
+}
+
+.ohub-pending-banner p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #6366f1;
+  line-height: 1.5;
+}
+
+.ohub-offer-body {
+  border-top: 1px dashed #e2e8f0;
+  padding-top: 0.85rem;
+}
+
+.ohub-meta-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+  font-size: 0.82rem;
+  color: #475569;
+  margin-bottom: 0.75rem;
+}
+
+.ohub-meta-grid span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.ohub-text-block {
+  margin-bottom: 0.65rem;
+}
+
+.ohub-text-block strong {
+  display: block;
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-bottom: 0.2rem;
+}
+
+.ohub-text-block p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: #334155;
+}
+
+.ohub-private-card-wrap {
+  margin-top: 1rem;
+  border-top: 1px dashed #e2e8f0;
+  padding-top: 0.85rem;
+}
+
+@media (max-width: 768px) {
+  .ohub-exchange-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ohub-exchange-arrow {
+    transform: rotate(90deg);
+  }
+}

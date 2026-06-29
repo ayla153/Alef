@@ -1,11 +1,12 @@
 // src/components/tabs/Requests.jsx — public marketplace only
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import RequestCard from '../RequestCard';
+import PublicRequestCard from '../PublicRequestCard';
+import PublicRequestDetail from '../PublicRequestDetail';
 import OfferModalNew from '../OfferModalNew';
 import '../../styles/Requests.css';
 import '../../styles/MyOffers.css';
-import { browsePubicLeads, submitOffer } from '../../api/tutorLeads';
+import { browsePubicLeads, browsePublicLeadDetail, submitOffer } from '../../api/tutorLeads';
 import { getErrorMessage } from '../../utils/apiErrors';
 import { filterAndSortLeads } from '../../utils/requestFilters';
 import { fetchTutorCatalog, enrichLeadWithCatalog } from '../../utils/tutorCatalog';
@@ -25,6 +26,9 @@ export default function Requests() {
   const focusLeadId = leadIdParam ? Number(leadIdParam) : null;
 
   const [leads, setLeads] = useState([]);
+  const [detailLead, setDetailLead] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
@@ -84,30 +88,47 @@ export default function Requests() {
     };
   }, [fetchLeads]);
 
+  useEffect(() => {
+    if (!focusLeadId) {
+      setDetailLead(null);
+      setDetailError('');
+      return undefined;
+    }
+
+    let ignore = false;
+    setDetailLoading(true);
+    setDetailError('');
+
+    browsePublicLeadDetail(focusLeadId)
+      .then((res) => {
+        if (!ignore) setDetailLead(res.data);
+      })
+      .catch((err) => {
+        if (!ignore) setDetailError(getErrorMessage(err));
+      })
+      .finally(() => {
+        if (!ignore) setDetailLoading(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [focusLeadId]);
+
   const enrichedLeads = useMemo(
     () => leads.map((lead) => enrichLeadWithCatalog(lead, subjectsMap, levelsMap)),
     [leads, subjectsMap, levelsMap]
   );
 
+  const enrichedDetailLead = useMemo(() => {
+    if (!detailLead) return null;
+    return enrichLeadWithCatalog(detailLead, subjectsMap, levelsMap);
+  }, [detailLead, subjectsMap, levelsMap]);
+
   const visibleLeads = useMemo(
     () => filterAndSortLeads(enrichedLeads, filters),
     [enrichedLeads, filters]
   );
-
-  const focusedLead = focusLeadId
-    ? enrichedLeads.find((l) => l.post_requirements_id === focusLeadId)
-    : null;
-
-  useEffect(() => {
-    if (!focusLeadId || isLoading) return;
-    const timer = window.setTimeout(() => {
-      document.getElementById(`lead-card-${focusLeadId}`)?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
-    }, 150);
-    return () => window.clearTimeout(timer);
-  }, [focusLeadId, isLoading, visibleLeads.length]);
 
   const refreshLeads = async () => {
     const result = await fetchLeads();
@@ -118,8 +139,23 @@ export default function Requests() {
     }
   };
 
+  const refreshDetail = async (leadId) => {
+    try {
+      const res = await browsePublicLeadDetail(leadId);
+      if (isMounted.current) setDetailLead(res.data);
+    } catch (err) {
+      if (isMounted.current) setDetailError(getErrorMessage(err));
+    }
+  };
+
+  const handleViewDetails = (leadId) => {
+    navigate(`/dashboard/requests/${leadId}`);
+  };
+
   const handleOpenOfferModal = (leadId) => {
-    const lead = enrichedLeads.find((l) => l.post_requirements_id === leadId);
+    const lead = enrichedDetailLead?.post_requirements_id === leadId
+      ? enrichedDetailLead
+      : enrichedLeads.find((l) => l.post_requirements_id === leadId);
     if (lead) setSelectedOfferLead(lead);
   };
 
@@ -128,6 +164,7 @@ export default function Requests() {
       await submitOffer(leadId, data);
       setSelectedOfferLead(null);
       await refreshLeads();
+      if (focusLeadId) await refreshDetail(focusLeadId);
     } catch (err) {
       throw new Error(getErrorMessage(err));
     }
@@ -145,12 +182,36 @@ export default function Requests() {
     filters.sortBy !== 'newest',
   ].filter(Boolean).length;
 
+  if (focusLeadId) {
+    return (
+      <div className="page-container2">
+        <div className="requests-tab-container">
+          {detailError && <p className="error-text">{detailError}</p>}
+          <PublicRequestDetail
+            lead={enrichedDetailLead}
+            isLoading={detailLoading}
+            onBack={() => navigate('/dashboard/requests')}
+            onSubmitOffer={handleOpenOfferModal}
+          />
+        </div>
+
+        {selectedOfferLead && (
+          <OfferModalNew
+            lead={selectedOfferLead}
+            onClose={() => setSelectedOfferLead(null)}
+            onSubmit={handleSubmitOffer}
+          />
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="page-container2">
       <div className="requests-tab-container">
         <div className="tab-page-header">
           <h2>الطلبات العامة</h2>
-          <p>تصفّح الطلبات المفتوحة وقدّم عروضك — بعد التقديم تتابعها من تبويب «عروضي»</p>
+          <p>تصفّح الطلبات المفتوحة — اضغط على أي طلب لعرض التفاصيل الكاملة وتقديم عرض</p>
         </div>
 
         <div className="filters-panel">
@@ -232,45 +293,18 @@ export default function Requests() {
           </p>
         )}
 
-        {focusLeadId && !isLoading && !focusedLead && (
-          <p className="lead-focus-missing">
-            الطلب #{focusLeadId} غير متاح حالياً.
-            <button type="button" className="lead-focus-back" onClick={() => navigate('/dashboard/requests')}>
-              عرض الكل
-            </button>
-          </p>
-        )}
-
-        {focusLeadId && focusedLead && (
-          <div className="lead-focus-banner">
-            <span>تفاصيل الطلب #{focusLeadId}</span>
-            <button type="button" className="lead-focus-back" onClick={() => navigate('/dashboard/requests')}>
-              عرض الكل
-            </button>
-          </div>
-        )}
-
         {isLoading && <p className="loading-text">جارِ تحميل الطلبات...</p>}
         {error && <p className="error-text">{error}</p>}
 
         {!isLoading && (
-          <div className="requests-grid">
+          <div className="requests-grid requests-grid-compact">
             {visibleLeads.length > 0 ? (
               visibleLeads.map((lead) => (
-                <div
+                <PublicRequestCard
                   key={lead.post_requirements_id}
-                  id={`lead-card-${lead.post_requirements_id}`}
-                  className={
-                    focusLeadId === lead.post_requirements_id
-                      ? 'lead-card-wrap lead-card-focused'
-                      : 'lead-card-wrap'
-                  }
-                >
-                  <RequestCard
-                    request={lead}
-                    onSubmitOffer={handleOpenOfferModal}
-                  />
-                </div>
+                  request={lead}
+                  onViewDetails={handleViewDetails}
+                />
               ))
             ) : (
               <p className="no-results">

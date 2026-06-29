@@ -75,7 +75,7 @@ export default function Dashboard() {
   };
 
   const goToContacts = () => {
-    navigate('/dashboard/private-requests/contacts');
+    navigate('/dashboard/offers?filter=contact_shared');
   };
 
   const goToProfile = (intent = null) => {
@@ -120,7 +120,7 @@ export default function Dashboard() {
           <Route path="private-requests/contacts/:leadId?" element={<MyContacts />} />
           <Route path="private-requests/:leadId" element={<PrivateRequests />} />
           <Route path="private-requests" element={<PrivateRequests />} />
-          <Route path="offers" element={<MyOffers />} />
+          <Route path="offers/:selectKey?" element={<MyOffers />} />
           <Route path="teachers" element={<TeachersTab />} />
           <Route
             path="profile"
