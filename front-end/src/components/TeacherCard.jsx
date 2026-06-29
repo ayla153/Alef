@@ -105,10 +105,6 @@ const TeacherCard = ({
           }`}
         >
           <span className="tc-service-name online">أونلاين</span>
-          <span className="tc-price">
-            {formatHourlyPrice(teacher.onlinePrice, teacher.modes?.includes("online"))}
-            <small>/ساعة</small>
-          </span>
         </div>
 
         <div
@@ -117,10 +113,6 @@ const TeacherCard = ({
           }`}
         >
           <span className="tc-service-name offline">حضوري</span>
-          <span className="tc-price">
-            {formatHourlyPrice(teacher.offlinePrice, teacher.modes?.includes("offline"))}
-            <small>/ساعة</small>
-          </span>
         </div>
       </div>
 
