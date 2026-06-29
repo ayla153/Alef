@@ -1,5 +1,11 @@
-from pydantic import BaseModel, ConfigDict, Field
+import re
 from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+# عربي + إنجليزي + أرقام + مسافات وشرطة (مطابق للمواد والفرونت)
+_LEVEL_TITLE_RE = re.compile(r"^[\u0600-\u06FFa-zA-Z0-9\s\-']+$")
+
 
 class CreateLevel(BaseModel):
     model_config = ConfigDict(
@@ -11,9 +17,17 @@ class CreateLevel(BaseModel):
         ...,
         min_length=1,
         max_length=100,
-        pattern=r'^[A-Za-z][A-Za-z0-9]*$',
-        description="Level title - must be between 1 and 100 characters",
+        description="اسم المرحلة — عربي أو إنجليزي",
     )
+
+    @field_validator("level_title")
+    @classmethod
+    def validate_level_title(cls, value: str) -> str:
+        if not _LEVEL_TITLE_RE.fullmatch(value):
+            raise ValueError(
+                "اسم المرحلة يقبل حروفاً عربية أو إنجليزية وأرقاماً ومسافات فقط (مثال: المرحلة الابتدائية أو Grade9)"
+            )
+        return value
 
 
 class UpdateLevelRequest(BaseModel):
@@ -27,9 +41,18 @@ class UpdateLevelRequest(BaseModel):
         None,
         min_length=1,
         max_length=100,
-        pattern=r'^[A-Za-z][A-Za-z0-9]*$',
-        description="Level title - must be between 1 and 100 characters",
     )
+
+    @field_validator("level_title")
+    @classmethod
+    def validate_level_title(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        if not _LEVEL_TITLE_RE.fullmatch(value):
+            raise ValueError(
+                "اسم المرحلة يقبل حروفاً عربية أو إنجليزية وأرقاماً ومسافات فقط (مثال: المرحلة الابتدائية أو Grade9)"
+            )
+        return value
 
 
 class LevelOut(BaseModel):
