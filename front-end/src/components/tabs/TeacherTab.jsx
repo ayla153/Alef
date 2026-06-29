@@ -10,7 +10,8 @@ import {
   FaFilter,
   FaBookmark
 } from "react-icons/fa";
-import { getPublicTutors, getTopTutors } from "../../api/publicTutors";
+import { getPublicTutors, getTopTutors, getPublicTutorById } from "../../api/publicTutors";
+import { getSubjectPriceRange } from "../../api/tutorMapper";
 import { isAuthenticated } from "../../api/authStorage";
 import { isMarketplaceTutor } from "../../utils/adminTutorStatus";
 import { getErrorMessage } from "../../utils/apiErrors";
@@ -23,10 +24,7 @@ function mapTutorToCard(tutor) {
 
   const subjectsList = (tutor.tutor_subjects || []).map((ts) => ts.subject?.subject_title).filter(Boolean);
 
-  const prices = (tutor.tutor_subjects || [])
-    .map((ts) => ts.price_per_hour)
-    .filter((p) => typeof p === 'number');
-  const minPrice = prices.length > 0 ? Math.min(...prices) : null;
+  const { min: minPrice, max: maxPrice } = getSubjectPriceRange(tutor.tutor_subjects);
 
   const modes = [];
   if (tutor.tution_type === 'online' || tutor.tution_type === 'both') modes.push('online');
@@ -52,6 +50,8 @@ function mapTutorToCard(tutor) {
     subjects: subjectsList,
     levels,
     modes,
+    minPrice,
+    maxPrice,
     onlinePrice: tutor.tution_type === 'offline' ? null : minPrice,
     offlinePrice: tutor.tution_type === 'online' ? null : minPrice,
   };
@@ -80,23 +80,38 @@ export default function TeachersTab({ setSelectedTeacher, setActiveTab, onViewPr
         setTeachers(verifiedOnly.map(mapTutorToCard));
       } else {
         const { data } = await getTopTutors({ limit: 50 });
-        const items = data?.items ?? [];
+        const rankedItems = data?.items ?? [];
+
+        const profiles = await Promise.all(
+          rankedItems.map((item) =>
+            getPublicTutorById(item.tutor_id)
+              .then((res) => res.data)
+              .catch(() => null),
+          ),
+        );
+
         setTeachers(
-          items.map((item) => ({
-            id: item.tutor_id,
-            name: `${item.first_name} ${item.last_name}`,
-            gender: item.gender,
-            tutorPhoto: item.tutor_photo,
-            stage: `${item.total_experience_years ?? 0} سنوات خبرة`,
-            rating: item.average_rating ?? 0,
-            reviews: item.reviews_count ?? 0,
-            experience: item.total_experience_years ?? 0,
-            subjects: [],
-            levels: [],
-            modes: [],
-            onlinePrice: 0,
-            offlinePrice: 0,
-          })),
+          rankedItems.map((item, index) => {
+            const profile = profiles[index];
+            if (profile) return mapTutorToCard(profile);
+            return {
+              id: item.tutor_id,
+              name: `${item.first_name} ${item.last_name}`,
+              gender: item.gender,
+              tutorPhoto: item.tutor_photo,
+              stage: `${item.total_experience_years ?? 0} سنوات خبرة`,
+              rating: item.average_rating ?? 0,
+              reviews: item.reviews_count ?? 0,
+              experience: item.total_experience_years ?? 0,
+              subjects: [],
+              levels: [],
+              modes: [],
+              minPrice: null,
+              maxPrice: null,
+              onlinePrice: null,
+              offlinePrice: null,
+            };
+          }),
         );
       }
     } catch (err) {

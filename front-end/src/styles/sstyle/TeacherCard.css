@@ -134,6 +134,7 @@
 .tc-service-name {
   font-weight: bolder;
   border-radius: 15px;
+  padding: 2px 10px;
 }
 
 /* online / offline styles */
@@ -157,6 +158,8 @@
 .tc-price {
   color: var(--primary);
   font-weight: bold;
+  font-size: 0.85rem;
+  white-space: nowrap;
 }
 
 .tc-price small {

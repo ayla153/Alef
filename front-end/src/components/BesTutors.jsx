@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import '../styles/BestTutors.css';
-import { formatHourlyPrice } from '../utils/Translations';
+import { formatHourlyPriceRange } from '../utils/Translations';
 import { resolveTutorPhotoUrl } from '../utils/tutorPhoto';
 
 export default function BesTutors({ teacher = {}, onViewProfile }) {
@@ -20,6 +20,8 @@ export default function BesTutors({ teacher = {}, onViewProfile }) {
     modes = [],
     onlinePrice = 0,
     offlinePrice = 0,
+    minPrice = null,
+    maxPrice = null,
   } = teacher;
 
   const displayImage = resolveTutorPhotoUrl(tutorPhoto, { gender, tutorId: id });
@@ -59,13 +61,13 @@ export default function BesTutors({ teacher = {}, onViewProfile }) {
         <div className={`service-item ${modes.includes("online") ? "" : "disabled"}`}>
           <span className="service-name online">أونلاين</span>
           <span className="price">
-            {formatHourlyPrice(onlinePrice, modes.includes("online"))} <small>/ساعة</small>
+            {formatHourlyPriceRange(minPrice ?? onlinePrice, maxPrice ?? onlinePrice, modes.includes("online"))} <small>/ساعة</small>
           </span>
         </div>
         <div className={`service-item ${modes.includes("offline") ? "" : "disabled"}`}>
           <span className="service-name offline">حضوري</span>
           <span className="price">
-            {formatHourlyPrice(offlinePrice, modes.includes("offline"))} <small>/ساعة</small>
+            {formatHourlyPriceRange(minPrice ?? offlinePrice, maxPrice ?? offlinePrice, modes.includes("offline"))} <small>/ساعة</small>
           </span>
         </div>
       </div>

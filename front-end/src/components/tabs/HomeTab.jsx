@@ -6,6 +6,7 @@ import FAQItem from '../FAQItem';
 import '../../styles/HomeTab.css';
 import studentImage from '../../assets/homePageImage.png';
 import { getTopTutors, getPublicTutorById } from '../../api/publicTutors';
+import { getSubjectPriceRange } from '../../api/tutorMapper';
 import { isAuthenticated, getAuthRole } from '../../api/authStorage';
 import { getHomePathForRole } from '../../utils/authRedirect';
 
@@ -16,10 +17,7 @@ function mapTutorToTeacher(tutor, rankMeta = {}) {
   if (tutor.tution_type === 'online' || tutor.tution_type === 'both') modes.push('online');
   if (tutor.tution_type === 'offline' || tutor.tution_type === 'both') modes.push('offline');
 
-  const prices = (tutor.tutor_subjects || [])
-    .map((ts) => ts.price_per_hour)
-    .filter((p) => typeof p === 'number');
-  const minPrice = prices.length > 0 ? Math.min(...prices) : null;
+  const { min: minPrice, max: maxPrice } = getSubjectPriceRange(tutor.tutor_subjects);
 
   const avgRating = tutor.reviews?.length
     ? (tutor.reviews.reduce((sum, r) => sum + r.number_of_stars, 0) / tutor.reviews.length).toFixed(1)
@@ -38,6 +36,8 @@ function mapTutorToTeacher(tutor, rankMeta = {}) {
     experience: tutor.total_experience_years ?? rankMeta.total_experience_years ?? 0,
     subjects,
     modes,
+    minPrice,
+    maxPrice,
     onlinePrice: tutor.tution_type === 'offline' ? null : minPrice,
     offlinePrice: tutor.tution_type === 'online' ? null : minPrice,
     rank: rankMeta.rank,
@@ -59,6 +59,8 @@ function mapTopRankToTeacher(item) {
     experience: item.total_experience_years ?? 0,
     subjects: [],
     modes: [],
+    minPrice: null,
+    maxPrice: null,
     onlinePrice: 0,
     offlinePrice: 0,
     rank: item.rank,

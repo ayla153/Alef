@@ -3,7 +3,8 @@ import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api.js";
 import { getTeacherProfilePath } from "../utils/authRedirect";
-import { formatHourlyPrice } from "../utils/Translations";
+import { formatHourlyPriceRange } from "../utils/Translations";
+import { resolveTeacherPrices } from "../api/tutorMapper";
 import { resolveTutorPhotoUrl } from "../utils/tutorPhoto";
 
 const TeacherCard2 = ({
@@ -16,11 +17,18 @@ const TeacherCard2 = ({
   experience,
   modes,
   price,
+  minPrice,
+  maxPrice,
   isFavorite = false,
   favoriteId = null,
   onFavoriteChange,
 }) => {
   const photoUrl = resolveTutorPhotoUrl(tutorPhoto, { gender, tutorId: id });
+  const { minPrice: priceMin, maxPrice: priceMax } = resolveTeacherPrices({
+    minPrice,
+    maxPrice,
+    price,
+  });
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
 
@@ -85,6 +93,10 @@ const TeacherCard2 = ({
 
       {/* Footer */}
       <div className="teacherFooter">
+        <div className="price">
+          {formatHourlyPriceRange(priceMin, priceMax)}{" "}
+          <span>/ساعة</span>
+        </div>
 
         <div className="actions">
           {/* Bookmark Button */}

@@ -2,11 +2,7 @@ import defaultAvatar from '../assets/user-avatar.jpg';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
-/** روابط seed/قديمة — نتجاهلها ونعرض صور الفرونت بدلها */
-const LEGACY_PHOTO_PATTERN =
-  /pravatar\.cc|randomuser\.me|via\.placeholder|ui-avatars\.com|\/tutor\.png$/i;
-
-/** صور بالغين — معرّفة بالفرونت فقط (مو من قاعدة البيانات) */
+/** صور افتراضية بالفرونت — تُستخدم فقط إذا ما في صورة من الباك */
 const MALE_PORTRAITS = [
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=256&h=256&fit=crop&crop=faces',
   'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=256&h=256&fit=crop&crop=faces',
@@ -52,30 +48,31 @@ export function getTutorPlaceholderPhoto({ gender, tutorId } = {}) {
   return pool[portraitIndex(tutorId, pool.length)] || defaultAvatar;
 }
 
-function isLegacyOrExternalPlaceholder(photo) {
-  if (!photo) return true;
-  return LEGACY_PHOTO_PATTERN.test(photo);
+function hasBackendPhoto(photo) {
+  return typeof photo === 'string' && photo.trim().length > 0;
 }
 
-/** رفع حقيقي من المعلّم عبر المنصة فقط */
-function isRealTutorUpload(photo) {
-  if (!photo || typeof photo !== 'string') return false;
+/** يحوّل مسار الصورة من الباك إلى رابط كامل */
+function toBackendPhotoUrl(photo) {
   const trimmed = photo.trim();
-  if (!trimmed || isLegacyOrExternalPlaceholder(trimmed)) return false;
-  if (trimmed.startsWith('data:image/')) return true;
-  if (trimmed.startsWith('/uploads/tutors/photos/')) return true;
-  return false;
+  if (
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('data:')
+  ) {
+    return trimmed;
+  }
+  if (trimmed.startsWith('/')) return `${API_BASE}${trimmed}`;
+  return `${API_BASE}/${trimmed}`;
 }
 
-function toAbsoluteUploadUrl(photo) {
-  if (photo.startsWith('/')) return `${API_BASE}${photo}`;
-  return `${API_BASE}/${photo}`;
-}
-
-/** صورة العرض: فرونت افتراضي، أو رفع حقيقي فقط */
+/**
+ * في صورة من الباك → نعرضها.
+ * ما في → صورة افتراضية من الفرونت حسب الجنس.
+ */
 export function resolveTutorPhotoUrl(photo, { gender, tutorId } = {}) {
-  if (isRealTutorUpload(photo)) {
-    return toAbsoluteUploadUrl(photo);
+  if (hasBackendPhoto(photo)) {
+    return toBackendPhotoUrl(photo);
   }
   return getTutorPlaceholderPhoto({ gender, tutorId });
 }

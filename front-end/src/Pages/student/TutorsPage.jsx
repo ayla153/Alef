@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import api from "../../api/api";
 import { getAuthRole } from "../../api/authStorage";
 import { getPublicTutors } from "../../api/publicTutors";
+import { getSubjectPriceRange } from "../../api/tutorMapper";
 import { isMarketplaceTutor } from "../../utils/adminTutorStatus";
 
 import Header from "../../components/Header";
@@ -65,9 +66,7 @@ function TutorsPage() {
         const mappedTutors = tutorsData.map((tutor) => {
           const tutorSubjects = tutor.tutor_subjects || [];
 
-          const prices = tutorSubjects.map((subject) => subject.price_per_hour);
-
-          const minPrice = prices.length > 0 ? Math.min(...prices) : null;
+          const { min: minPrice, max: maxPrice } = getSubjectPriceRange(tutorSubjects);
 
           const stage = tutorSubjects.some((s) => s.high_stage)
             ? "ثانوي"
@@ -111,6 +110,9 @@ function TutorsPage() {
             onlinePrice: tutor.tution_type === "offline" ? null : minPrice,
 
             offlinePrice: tutor.tution_type === "online" ? null : minPrice,
+
+            minPrice,
+            maxPrice,
 
             modes:
               tutor.tution_type === "both"
