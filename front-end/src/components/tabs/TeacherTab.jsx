@@ -11,6 +11,7 @@ import {
   FaBookmark
 } from "react-icons/fa";
 import { getPublicTutors, getTopTutors } from "../../api/publicTutors";
+import { resolveTutorPhotoUrl } from "../../utils/tutorPhoto";
 import { isAuthenticated } from "../../api/authStorage";
 import { isMarketplaceTutor } from "../../utils/adminTutorStatus";
 import { getErrorMessage } from "../../utils/apiErrors";
@@ -43,7 +44,11 @@ function mapTutorToCard(tutor) {
   return {
     id: tutor.tutor_id,
     name: `${tutor.first_name} ${tutor.last_name}`,
-    image: tutor.tutor_photo || 'https://randomuser.me/api/portraits/lego/1.jpg',
+    gender: tutor.gender,
+    image: resolveTutorPhotoUrl(tutor.tutor_photo, {
+      gender: tutor.gender,
+      tutorId: tutor.tutor_id,
+    }),
     stage: tutor.bio ? tutor.bio.slice(0, 40) : 'مدرّس/ة',
     rating: avgRating,
     reviews: reviews.length,
@@ -84,7 +89,11 @@ export default function TeachersTab({ setSelectedTeacher, setActiveTab, onViewPr
           items.map((item) => ({
             id: item.tutor_id,
             name: `${item.first_name} ${item.last_name}`,
-            image: item.tutor_photo || 'https://randomuser.me/api/portraits/lego/1.jpg',
+            gender: item.gender,
+            image: resolveTutorPhotoUrl(item.tutor_photo, {
+              gender: item.gender,
+              tutorId: item.tutor_id,
+            }),
             stage: `${item.total_experience_years ?? 0} سنوات خبرة`,
             rating: item.average_rating ?? 0,
             reviews: item.reviews_count ?? 0,

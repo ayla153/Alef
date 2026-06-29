@@ -3,6 +3,7 @@ import "../../styles/sstyle/TeacherProfile.css";
 import Header from "../../components/Header";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/api.js";
+import { resolveTutorPhotoUrl } from "../../utils/tutorPhoto";
 
 // مفاتيح الألوان والأيقونات بالإنجليزي لأن subject_title بالباك إنجليزي
 // (محكوم بـ pattern: ^[A-Za-z]+$ في الـ schema)
@@ -49,19 +50,7 @@ const getSubjectArabicName = (englishName) => {
   return subjectArabicNames[englishName] || englishName;
 };
 
-const API_BASE_URL = "http://localhost:8000";
-
-// صورة افتراضية محلية (SVG كـ data URI) بدل خدمة خارجية مثل via.placeholder.com
-// تعمل بدون اتصال بالإنترنت ولا تعتمد على أي خدمة خارجية
-const DEFAULT_AVATAR =
-  "data:image/svg+xml;utf8," +
-  encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
-      <rect width="120" height="120" fill="#e5e7eb"/>
-      <circle cx="60" cy="45" r="22" fill="#9ca3af"/>
-      <path d="M20 110 C20 80 100 80 100 110" fill="#9ca3af"/>
-    </svg>
-  `);
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 export default function TeacherProfile() {
   const { tutor_id } = useParams();
@@ -213,9 +202,10 @@ export default function TeacherProfile() {
               <div
                 className="avatar-large-img"
                 style={{
-                  backgroundImage: `url(${
-                    teacher.tutor_photo || DEFAULT_AVATAR
-                  })`,
+                  backgroundImage: `url(${resolveTutorPhotoUrl(teacher.tutor_photo, {
+                    gender: teacher.gender,
+                    tutorId: teacher.tutor_id,
+                  })})`,
                 }}
               />
               <div className="status-dot" />

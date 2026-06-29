@@ -3,6 +3,7 @@ import "../../styles/sstyle/PrivateLeadDetails.css";
 import Header from "../../components/Header";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/api.js";
+import { resolveTutorPhotoUrl } from "../../utils/tutorPhoto";
 
 export default function PrivateLeadDetails({ lead }) {
   const navigate = useNavigate();
@@ -285,31 +286,15 @@ export default function PrivateLeadDetails({ lead }) {
             {targetTutor && (
               <section className="pld-card pld-teacher-card">
                 <div className="pld-teacher-avatar-wrapper">
-                  {targetTutor.tutor_photo ? (
-                    <div className="pld-teacher-avatar">
-                      <img
-                        src={targetTutor.tutor_photo}
-                        alt={targetTutor.first_name}
-                      />
-                    </div>
-                  ) : (
-                    <div
-                      className="pld-teacher-avatar"
-                      style={{
-                        background: "linear-gradient(135deg, #e0e7ff, #c7d2fe)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <span
-                        className="material-symbols-outlined"
-                        style={{ fontSize: "64px", color: "#6366f1" }}
-                      >
-                        person
-                      </span>
-                    </div>
-                  )}
+                  <div className="pld-teacher-avatar">
+                    <img
+                      src={resolveTutorPhotoUrl(targetTutor.tutor_photo, {
+                        gender: targetTutor.gender,
+                        tutorId: targetTutor.tutor_id,
+                      })}
+                      alt={targetTutor.first_name}
+                    />
+                  </div>
                 </div>
                 <div className="pld-teacher-details">
                   <h3 className="pld-teacher-name">

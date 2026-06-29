@@ -2,13 +2,16 @@ import React, { useState } from "react";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import '../styles/BestTutors.css';
 import { formatHourlyPrice } from '../utils/Translations';
+import { getTutorPlaceholderPhoto } from '../utils/tutorPhoto';
 
 export default function BesTutors({ teacher = {}, onViewProfile }) {
   const [saved, setSaved] = useState(false);
 
   const {
+    id,
+    gender,
     name = "اسم غير معروف",
-    image = "https://via.placeholder.com/80",
+    image,
     subtitle = "مدرس محترف",
     rating = 0,
     reviews = 0,
@@ -19,6 +22,8 @@ export default function BesTutors({ teacher = {}, onViewProfile }) {
     offlinePrice = 0,
   } = teacher;
 
+  const displayImage = image || getTutorPlaceholderPhoto({ gender, tutorId: id });
+
   const handleClick = () => {
     if (onViewProfile) {
       onViewProfile(teacher);
@@ -28,7 +33,7 @@ export default function BesTutors({ teacher = {}, onViewProfile }) {
   return (
     <div className="card">
       <div className="card-header">
-        <img src={image} alt={name} className="profile-img" />
+        <img src={displayImage} alt={name} className="profile-img" />
         <div className="info">
           <h3>{name}</h3>
           <p className="subtitle">{subtitle}</p>

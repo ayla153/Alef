@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/api.js";
 import { getTeacherProfilePath } from "../utils/authRedirect";
 import { formatHourlyPrice } from "../utils/Translations";
+import { resolveTutorPhotoUrl } from "../utils/tutorPhoto";
 
 const TeacherCard = ({
   teacher,
@@ -61,7 +62,10 @@ const TeacherCard = ({
       {/* HEADER */}
       <div className="tc-card-header">
         <img
-          src={teacher.image || "https://via.placeholder.com/80"}
+          src={resolveTutorPhotoUrl(teacher.image, {
+            gender: teacher.gender,
+            tutorId: teacher.id,
+          })}
           alt={teacher.name}
           className="tc-profile-img"
         />
