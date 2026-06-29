@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import HowitWorkSteps from "../HowitWorkSteps";
-import TeacherCard from "../TeacherCard3";
+import TeacherCard3 from "../TeacherCard3";
 import FAQItem from "../FAQItem";
 import "../../styles/HomeTab.css";
 import studentImage from "../../assets/homePageImage.png";
@@ -233,7 +233,7 @@ export default function HomeTab({ onViewProfile }) {
             !error &&
             teachers.map((teacher) => (
               <div key={teacher.id} className="top-tutor-card-wrap">
-                <TeacherCard
+                <TeacherCard3
                   teacher={teacher}
                   showFavorite={false}
                   onViewProfile={onViewProfile}
