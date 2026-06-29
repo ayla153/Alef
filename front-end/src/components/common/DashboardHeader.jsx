@@ -40,7 +40,7 @@ export default function DashboardHeader({ activeTab, setActiveTab, unreadCount =
           className={activeTab === 'myOffers' ? 'active-tab' : ''}
           onClick={() => setActiveTab('myOffers')}
         >
-          <FaPaperPlane className="tab-icon" /> عروضي وتواصلي
+          <FaPaperPlane className="tab-icon" /> صندوق العروض
         </button>
         <button
           className={activeTab === 'teachers' ? 'active-tab' : ''}

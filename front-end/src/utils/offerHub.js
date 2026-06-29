@@ -1,5 +1,11 @@
 import { translateSubject, translateLevel, formatDate } from './translations';
 
+export const SOURCE_TABS = [
+  { value: '', label: 'الكل', icon: 'all' },
+  { value: 'private', label: 'طلبات خاصة', icon: 'private' },
+  { value: 'public', label: 'عروض عامة', icon: 'public' },
+];
+
 export const HUB_FILTERS = [
   { value: '', label: 'الكل' },
   { value: 'pending', label: 'معلّقة' },
@@ -99,24 +105,30 @@ export function buildOfferHubItems(offers = [], inboxLeads = [], subjectsMap = {
   );
 }
 
-export function filterHubItems(items, filterValue) {
-  if (!filterValue) return items;
-  if (filterValue === 'closed') {
-    return items.filter(
+export function filterHubItems(items, outcomeFilter, sourceFilter = '') {
+  let result = items;
+  if (sourceFilter) {
+    result = result.filter((item) => item.source === sourceFilter);
+  }
+  if (!outcomeFilter) return result;
+  if (outcomeFilter === 'closed') {
+    return result.filter(
       (item) =>
         item.outcome === 'lead_closed_empty' || item.outcome === 'lead_closed_expired'
     );
   }
-  return items.filter((item) => item.outcome === filterValue);
+  return result.filter((item) => item.outcome === outcomeFilter);
 }
 
-export function hubFilterCount(items, filterValue) {
-  return filterHubItems(items, filterValue).length;
+export function hubFilterCount(items, outcomeFilter, sourceFilter = '') {
+  return filterHubItems(items, outcomeFilter, sourceFilter).length;
 }
 
 export function computeHubStats(items) {
   return {
     total: items.length,
+    private: items.filter((i) => i.source === 'private').length,
+    public: items.filter((i) => i.source === 'public').length,
     pending: items.filter((i) => i.outcome === 'pending').length,
     shared: items.filter((i) => i.outcome === 'contact_shared').length,
     rejected: items.filter((i) => i.outcome === 'rejected').length,

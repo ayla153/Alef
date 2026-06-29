@@ -3,6 +3,7 @@ import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api.js";
 import { getTeacherProfilePath } from "../utils/authRedirect";
+import { formatHourlyPrice } from "../utils/Translations";
 
 const TeacherCard2 = ({
   id,
@@ -88,7 +89,7 @@ const TeacherCard2 = ({
       {/* Footer */}
       <div className="teacherFooter">
         <div className="price">
-          {price} ل.س <span>/ ساعة</span>
+          {formatHourlyPrice(price)} <span>/ ساعة</span>
         </div>
 
         <div className="actions">

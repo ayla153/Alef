@@ -4,6 +4,7 @@ import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api.js";
 import { getTeacherProfilePath } from "../utils/authRedirect";
+import { formatHourlyPrice } from "../utils/Translations";
 
 const TeacherCard = ({
   teacher,
@@ -105,7 +106,7 @@ const TeacherCard = ({
         >
           <span className="tc-service-name online">أونلاين</span>
           <span className="tc-price">
-            {teacher.modes?.includes("online") ? teacher.onlinePrice : "0"} $
+            {formatHourlyPrice(teacher.onlinePrice, teacher.modes?.includes("online"))}
             <small>/ساعة</small>
           </span>
         </div>
@@ -117,7 +118,7 @@ const TeacherCard = ({
         >
           <span className="tc-service-name offline">حضوري</span>
           <span className="tc-price">
-            {teacher.modes?.includes("offline") ? teacher.offlinePrice : "0"} $
+            {formatHourlyPrice(teacher.offlinePrice, teacher.modes?.includes("offline"))}
             <small>/ساعة</small>
           </span>
         </div>

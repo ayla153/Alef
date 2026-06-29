@@ -178,7 +178,7 @@ export default function PrivateRequests() {
       await acceptPrivateContact(leadId, data);
       setSelectedContactLead(null);
       await refreshLeads();
-      navigate(`/dashboard/offers/private-${leadId}`);
+      navigate(`/dashboard/offers?source=private&filter=contact_shared&leadId=${leadId}`);
     } catch (err) {
       throw new Error(getErrorMessage(err));
     }
@@ -186,10 +186,10 @@ export default function PrivateRequests() {
 
   const goToFullContacts = (leadId) => {
     if (leadId) {
-      navigate(`/dashboard/offers/private-${leadId}`);
+      navigate(`/dashboard/offers?source=private&filter=contact_shared&leadId=${leadId}`);
       return;
     }
-    navigate('/dashboard/offers?filter=contact_shared');
+    navigate('/dashboard/offers?source=private&filter=contact_shared');
   };
 
   const updateFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }));
