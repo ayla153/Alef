@@ -336,6 +336,7 @@ class TopTutorItemOut(BaseModel):
     tutor_id: int
     first_name: str
     last_name: str
+    gender: Optional[gender_enum] = None
     tutor_photo: Optional[str] = None
     average_rating: Optional[float] = None
     reviews_count: int = 0

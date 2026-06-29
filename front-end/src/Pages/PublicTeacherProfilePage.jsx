@@ -5,17 +5,7 @@ import { getErrorMessage } from '../utils/apiErrors';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import TeacherProfile from '../components/TeacherProfile';
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-
-function resolvePhotoUrl(photo) {
-  if (!photo) return 'https://via.placeholder.com/150';
-  if (photo.startsWith('http://') || photo.startsWith('https://') || photo.startsWith('data:')) {
-    return photo;
-  }
-  if (photo.startsWith('/')) return `${API_BASE}${photo}`;
-  return `${API_BASE}/${photo}`;
-}
+import { resolveTutorPhotoUrl } from '../utils/tutorPhoto';
 
 function mapTutorToTeacherData(tutor) {
   const reviews = tutor.reviews || [];
@@ -35,7 +25,11 @@ function mapTutorToTeacherData(tutor) {
   return {
     id: tutor.tutor_id,
     name: `${tutor.first_name} ${tutor.last_name}`,
-    image: resolvePhotoUrl(tutor.tutor_photo),
+    gender: tutor.gender,
+    image: resolveTutorPhotoUrl(tutor.tutor_photo, {
+      gender: tutor.gender,
+      tutorId: tutor.tutor_id,
+    }),
     rating: avgRating,
     reviews: reviews.length,
     experience: tutor.total_experience_years ?? 0,

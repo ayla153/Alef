@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/TeacherProfile.css";
 import { formatCurrency } from "../utils/Translations";
+import { resolveTutorPhotoUrl } from "../utils/tutorPhoto";
 
 const subjectColors = {
   الرياضيات: "blue",
@@ -38,7 +39,10 @@ export default function TeacherProfile({ teacherData }) {
     age: teacherData.age || 30,
     rating: teacherData.rating || 0,
     reviewsCount: teacherData.reviews || 0,
-    avatar: teacherData.image || "https://via.placeholder.com/150",
+    avatar: resolveTutorPhotoUrl(teacherData.image, {
+      gender: teacherData.gender,
+      tutorId: teacherData.id,
+    }),
     bio: teacherData.bio || "لا يوجد وصف متاح.",
     subjects: (teacherData.subjects || []).map((s) => ({ name: s })),
     lessonTypes: [

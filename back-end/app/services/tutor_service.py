@@ -206,6 +206,7 @@ def get_top_tutors(db: Session, limit: int = 10) -> TopTutorsOut:
                 tutor_id=tutor.tutor_id,
                 first_name=tutor.first_name,
                 last_name=tutor.last_name,
+                gender=tutor.gender,
                 tutor_photo=tutor.tutor_photo,
                 average_rating=avg_f,
                 reviews_count=reviews_n,

@@ -7,6 +7,7 @@ import api from "../../api/api";
 import { getAuthRole } from "../../api/authStorage";
 import { getPublicTutors } from "../../api/publicTutors";
 import { isMarketplaceTutor } from "../../utils/adminTutorStatus";
+import { resolveTutorPhotoUrl } from "../../utils/tutorPhoto";
 
 import "../../styles/sstyle/HomePage.css";
 
@@ -26,16 +27,6 @@ const getSubjectArabicName = (englishName) => {
   if (!englishName) return "غير محدد";
   return subjectArabicNames[englishName] || englishName;
 };
-
-const DEFAULT_AVATAR =
-  "data:image/svg+xml;utf8," +
-  encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
-      <rect width="120" height="120" fill="#e5e7eb"/>
-      <circle cx="60" cy="45" r="22" fill="#9ca3af"/>
-      <path d="M20 110 C20 80 100 80 100 110" fill="#9ca3af"/>
-    </svg>
-  `);
 
 const statusMap = {
   open: { icon: "hourglass_top", status: "قيد المعالجة", type: "pending" },
@@ -114,6 +105,7 @@ const HomePage = () => {
           tutorsData.map((t) => ({
             id: t.tutor_id,
             name: `${t.first_name} ${t.last_name}`,
+            gender: t.gender,
             rating: t.reviews?.length
               ? (
                   t.reviews.reduce((s, r) => s + r.number_of_stars, 0) /
@@ -129,7 +121,10 @@ const HomePage = () => {
                 ? ["online", "offline"]
                 : [t.tution_type],
             price: t.tutor_subjects?.[0]?.price_per_hour || 0,
-            image: t.tutor_photo || DEFAULT_AVATAR,
+            image: resolveTutorPhotoUrl(t.tutor_photo, {
+              gender: t.gender,
+              tutorId: t.tutor_id,
+            }),
             isFavorite: favMap[t.tutor_id] !== undefined,
             favoriteId: favMap[t.tutor_id] ?? null,
           })),
