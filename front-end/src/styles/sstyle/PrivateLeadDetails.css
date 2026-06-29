@@ -330,6 +330,30 @@ html.dark .pld-theme-toggle:hover, html.dark .pld-nav-icon-btn:hover {
   gap: 32px;
 }
 
+.pld-teacher-card-clickable {
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.pld-teacher-card-clickable:hover {
+  border-color: rgba(19, 91, 236, 0.35);
+  box-shadow: 0 8px 24px -4px rgba(19, 91, 236, 0.12);
+}
+
+.pld-view-profile-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--pld-primary);
+  margin-top: 4px;
+}
+
+.pld-view-profile-hint .material-symbols-outlined {
+  font-size: 18px;
+}
+
 .pld-teacher-avatar-wrapper {
   position: relative;
   flex-shrink: 0;

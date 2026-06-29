@@ -3,6 +3,7 @@ import "../../styles/sstyle/PublicLeadDetails.css";
 import Header from "../../components/Header";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/api.js";
+import { resolveTutorPhotoUrl } from "../../utils/tutorPhoto";
 
 export default function PublicLeadDetails({ lead }) {
   const navigate = useNavigate();
@@ -12,6 +13,7 @@ export default function PublicLeadDetails({ lead }) {
   );
   const [leadStatus, setLeadStatus] = React.useState(lead.lead_status);
   const [showCancelModal, setShowCancelModal] = React.useState(false);
+  const [showCloseModal, setShowCloseModal] = React.useState(false);
   const [actionLoading, setActionLoading] = React.useState(false);
   const [actionError, setActionError] = React.useState(null);
 
@@ -24,6 +26,10 @@ export default function PublicLeadDetails({ lead }) {
 
   const isClosed = ["closed_shortlist", "closed_matched", "closed_empty", "closed_expired"].includes(leadStatus);
   const isPending = leadStatus === "open" && applicationsState.filter(a => a.application_status === "pending").length === 0;
+  const pendingOfferCount = applicationsState.filter(
+    (a) => a.application_status === "pending"
+  ).length;
+  const hasOffersToClose = pendingOfferCount > 0;
 
   // رفض عرض واحد — PATCH /leads/{id}/offers/{offer_id}/reject
   const handleRejectOffer = async (offerId) => {
@@ -245,23 +251,49 @@ export default function PublicLeadDetails({ lead }) {
             </div>
 
             {!isClosed && (
-              <div className="pod-warning-message">
-                ⚠️ أغلق الطلب لكشف أرقام المعلمين والتواصل معهم
+              <div className="pod-phone-notice">
+                <div className="pod-phone-notice-icon">
+                  <span className="material-symbols-outlined">lock</span>
+                </div>
+                <div className="pod-phone-notice-body">
+                  <p className="pod-phone-notice-title">أرقام المعلمين مخفية حالياً</p>
+                  <p className="pod-phone-notice-text">
+                    بعد مراجعة العروض، اضغط «إغلاق الطلب وكشف الأرقام» في أسفل الصفحة.
+                    عند الإغلاق ستظهر أرقام جميع المعلمين الذين قدّموا عروضاً لتتواصل معهم مباشرة.
+                  </p>
+                </div>
               </div>
             )}
 
             <div className="pod-offers-list">
               {applicationsState.map((app) => (
-                <div key={app.lead_application_id} className="pld-card">
+                <div
+                  key={app.lead_application_id}
+                  className={`pod-teacher-card pod-offer-card ${
+                    app.application_status === "rejected" ? "pod-offer-rejected" : ""
+                  }`}
+                >
                   <div className="pod-teacher-flex">
-                    <div className="pod-teacher-info" style={{ width: "100%" }}>
+                    <div className="pod-teacher-avatar">
+                      <img
+                        src={resolveTutorPhotoUrl(null, { tutorId: app.tutor_id })}
+                        alt={app.tutor_first_name || "معلم"}
+                      />
+                    </div>
+
+                    <div className="pod-teacher-info">
                       <div className="pod-teacher-header-row">
                         <div>
                           <h3 className="pod-teacher-name">
                             {app.tutor_first_name || `معلم #${app.tutor_id}`}
                           </h3>
-
-                          <div className="pod-price-zone">
+                          {app.application_status === "rejected" && (
+                            <span className="pod-offer-status-rejected">تم رفض هذا العرض</span>
+                          )}
+                        </div>
+                        <div className="pod-price-zone">
+                          <span className="pod-price-label">السعر المقترح</span>
+                          <div>
                             <span className="pod-price-value">{app.proposed_fee}</span>
                             <span className="pod-price-unit"> ل.س/ساعة</span>
                           </div>
@@ -269,16 +301,19 @@ export default function PublicLeadDetails({ lead }) {
                       </div>
 
                       {app.message && (
-                        <p className="pod-teacher-bio">{app.message}</p>
+                        <div className="pod-offer-message">
+                          <span className="material-symbols-outlined">chat_bubble</span>
+                          <p>{app.message}</p>
+                        </div>
                       )}
 
                       {app.first_session_note && (
-                        <p style={{ fontSize: "13px", color: "#6b7280" }}>
-                          ملاحظة الجلسة الأولى: {app.first_session_note}
+                        <p className="pod-offer-session-note">
+                          <span className="material-symbols-outlined">event</span>
+                          الجلسة الأولى: {app.first_session_note}
                         </p>
                       )}
 
-                      {/* رقم المعلم — يظهر فقط بعد الإغلاق من الباك */}
                       {app.tutor_phone_number ? (
                         <div className="pod-contact-zone">
                           <div className="pod-contact-method">
@@ -293,17 +328,17 @@ export default function PublicLeadDetails({ lead }) {
                             </div>
                           </div>
                         </div>
-                      ) : (
-                        !isClosed && (
-                          <p style={{ fontSize: "12px", color: "#9ca3af", marginTop: "8px" }}>
-                            سيظهر رقم التواصل بعد إغلاق الطلب
-                          </p>
-                        )
-                      )}
+                      ) : null}
 
-                      {/* أزرار الإجراءات */}
                       {app.application_status === "pending" && !isClosed && (
                         <div className="pod-action-buttons-row">
+                          <button
+                            className="pod-btn pod-btn-secondary"
+                            onClick={() => navigate(`/tutor/${app.tutor_id}`)}
+                          >
+                            <span className="material-symbols-outlined">person</span>
+                            عرض الملف الشخصي
+                          </button>
                           <button
                             className="pod-btn pod-btn-danger"
                             disabled={actionLoading}
@@ -311,20 +346,7 @@ export default function PublicLeadDetails({ lead }) {
                           >
                             رفض العرض
                           </button>
-
-                          <button
-                            className="pod-btn pod-btn-secondary"
-                            onClick={() => navigate(`/tutor/${app.tutor_id}`)}
-                          >
-                            عرض الملف الشخصي
-                          </button>
                         </div>
-                      )}
-
-                      {app.application_status === "rejected" && (
-                        <span style={{ color: "#dc2626", fontSize: "13px" }}>
-                          تم رفض هذا العرض
-                        </span>
                       )}
                     </div>
                   </div>

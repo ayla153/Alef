@@ -422,6 +422,130 @@ body {
   gap: 1rem;
 }
 
+.pod-phone-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%);
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+}
+
+.pod-phone-notice-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background-color: #dbeafe;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pod-phone-notice-icon .material-symbols-outlined {
+  font-size: 22px;
+}
+
+.pod-phone-notice-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e3a8a;
+  margin: 0 0 4px;
+}
+
+.pod-phone-notice-text {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.pod-offer-card {
+  padding: 1.25rem;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.pod-offer-card:hover {
+  border-color: #93c5fd;
+  box-shadow: 0 4px 12px -2px rgba(37, 99, 235, 0.08);
+}
+
+.pod-offer-rejected {
+  opacity: 0.65;
+  background-color: #f8fafc;
+}
+
+.pod-offer-status-rejected {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #dc2626;
+}
+
+.pod-price-label {
+  display: block;
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.pod-offer-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  margin: 12px 0;
+  background-color: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #f1f5f9;
+}
+
+.pod-offer-message .material-symbols-outlined {
+  font-size: 18px;
+  color: #94a3b8;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.pod-offer-message p {
+  margin: 0;
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.pod-offer-session-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #64748b;
+  margin: 0 0 12px;
+}
+
+.pod-offer-session-note .material-symbols-outlined {
+  font-size: 16px;
+  color: #94a3b8;
+}
+
+.pod-action-buttons-row .pod-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pod-action-buttons-row .pod-btn .material-symbols-outlined {
+  font-size: 18px;
+}
+
 /* =========================
    Teacher Card
 ========================= */
@@ -582,6 +706,16 @@ body {
 
 .pod-btn-secondary:hover {
   background-color: #eff6ff;
+}
+
+.pod-btn-danger {
+  background-color: #ffffff;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+}
+
+.pod-btn-danger:hover {
+  background-color: #fef2f2;
 }
 
 /* =========================
@@ -834,6 +968,8 @@ body {
   margin-bottom: 12px;
   font-size: 14px;
 }
+
+/* legacy — kept for reference; replaced by pod-phone-notice */
 
 .pod-btn:disabled {
   opacity: 0.5;
