@@ -81,9 +81,6 @@ const TeacherCard2 = ({
 
       {/* Footer */}
       <div className="teacherFooter">
-        <div className="price">
-          {price} ل.س <span>/ ساعة</span>
-        </div>
 
         <div className="actions">
           {/* Bookmark Button */}
