@@ -3,7 +3,6 @@ import "../styles/sstyle/TeacherCard.css";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api.js";
-<<<<<<< HEAD
 
 // رابط الصورة الافتراضية (في حال فشل التحميل)
 const DEFAULT_AVATAR = 'https://ui-avatars.com/api/?name=مستخدم&background=3b82f6&color=fff&size=200';
@@ -25,17 +24,11 @@ const addTimestamp = (url) => {
   const separator = url.includes('?') ? '&' : '?';
   return `${url}${separator}t=${Date.now()}`;
 };
-=======
-import { getTeacherProfilePath } from "../utils/authRedirect";
-import { formatHourlyPrice } from "../utils/Translations";
-import { resolveTutorPhotoUrl } from "../utils/tutorPhoto";
->>>>>>> d33eacde928551c3546a720fcb62d04d8cb86d0f
 
 const TeacherCard = ({
   teacher,
   mode = "view",
   onSelect,
-  onViewProfile,
   showFavorite = true,
   isFavorite = false,
   favoriteId = null,
@@ -83,14 +76,7 @@ const TeacherCard = ({
       {/* HEADER */}
       <div className="tc-card-header">
         <img
-<<<<<<< HEAD
           src={imageUrl}
-=======
-          src={resolveTutorPhotoUrl(teacher.image, {
-            gender: teacher.gender,
-            tutorId: teacher.id,
-          })}
->>>>>>> d33eacde928551c3546a720fcb62d04d8cb86d0f
           alt={teacher.name}
           className="tc-profile-img"
           onError={(e) => { e.target.src = DEFAULT_AVATAR; }}
