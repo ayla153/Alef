@@ -300,6 +300,7 @@ def application_to_tutor_public_offer_out(
         offer_created_at=app.created_at,
         contact_revealed_at=app.contact_revealed_at,
         lead_title=lead.title,
+        lead_description=lead.description,
         lead_status=lead.lead_status,
         lead_closed_at=lead.closed_at,
         subject_id=lead.subject_id,
@@ -350,13 +351,18 @@ def browse_public_leads(db: Session, tutor: Tutor) -> list[LeadBrowseCardOut]:
         .filter(
             PostRequirement.is_public.is_(True),
             PostRequirement.lead_status == LeadStatusEnum.OPEN,
-            PostRequirement.accepting_applications.is_(True),
             PostRequirement.subject_id.in_(tutor_subject_ids),
+            or_(
+                PostRequirement.accepting_applications.is_(True),
+                PostRequirement.lead_applications.any(
+                    LeadApplication.tutor_id == tutor.tutor_id,
+                ),
+            ),
         )
         .order_by(PostRequirement.created_at.desc())
         .all()
     )
-    return [lead_to_browse_card_out(lead) for lead in leads]
+    return [lead_to_browse_card_out(lead, tutor.tutor_id) for lead in leads]
 
 
 def get_public_lead_detail_for_tutor(
@@ -390,14 +396,12 @@ def get_public_lead_detail_for_tutor(
         )
 
     assert_lead_references_valid(db, lead)
-    card = lead_to_browse_card_out(lead)
+    card = lead_to_browse_card_out(lead, tutor.tutor_id)
     peer_offers: list[PeerOfferOut] = []
-    has_my_offer = False
     for app in sorted(lead.lead_applications, key=lambda a: a.created_at):
         if app.application_status != LeadApplicationStatusEnum.PENDING:
             continue
         if app.tutor_id == tutor.tutor_id:
-            has_my_offer = True
             continue
         tutor_row = app.tutor
         first_name = (tutor_row.first_name.strip() if tutor_row and tutor_row.first_name else "أستاذ")
@@ -406,7 +410,7 @@ def get_public_lead_detail_for_tutor(
     return PublicLeadTutorDetailOut(
         **card.model_dump(),
         peer_offers=peer_offers,
-        has_my_offer=has_my_offer,
+        has_my_offer=card.has_my_offer,
     )
 
 
@@ -500,7 +504,16 @@ def submit_offer(
     return _application_to_out(application, lead)
 
 
-def lead_to_browse_card_out(lead: PostRequirement) -> LeadBrowseCardOut:
+def _tutor_has_offer_on_lead(lead: PostRequirement, tutor_id: int | None) -> bool:
+    if tutor_id is None:
+        return False
+    return any(app.tutor_id == tutor_id for app in lead.lead_applications)
+
+
+def lead_to_browse_card_out(
+    lead: PostRequirement,
+    tutor_id: int | None = None,
+) -> LeadBrowseCardOut:
     pending = sum(
         1 for app in lead.lead_applications if app.application_status == LeadApplicationStatusEnum.PENDING
     )
@@ -523,6 +536,7 @@ def lead_to_browse_card_out(lead: PostRequirement) -> LeadBrowseCardOut:
         pending_offer_count=pending,
         max_applications=lead.max_applications,
         expired_at=lead.expired_at,
+        has_my_offer=_tutor_has_offer_on_lead(lead, tutor_id),
     )
 
 
