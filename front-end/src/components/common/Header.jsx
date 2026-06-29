@@ -20,7 +20,7 @@ export default function Header({ activeTab, setActiveTab }) {
 
   const handleSwitchAccount = () => {
     logoutSession();
-    navigate("/selection", { state: { mode: "login" }, replace: true });
+    navigate("/selection", { state: { mode: "login" } });
   };
 
   // دالة موحدة للتعامل مع النقر على أزرار التبويبات

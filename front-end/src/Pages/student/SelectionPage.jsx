@@ -24,6 +24,10 @@ const SelectionPage = () => {
     }
   };
 
+  const handleBackToLanding = () => {
+    navigate("/");
+  };
+
   return (
     <div className="sp-auth-wrapper" dir="rtl">
       <main className="sp-main-content">
@@ -76,6 +80,13 @@ const SelectionPage = () => {
               {mode === "login" ? "دخول كأستاذ" : "اختر أستاذ"}
             </button>
           </section>
+        </div>
+
+        <div className="sp-back-navigation">
+          <button type="button" className="sp-back-link" onClick={handleBackToLanding}>
+            <span className="material-symbols-outlined">arrow_forward</span>
+            <span>العودة للصفحة الرئيسية</span>
+          </button>
         </div>
       </main>
     </div>
