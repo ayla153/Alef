@@ -6,7 +6,7 @@ import {
   FaHome,
   FaGlobe,
   FaLock,
-  FaPaperPlane,
+  FaInbox,
   FaChalkboardTeacher,
 } from 'react-icons/fa';
 
@@ -40,7 +40,7 @@ export default function DashboardHeader({ activeTab, setActiveTab, unreadCount =
           className={activeTab === 'myOffers' ? 'active-tab' : ''}
           onClick={() => setActiveTab('myOffers')}
         >
-          <FaPaperPlane className="tab-icon" /> صندوق العروض
+          <FaInbox className="tab-icon" /> صندوق التواصل
         </button>
         <button
           className={activeTab === 'teachers' ? 'active-tab' : ''}

@@ -274,7 +274,7 @@ export default function Requests() {
                 checked={filters.availableOnly}
                 onChange={(e) => updateFilter('availableOnly', e.target.checked)}
               />
-              <span>متاح فقط</span>
+              <span>متاح للتقديم</span>
             </label>
             <button
               type="button"

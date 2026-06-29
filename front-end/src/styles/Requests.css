@@ -198,8 +198,9 @@
 }
 
 .requests-grid-compact {
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  align-items: stretch;
 }
 
 .no-results {
@@ -260,8 +261,9 @@
 }
 
 @media (max-width: 1200px) {
-  .requests-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .requests-grid,
+  .requests-grid-compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -324,7 +326,8 @@
     width: 100%;
   }
 
-  .requests-grid {
+  .requests-grid,
+  .requests-grid-compact {
     grid-template-columns: 1fr;
   }
 }

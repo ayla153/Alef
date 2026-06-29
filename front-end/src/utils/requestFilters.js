@@ -7,6 +7,12 @@ export function isLeadAvailable(lead) {
   return true;
 }
 
+/** Open lead the tutor can still apply to (not already submitted). */
+export function isLeadAvailableToApply(lead) {
+  if (lead.has_my_offer) return false;
+  return isLeadAvailable(lead);
+}
+
 export function matchesBudget(lead, budgetMin, budgetMax) {
   const filterMin = budgetMin !== '' ? Number(budgetMin) : null;
   const filterMax = budgetMax !== '' ? Number(budgetMax) : null;
@@ -29,7 +35,7 @@ export function filterAndSortLeads(leads, { subjectId, levelId, budgetMin, budge
     if (subjectId && String(lead.subject_id) !== String(subjectId)) return false;
     if (levelId && String(lead.level_id) !== String(levelId)) return false;
     if (!matchesBudget(lead, budgetMin, budgetMax)) return false;
-    if (availableOnly && !isLeadAvailable(lead)) return false;
+    if (availableOnly && !isLeadAvailableToApply(lead)) return false;
     return true;
   });
 

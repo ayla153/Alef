@@ -3,14 +3,29 @@ import OfferHubPreviewCard from './OfferHubPreviewCard';
 
 const SECTION_META = {
   private: {
-    title: 'طلبات خاصة',
-    hint: 'طلاب تواصلوا معك مباشرة — معاينة سريعة ثم التفاصيل الكاملة',
+    title: 'طلبات خاصة — تم التواصل',
+    hint: 'طلاب قبلوا التواصل وشاركوا أرقامهم معك',
+    icon: FaLock,
+    cls: 'private',
+  },
+  public: {
+    title: 'عروض عامة — تم التواصل',
+    hint: 'عروض قبلها الطالب وتم تبادل الأرقام',
+    icon: FaGlobe,
+    cls: 'public',
+  },
+};
+
+const SENT_SECTION_META = {
+  private: {
+    title: 'ردود على طلبات خاصة',
+    hint: 'رسائلك وعروضك على الطلبات المباشرة',
     icon: FaLock,
     cls: 'private',
   },
   public: {
     title: 'عروض على الطلبات العامة',
-    hint: 'عروضك في السوق العام — تابع حالة كل عرض',
+    hint: 'كل العروض التي قدمتها في السوق',
     icon: FaGlobe,
     cls: 'public',
   },
@@ -21,10 +36,12 @@ export default function OfferHubPreviewSection({
   items,
   activeKey,
   onOpenDetails,
+  variant = 'contacts',
+  emptyHidden = false,
 }) {
-  if (!items.length) return null;
+  if (!items.length) return emptyHidden ? null : null;
 
-  const meta = SECTION_META[source];
+  const meta = variant === 'sent' ? SENT_SECTION_META[source] : SECTION_META[source];
   const Icon = meta.icon;
 
   return (

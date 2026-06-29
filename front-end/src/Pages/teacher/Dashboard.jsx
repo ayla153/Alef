@@ -6,6 +6,7 @@ import MainPage from '../../components/tabs/MainPage';
 import Requests from '../../components/tabs/Requests';
 import PrivateRequests from '../../components/tabs/PrivateRequests';
 import MyOffers from '../../components/tabs/MyOffers';
+import SentOffers from '../../components/tabs/SentOffers';
 import MyContacts from '../../components/tabs/MyContacts';
 import Footer from '../../components/common/Footer';
 import TeachersTab from '../../components/tabs/TeacherTab';
@@ -75,7 +76,7 @@ export default function Dashboard() {
   };
 
   const goToContacts = () => {
-    navigate('/dashboard/offers?source=private&filter=contact_shared');
+    navigate('/dashboard/offers?source=private');
   };
 
   const goToProfile = (intent = null) => {
@@ -120,6 +121,7 @@ export default function Dashboard() {
           <Route path="private-requests/contacts/:leadId?" element={<MyContacts />} />
           <Route path="private-requests/:leadId" element={<PrivateRequests />} />
           <Route path="private-requests" element={<PrivateRequests />} />
+          <Route path="offers/sent" element={<SentOffers />} />
           <Route path="offers" element={<MyOffers />} />
           <Route path="teachers" element={<TeachersTab />} />
           <Route
