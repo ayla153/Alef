@@ -4,13 +4,32 @@ import Header from "../../components/Header";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/api.js";
 
+const SUBJECT_TRANSLATION = {
+  Mathematics: "رياضيات",
+  Physics: "فيزياء",
+  Chemistry: "كيمياء",
+  Biology: "أحياء",
+  English: "لغة إنجليزية",
+  Arabic: "لغة عربية",
+  History: "تاريخ",
+  Geography: "جغرافيا",
+  ComputerScience: "معلوماتية",
+};
+
+const translateTitle = (title = "") => {
+  const match = Object.keys(SUBJECT_TRANSLATION).find((key) =>
+    title.includes(key)
+  );
+  return match ? title.replace(match, SUBJECT_TRANSLATION[match]) : title;
+};
+
 const subjectColors = {
   رياضيات: "blue",
   فيزياء: "purple",
   كيمياء: "green",
   أحياء: "emerald",
-  إنجليزي: "orange",
-  عربي: "red",
+  "لغة إنجليزية": "orange",
+  "لغة عربية": "red",
   تاريخ: "yellow",
   جغرافيا: "teal",
   معلوماتية: "indigo",
@@ -21,8 +40,8 @@ const getSubjectIcon = (title = "") => {
   if (title.includes("فيزياء")) return "biotech";
   if (title.includes("كيمياء")) return "science";
   if (title.includes("أحياء")) return "eco";
-  if (title.includes("إنجليزي")) return "translate";
-  if (title.includes("عربي")) return "menu_book";
+  if (title.includes("إنجليزية")) return "translate";
+  if (title.includes("عربية")) return "menu_book";
   if (title.includes("تاريخ")) return "history_edu";
   if (title.includes("جغرافيا")) return "public";
   if (title.includes("معلوماتية")) return "computer";
@@ -53,8 +72,6 @@ const STATUS_CONFIG = {
     buttonClass: "btn-outline-gray",
     canAction: true,
   },
-  // طلب خاص (target_tutor_id موجود) لسا open، يعني المعلم لسا ما وافق على التواصل.
-  // هاي حالة مختلفة تماماً عن "العروض ممتلئة" لأن الطلب الخاص ما فيه عروض من أساسه.
   waiting_tutor_response: {
     statusText: "بانتظار رد المعلم",
     statusColor: "amber",
@@ -102,7 +119,6 @@ const STATUS_CONFIG = {
   },
 };
 
-// شكل "مطفي" بصرياً فقط: الملغي (closed_empty) والمنتهي (closed_expired)
 const DIMMED_STATUSES = ["closed_empty", "closed_expired"];
 
 export default function MyLeads() {
@@ -134,10 +150,8 @@ export default function MyLeads() {
 
     if (lead.lead_status === "open") {
       if (isPrivate) {
-        // الطلب الخاص لسا open = بانتظار رد المعلم المستهدف، لا علاقة له بامتلاء العروض
         statusKey = "waiting_tutor_response";
       } else if (!lead.accepting_applications) {
-        // الطلب العام فقط هو اللي ممكن توصل عروضه للحد الأقصى
         statusKey = "slots_full";
       }
     }
@@ -274,8 +288,9 @@ export default function MyLeads() {
         ) : (
           <div className="leads-container">
             {filteredLeads.map((lead) => {
+              const translatedTitle = translateTitle(lead.title);
               const config = safeConfig(lead);
-              const subjectColor = getSubjectColor(lead.title);
+              const subjectColor = getSubjectColor(translatedTitle);
               const dimmed = isDimmed(lead);
               const isPrivate = lead.target_tutor_id != null;
 
@@ -287,13 +302,13 @@ export default function MyLeads() {
                   <div className="lead-right-side">
                     <div className={`subject-icon icon-${subjectColor}`}>
                       <span className="material-symbols-outlined">
-                        {getSubjectIcon(lead.title)}
+                        {getSubjectIcon(translatedTitle)}
                       </span>
                     </div>
 
                     <div className="subject-details">
                       <div className="subject-title-row">
-                        <h3>{lead.title}</h3>
+                        <h3>{translatedTitle}</h3>
                         <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                           <span
                             style={{
@@ -352,7 +367,6 @@ export default function MyLeads() {
                         </div>
                       )}
 
-                      {/* عداد العروض المستلمة منطقي فقط للطلب العام؛ الطلب الخاص ما فيه "عروض" */}
                       {!isPrivate && (
                         <div className="info-badge badge-primary-light">
                           <span className="material-symbols-outlined">groups</span>

@@ -21,7 +21,7 @@ const Sidebar = ({ orders }) => {
                 </span>
               </div>
               <div className="orderInfo">
-                <h4>{order.title}</h4>
+                <h4>{order.subject}</h4>
                 <span className="date">{order.date}</span>
                 <span className={`${order.type}Text status`}>
                   {order.status}
