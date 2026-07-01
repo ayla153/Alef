@@ -1,6 +1,6 @@
 // src/Pages/teacher/TeacherTab.jsx
 import { useState, useEffect } from "react";
-import TeacherCard from '../../components/TeacherCard3';
+import TeacherCard3 from '../../components/TeacherCard3';
 import "../../styles/TeacherTab.css";
 import {  
   FaStar, 
@@ -37,10 +37,23 @@ function mapTutorToCard(tutor) {
     if (ts.high_stage && !levels.includes('ثانوية')) levels.push('ثانوية');
   });
 
+  // تحديد الجنس (لأفاتار)
+  let gender = tutor.gender || null;
+  if (!gender) {
+    const firstName = (tutor.first_name || '').toLowerCase();
+    const femaleNames = ['رنا', 'نور', 'سارة', 'ليلى', 'هدى', 'منى', 'لينا', 'راما', 'أماني', 'شهد', 'تالا', 'يارا', 'جنى', 'مريم', 'فاطمة', 'خديجة', 'عائشة', 'زينب', 'روان', 'سوسن', 'غادة', 'نوال', 'سمية', 'منال', 'رانيا', 'رائدة', 'ريما', 'ناديا', 'نسمة', 'حنان', 'إيمان', 'آية', 'آلاء', 'ربى', 'سجى', 'تسنيم', 'رؤى', 'أسماء', 'ديمة', 'هيام'];
+    if (firstName.endsWith('ة') || femaleNames.includes(firstName)) {
+      gender = 'female';
+    } else {
+      gender = 'male';
+    }
+  }
+
   return {
     id: tutor.tutor_id,
     name: `${tutor.first_name} ${tutor.last_name}`,
-    image: tutor.tutor_photo || 'https://randomuser.me/api/portraits/lego/1.jpg',
+    image: tutor.tutor_photo || null,
+    tutorPhoto: tutor.tutor_photo || null,
     stage: tutor.bio ? tutor.bio.slice(0, 40) : 'مدرّس/ة',
     rating: avgRating,
     reviews: reviews.length,
@@ -50,6 +63,7 @@ function mapTutorToCard(tutor) {
     modes,
     onlinePrice: modes.includes('online') ? avgPrice : 0,
     offlinePrice: modes.includes('offline') ? avgPrice : 0,
+    gender,
   };
 }
 
@@ -190,10 +204,7 @@ export default function TeachersTab() {
       ) : (
         <div className="bestTutorsContainer">
           {filteredTeachers.map((teacher) => (
-            <TeacherCard
-              key={teacher.id}
-              teacher={teacher}
-            />
+            <TeacherCard3 key={teacher.id} teacher={teacher} />
           ))}
         </div>
       )}
