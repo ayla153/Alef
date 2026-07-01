@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import "../../styles/sstyle/TeacherProfile.css";
 import Header from "../../components/Header";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/api.js";
 import { resolveTutorPhotoUrl } from "../../utils/tutorPhoto";
+import NiceAvatar, { genConfig } from "react-nice-avatar";
 
 // مفاتيح الألوان والأيقونات بالإنجليزي لأن subject_title بالباك إنجليزي
 // (محكوم بـ pattern: ^[A-Za-z]+$ في الـ schema)
@@ -50,7 +51,16 @@ const getSubjectArabicName = (englishName) => {
   return subjectArabicNames[englishName] || englishName;
 };
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+// ─── أفاتار كرتوني واقعي مناسب حسب جنس المعلم (بدل صورة SVG ثابتة) ───
+const AvatarFallback = ({ gender, seed, className }) => {
+  const sex = gender === "female" ? "woman" : "man"; // افتراضي رجل لو الجنس غير معروف
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const config = useMemo(() => genConfig({ sex }), [sex, seed]);
+  return <NiceAvatar className={className} shape="circle" {...config} />;
+};
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 export default function TeacherProfile() {
   const { tutor_id } = useParams();
@@ -61,6 +71,7 @@ export default function TeacherProfile() {
   const [teacher, setTeacher] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [avatarImgError, setAvatarImgError] = useState(false);
 
   useEffect(() => {
     const fetchTutor = async () => {
@@ -92,9 +103,7 @@ export default function TeacherProfile() {
     const checkIfSaved = async () => {
       try {
         const { data } = await api.get("/favorites/my-favorites");
-        const match = data.find(
-          (f) => String(f.tutor_id) === String(tutor_id)
-        );
+        const match = data.find((f) => String(f.tutor_id) === String(tutor_id));
         if (match) {
           setIsSaved(true);
           setFavoriteId(match.favorite_id);
@@ -199,14 +208,10 @@ export default function TeacherProfile() {
         <div className="hero-card">
           <div className="hero-flex">
             <div className="teacher-avatar-large">
-              <div
+              <AvatarFallback
+                gender={teacher.gender}
+                seed={teacher.tutor_id}
                 className="avatar-large-img"
-                style={{
-                  backgroundImage: `url(${resolveTutorPhotoUrl(teacher.tutor_photo, {
-                    gender: teacher.gender,
-                    tutorId: teacher.tutor_id,
-                  })})`,
-                }}
               />
               <div className="status-dot" />
             </div>
@@ -247,7 +252,16 @@ export default function TeacherProfile() {
                   className="btn-primary"
                   onClick={() =>
                     navigate("/Create/Lead", {
-                      state: { origin: "teacher", tutor_id: teacher.tutor_id },
+                      state: {
+                        origin: "teacher",
+                        tutor_id: teacher.tutor_id,
+                        // نبعث جنس المعلم عشان نقفل حقل "جنس المعلم المفضل" بصفحة الطلب
+                        tutor_gender: teacher.gender, // متوقع "male" | "female"
+                        // نبعث IDs المواد يلي هالمعلم بيدرّسها فقط، عشان نفلتر قائمة المواد بصفحة الطلب
+                        tutor_subject_ids: subjects
+                          .map((s) => s.subject?.subject_id)
+                          .filter((id) => id != null),
+                      },
                     })
                   }
                 >
@@ -429,7 +443,9 @@ export default function TeacherProfile() {
                       </div>
 
                       <div className="exp-content">
-                        <h4 className={`exp-title ${meta.color}`}>{displayName}</h4>
+                        <h4 className={`exp-title ${meta.color}`}>
+                          {displayName}
+                        </h4>
                         <p className="paragraph-text">
                           خبرة {subj.experience_years ?? "—"} سنوات
                         </p>

@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
+import NiceAvatar, { genConfig } from "react-nice-avatar";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api.js";
 import { getTeacherProfilePath } from "../utils/authRedirect";
@@ -7,14 +8,20 @@ import { resolveTeacherPrices } from "../api/tutorMapper";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
-const FALLBACK_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='35' r='20' fill='%23b0b8c1'/%3E%3Cellipse cx='50' cy='85' rx='35' ry='25' fill='%23b0b8c1'/%3E%3C/svg%3E";
-
 const getFullImageUrl = (url) => {
   if (!url) return null;
   if (url.includes('pravatar.cc') || url.includes('ui-avatars.com')) return null;
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
   if (url.startsWith('/')) return `${BASE_URL}${url}`;
   return `${BASE_URL}/${url}`;
+};
+
+// ─── أفاتار كرتوني واقعي مناسب حسب جنس المعلم (بدل صورة SVG ثابتة) ───
+const AvatarFallback = ({ gender, seed, className }) => {
+  const sex = gender === "female" ? "woman" : "man"; // افتراضي رجل لو الجنس غير معروف
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const config = useMemo(() => genConfig({ sex }), [sex, seed]);
+  return <NiceAvatar className={className} shape="circle" {...config} />;
 };
 
 const TeacherCard2 = ({
@@ -40,12 +47,13 @@ const TeacherCard2 = ({
     price,
   });
   const [busy, setBusy] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const navigate = useNavigate();
+  const showImage = !!photoUrl && !imgError;
 
   const handleFavClick = async () => {
     if (busy) return;
     setBusy(true);
-
     try {
       if (!isFavorite) {
         const { data } = await api.post("/favorites/", { tutor_id: id });
@@ -70,15 +78,16 @@ const TeacherCard2 = ({
   return (
     <div className="teacherCard">
       <div className="teacherHeader">
-        <img
-          src={photoUrl || FALLBACK_AVATAR}
-          alt={name}
-          className="teacherImg"
-          onError={(e) => {
-            e.target.onerror = null;
-            e.target.src = FALLBACK_AVATAR;
-          }}
-        />
+        {showImage ? (
+          <img
+            src={photoUrl}
+            alt={name}
+            className="teacherImg"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <AvatarFallback gender={gender} seed={id} className="teacherImg" />
+        )}
 
         <div className="teacherDetails">
           <div className="nameRow">
@@ -88,11 +97,9 @@ const TeacherCard2 = ({
               <span>{rating}</span>
             </div>
           </div>
-
           <p className="subText">
             {subject} - خبرة {experience} سنوات
           </p>
-
           <div className="tagsContainer">
             {modes.includes("online") && (
               <span className="tag online">أونلاين</span>
@@ -103,7 +110,6 @@ const TeacherCard2 = ({
           </div>
         </div>
       </div>
-
       <div className="teacherFooter">
         <div className="actions">
           <button className="favBtn" onClick={handleFavClick} disabled={busy}>
@@ -113,7 +119,6 @@ const TeacherCard2 = ({
               <FaRegBookmark color="#6b7280" />
             )}
           </button>
-
           <button className="profileBtn" onClick={handleViewProfile}>
             عرض الملف
           </button>

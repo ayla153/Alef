@@ -1,9 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import "../../styles/sstyle/PrivateLeadDetails.css";
 import Header from "../../components/Header";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/api.js";
 import { resolveTutorPhotoUrl } from "../../utils/tutorPhoto";
+import NiceAvatar, { genConfig } from "react-nice-avatar";
+
+// ─── أفاتار كرتوني واقعي مناسب حسب جنس المعلم (بدل صورة افتراضية ثابتة) ───
+const AvatarFallback = ({ gender, seed, className }) => {
+  const sex = gender === "female" ? "woman" : "man"; // افتراضي رجل لو الجنس غير معروف
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const config = useMemo(() => genConfig({ sex }), [sex, seed]);
+  return <NiceAvatar className={className} shape="circle" {...config} />;
+};
 
 export default function PrivateLeadDetails({ lead }) {
   const navigate = useNavigate();
@@ -11,6 +20,7 @@ export default function PrivateLeadDetails({ lead }) {
   const [leadStatus, setLeadStatus] = useState(lead?.lead_status);
   const [actionLoading, setActionLoading] = useState(false);
   const [targetTutor, setTargetTutor] = useState(null);
+  const [avatarImgError, setAvatarImgError] = useState(false);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -57,12 +67,9 @@ export default function PrivateLeadDetails({ lead }) {
 
     if (!name) return null;
 
-    const photo = targetTutor
-      ? resolveTutorPhotoUrl(targetTutor.tutor_photo, {
-          gender: targetTutor.gender,
-          tutorId: targetTutor.tutor_id,
-        })
-      : resolveTutorPhotoUrl(null, { tutorId: tutorProfileId });
+    // نعرض دايماً أفاتار كرتوني بدل صورة المعلم الحقيقية
+    const hasRealPhoto = false;
+    const photo = null;
 
     return (
       <section
@@ -83,7 +90,19 @@ export default function PrivateLeadDetails({ lead }) {
       >
         <div className="pld-teacher-avatar-wrapper">
           <div className="pld-teacher-avatar">
-            <img src={photo} alt={name} />
+            {hasRealPhoto ? (
+              <img
+                src={photo}
+                alt={name}
+                onError={() => setAvatarImgError(true)}
+              />
+            ) : (
+              <AvatarFallback
+                gender={targetTutor?.gender}
+                seed={targetTutor?.tutor_id || tutorProfileId}
+                className="pld-teacher-avatar-fallback"
+              />
+            )}
           </div>
         </div>
         <div className="pld-teacher-details">

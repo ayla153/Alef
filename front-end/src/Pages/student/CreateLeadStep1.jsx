@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import "../../styles/sstyle/CreateLeadStep1.css";
 import Header from "../../components/Header";
 import api from "../../api/api.js";
@@ -46,7 +47,21 @@ const GENDER_TO_API = {
   "لا يهم": null,
 };
 
+// جنس المعلم القادم من الباك (male/female) → التسمية العربية المستخدمة بالفورم
+const API_GENDER_TO_LABEL = {
+  male: "ذكر",
+  female: "أنثى",
+};
+
 const CreateLeadStep1 = ({ formData, updateForm, onNext }) => {
+  const location = useLocation();
+
+  // ─── بيانات الطلب الخاص (جاي من بروفايل معلم) ─────────────
+  const leadState = location.state || {};
+  const isTeacherOrigin = leadState.origin === "teacher";
+  const tutorGender = leadState.tutor_gender || null; // "male" | "female"
+  const tutorSubjectIds = leadState.tutor_subject_ids || [];
+
   const [errors, setErrors] = useState({});
   const [subjects, setSubjects] = useState([]);
   const [levels, setLevels] = useState([]);
@@ -75,11 +90,52 @@ const CreateLeadStep1 = ({ formData, updateForm, onNext }) => {
     fetchCatalog();
   }, []);
 
+  // ─── إذا الطلب خاص لمعلم معيّن: نقفل جنس المعلم تلقائياً ───
+  useEffect(() => {
+    if (isTeacherOrigin && tutorGender) {
+      updateForm({
+        teacherGender: API_GENDER_TO_LABEL[tutorGender] || "",
+        preferred_gender: tutorGender,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isTeacherOrigin, tutorGender]);
+
+  // ─── إذا الطلب خاص لمعلم معيّن: نحفظ tutor_id بالفورم ──────
+  useEffect(() => {
+    if (isTeacherOrigin && leadState.tutor_id) {
+      updateForm({ tutor_id: leadState.tutor_id });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isTeacherOrigin, leadState.tutor_id]);
+
+  // ─── المواد المسموح عرضها بالـ select ──────────────────────
+  // إذا الطلب جاي من بروفايل معلم: نعرض فقط المواد يلي هوّي بيدرّسها
+  const visibleSubjects = isTeacherOrigin
+    ? subjects.filter((s) => tutorSubjectIds.includes(s.subject_id))
+    : subjects;
+
+  // إذا في مادة وحيدة بس (الحالة الشائعة لمعلم عندو مادة واحدة) نختارها تلقائياً
+  useEffect(() => {
+    if (
+      isTeacherOrigin &&
+      visibleSubjects.length === 1 &&
+      !formData.subject_id
+    ) {
+      const only = visibleSubjects[0];
+      updateForm({
+        subject_id: only.subject_id,
+        subject_label: only.subject_title,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isTeacherOrigin, visibleSubjects.length]);
+
   // ─── المعالجات ──────────────────────────────────────────────
 
   const handleSubjectChange = (e) => {
     const selectedId = Number(e.target.value);
-    const selectedItem = subjects.find((s) => s.subject_id === selectedId);
+    const selectedItem = visibleSubjects.find((s) => s.subject_id === selectedId);
     updateForm({
       subject_id: selectedId,
       subject_label: selectedItem?.subject_title || "",
@@ -107,6 +163,9 @@ const CreateLeadStep1 = ({ formData, updateForm, onNext }) => {
   };
 
   const handleGenderChange = (e) => {
+    // ما بينفذ شي إذا الطلب خاص بمعلم معيّن (الحقل مقفول)
+    if (isTeacherOrigin) return;
+
     const val = e.target.value;
     updateForm({
       teacherGender: val,
@@ -167,9 +226,13 @@ const CreateLeadStep1 = ({ formData, updateForm, onNext }) => {
         <div className="createLeadStep1_contentWrapper">
           <div className="createLeadStep1_pageHeader">
             <div className="createLeadStep1_pageTitleGroup">
-              <h2 className="createLeadStep1_pageTitle">إنشاء طلب جديد</h2>
+              <h2 className="createLeadStep1_pageTitle">
+                {isTeacherOrigin ? "إنشاء طلب خاص لمعلم" : "إنشاء طلب جديد"}
+              </h2>
               <p className="createLeadStep1_pageSubtitle">
-                أدخل معلوماتك للعثور على المعلم المثالي
+                {isTeacherOrigin
+                  ? "أدخل تفاصيل الدرس المطلوب من هذا المعلم"
+                  : "أدخل معلوماتك للعثور على المعلم المثالي"}
               </p>
             </div>
 
@@ -181,16 +244,18 @@ const CreateLeadStep1 = ({ formData, updateForm, onNext }) => {
             </div>
           </div>
 
-          <div className="createLeadStep1_infoBanner">
-            <span className="material-symbols-outlined">info</span>
-            <div>
-              <strong>هل تريد طلباً خاصاً لمعلم معين؟</strong>
-              <p>
-                اذهب إلى <a href="/tutors">صفحة الأساتذة</a> واختر معلمك
-                أولاً، ثم أرسل الطلب من حسابه الشخصي مباشرة.
-              </p>
+          {!isTeacherOrigin && (
+            <div className="createLeadStep1_infoBanner">
+              <span className="material-symbols-outlined">info</span>
+              <div>
+                <strong>هل تريد طلباً خاصاً لمعلم معين؟</strong>
+                <p>
+                  اذهب إلى <a href="/tutors">صفحة الأساتذة</a> واختر معلمك
+                  أولاً، ثم أرسل الطلب من حسابه الشخصي مباشرة.
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="createLeadStep1_formCard">
             {/* رسالة خطأ التحميل */}
@@ -210,7 +275,7 @@ const CreateLeadStep1 = ({ formData, updateForm, onNext }) => {
 
               <div className="createLeadStep1_formGrid">
 
-                {/* المادة الدراسية — subject_id */}
+                {/* المادة الدراسية — subject_id (مفلترة إذا طلب خاص) */}
                 <label className="createLeadStep1_formGroup">
                   <span className="createLeadStep1_formLabel">المادة الدراسية</span>
                   <div className="createLeadStep1_inputWrapper">
@@ -224,7 +289,7 @@ const CreateLeadStep1 = ({ formData, updateForm, onNext }) => {
                       <option value="" disabled>
                         {loadingCatalog ? "جارِ التحميل..." : "اختر المادة (مثال: رياضيات)"}
                       </option>
-                      {subjects.map((s) => (
+                      {visibleSubjects.map((s) => (
                         <option key={s.subject_id} value={s.subject_id}>
                           {translateSubject(s.subject_title)}
                         </option>
@@ -234,6 +299,11 @@ const CreateLeadStep1 = ({ formData, updateForm, onNext }) => {
                       expand_more
                     </span>
                   </div>
+                  {isTeacherOrigin && visibleSubjects.length === 0 && !loadingCatalog && (
+                    <span className="createLeadStep1_errorText">
+                      تعذّر إيجاد مواد لهذا المعلم
+                    </span>
+                  )}
                   {errors.subject && (
                     <span className="createLeadStep1_errorText">{errors.subject}</span>
                   )}
@@ -342,23 +412,35 @@ const CreateLeadStep1 = ({ formData, updateForm, onNext }) => {
                   )}
                 </label>
 
-                {/* جنس المعلم */}
+                {/* جنس المعلم — مقفول تلقائياً إذا الطلب خاص بمعلم معيّن */}
                 <label className="createLeadStep1_formGroup">
                   <span className="createLeadStep1_formLabel">
-                    جنس المعلم المفضل (اختياري)
+                    {isTeacherOrigin
+                      ? "جنس المعلم"
+                      : "جنس المعلم المفضل (اختياري)"}
                   </span>
                   <div className="createLeadStep1_inputWrapper">
-                    <select
-                      name="teacherGender"
-                      className="createLeadStep1_formControl"
-                      value={formData.teacherGender || ""}
-                      onChange={handleGenderChange}
-                    >
-                      <option value="" disabled>اختر الجنس (اختياري)</option>
-                      <option>ذكر</option>
-                      <option>أنثى</option>
-                      <option>لا يهم</option>
-                    </select>
+                    {isTeacherOrigin ? (
+                      <input
+                        type="text"
+                        className="createLeadStep1_formControl"
+                        value={formData.teacherGender || "—"}
+                        disabled
+                        readOnly
+                      />
+                    ) : (
+                      <select
+                        name="teacherGender"
+                        className="createLeadStep1_formControl"
+                        value={formData.teacherGender || ""}
+                        onChange={handleGenderChange}
+                      >
+                        <option value="" disabled>اختر الجنس (اختياري)</option>
+                        <option>ذكر</option>
+                        <option>أنثى</option>
+                        <option>لا يهم</option>
+                      </select>
+                    )}
                     <span className="material-symbols-outlined createLeadStep1_inputIcon">
                       person
                     </span>

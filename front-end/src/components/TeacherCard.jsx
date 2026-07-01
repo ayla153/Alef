@@ -1,12 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import "../styles/sstyle/TeacherCard.css";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
+import NiceAvatar, { genConfig } from "react-nice-avatar";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api.js";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-
-const FALLBACK_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='35' r='20' fill='%23b0b8c1'/%3E%3Cellipse cx='50' cy='85' rx='35' ry='25' fill='%23b0b8c1'/%3E%3C/svg%3E";
 
 const getFullImageUrl = (url) => {
   if (!url) return null;
@@ -14,6 +13,14 @@ const getFullImageUrl = (url) => {
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
   if (url.startsWith('/')) return `${BASE_URL}${url}`;
   return `${BASE_URL}/${url}`;
+};
+
+// ─── أفاتار كرتوني واقعي مناسب حسب جنس المعلم (بدل صورة SVG ثابتة) ───
+const AvatarFallback = ({ gender, seed, className }) => {
+  const sex = gender === "female" ? "woman" : "man"; // افتراضي رجل لو الجنس غير معروف
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const config = useMemo(() => genConfig({ sex }), [sex, seed]);
+  return <NiceAvatar className={className} shape="circle" {...config} />;
 };
 
 const TeacherCard = ({
@@ -28,9 +35,11 @@ const TeacherCard = ({
   const [saved, setSaved] = useState(isFavorite);
   const [savedFavoriteId, setSavedFavoriteId] = useState(favoriteId);
   const [busy, setBusy] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const navigate = useNavigate();
 
-  const imageUrl = getFullImageUrl(teacher.tutorPhoto || teacher.image) || FALLBACK_AVATAR;
+  const imageUrl = getFullImageUrl(teacher.tutorPhoto || teacher.image);
+  const showImage = !!imageUrl && !imgError;
 
   const handleViewProfile = () => {
     navigate(`/tutor/${teacher.id}`);
@@ -60,16 +69,20 @@ const TeacherCard = ({
       setBusy(false);
     }
   };
-console.log('teacher:', teacher);
+
   return (
     <div className="tc-card">
       <div className="tc-card-header">
-        <img
-          src={imageUrl}
-          alt={teacher.name}
-          className="tc-profile-img"
-          onError={(e) => { e.target.onerror = null; e.target.src = FALLBACK_AVATAR; }}
-        />
+        {showImage ? (
+          <img
+            src={imageUrl}
+            alt={teacher.name}
+            className="tc-profile-img"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <AvatarFallback gender={teacher.gender} seed={teacher.id} className="tc-profile-img" />
+        )}
 
         <div className="tc-info">
           <h3 className="tc-name">{teacher.name}</h3>
