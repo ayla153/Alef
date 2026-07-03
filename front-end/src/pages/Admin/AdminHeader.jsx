@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import '../../styles/Admin/AdminDashboard.css';
-import logo from '../../assets/Alef-logo.jpg';
+import logo from '../../assets/Logoo.jpg';
 import { FaClipboardList, FaUserCheck, FaCog, FaSignOutAlt } from 'react-icons/fa';
 import { logoutSession } from '../../api/sessionManager';
 

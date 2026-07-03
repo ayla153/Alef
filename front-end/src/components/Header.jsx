@@ -1,7 +1,7 @@
 import "../styles/sstyle/Header.css";
 import { NavLink } from "react-router-dom";
 
-function Header({ avatar }) {
+function Header({ avatar, unreadCount = 0 }) {
   return (
     <header className="app-header">
       <div className="app-header__container">
@@ -61,12 +61,23 @@ function Header({ avatar }) {
         </div>
 
         <div className="app-header__right">
-          
-          <NavLink to="/notifications" className={({ isActive }) =>
-            isActive ? "app-header__icon-btn is-active" : "app-header__icon-btn"
-          }>
-            <span className="material-symbols-outlined">notifications</span>
-          </NavLink>
+
+          <div className="app-header__notif-wrap">
+            <NavLink
+              to="/notifications"
+              className={({ isActive }) =>
+                isActive ? "app-header__icon-btn is-active" : "app-header__icon-btn"
+              }
+              aria-label="الإشعارات"
+            >
+              <span className="material-symbols-outlined">notifications</span>
+            </NavLink>
+            {unreadCount > 0 && (
+              <span className="app-header__notif-badge" title={`${unreadCount} غير مقروء`}>
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </div>
 
           <NavLink to="/profile" className="app-header__profile">
             <img

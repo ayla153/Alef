@@ -15,7 +15,6 @@ export default function DashboardHeader({ activeTab, setActiveTab, unreadCount =
     <header className="steponeheader lanP dashboard-nav-header">
       <div className="logoAndtitle">
         <img className="Alef-logo" src={logo} alt="logo" />
-        ألِف
       </div>
       <div className="landinPageHeaderTabs dashboard-nav-tabs">
         <button

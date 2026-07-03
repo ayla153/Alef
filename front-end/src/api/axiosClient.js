@@ -20,6 +20,20 @@ const apiClient = axios.create({
 
 let refreshPromise = null;
 
+// المسارات التي تخص عملية التسجيل (registration flow) ولازم تستخدم
+// registration token دائمًا، بغض النظر عن وجود access token بالمتصفح.
+// ملاحظة: '/auth/student/register' و '/auth/tutor/register' (بدون أي شيء بعدها)
+// هي الـ endpoint الأول اللي بينشئ الـ pending registration، وما بيحتاج أي توكن،
+// فمش مشكلة نتركه يدخل ضمن النمط لأنه ببساطة رح يبعت token = undefined/null.
+const REGISTRATION_PATH_PATTERNS = [
+  '/auth/student/register',
+  '/auth/tutor/register',
+];
+
+function isRegistrationEndpoint(url = '') {
+  return REGISTRATION_PATH_PATTERNS.some((pattern) => url.includes(pattern));
+}
+
 function getRegistrationToken() {
   const registrationType = localStorage.getItem('registration_type');
 
@@ -60,12 +74,22 @@ async function refreshAccessToken() {
 
 apiClient.interceptors.request.use((config) => {
   const accessToken = getAccessToken();
-  if (accessToken) {
-    clearRegistrationTokens();
-  }
   const registrationToken = getRegistrationToken();
-  // Real login token wins; registration tokens are only for signup endpoints.
-  const token = accessToken || registrationToken;
+
+  let token;
+
+  if (isRegistrationEndpoint(config.url)) {
+    // طلبات عملية التسجيل (send-otp / confirm / cancel...) لازم تستخدم
+    // registration token دائمًا، حتى لو كان فيه access_token قديم بالمتصفح.
+    token = registrationToken;
+  } else {
+    // أي endpoint عادي: access token له الأولوية، وإذا كان موجود
+    // بنعتبر إنه ما في داعي لتوكن التسجيل بعد هلق.
+    token = accessToken || registrationToken;
+    if (accessToken) {
+      clearRegistrationTokens();
+    }
+  }
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -80,12 +104,16 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config;
     const status = error.response?.status;
     const isRefreshRequest = originalRequest?.url?.includes('/auth/refresh');
+    const isRegistrationRequest = isRegistrationEndpoint(originalRequest?.url || '');
 
     if (status !== 401 || !originalRequest || originalRequest._retry || isRefreshRequest) {
       return Promise.reject(error);
     }
 
-    if (getRegistrationToken()) {
+    // طلبات التسجيل ما إلها علاقة بالـ access/refresh token flow إطلاقًا.
+    // إذا فشلت بـ 401، هذا يعني إنه registration token غير صالح/منتهي،
+    // ومحاولة عمل refresh لأكسس توكن عادي مالها معنى هون.
+    if (isRegistrationRequest || getRegistrationToken()) {
       return Promise.reject(error);
     }
 
