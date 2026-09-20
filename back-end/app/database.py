@@ -14,7 +14,10 @@ DB_NAME = os.getenv("DATABASE_NAME")
 DB_SSLMODE = os.getenv("DATABASE_SSLMODE", "")
 
 _base_url = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-DATABASE_URL = f"{_base_url}?sslmode={DB_SSLMODE}" if DB_SSLMODE else _base_url
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://postgres:secret123@localhost:5432/my_fastapi_db",
+)
 
 engine = create_engine(DATABASE_URL)
 

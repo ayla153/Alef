@@ -38,7 +38,12 @@ print(Base.metadata.tables.keys())
 async def lifespan(app: FastAPI):
     if not settings.JWT_SECRET_KEY:
         raise RuntimeError("JWT_SECRET_KEY environment variable must be set for authentication.")
+    Base.metadata.create_all(bind=engine)
     upgrade_database_if_needed(engine)
+    from app.database import LocalSession
+    from app.seed_data import seed_data
+    with LocalSession() as db:
+        seed_data(db)
     yield
 
 
